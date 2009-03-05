@@ -1,0 +1,86 @@
+body{
+	font-family : Arial,Helvetica,sans-serif;
+	font-size:12px;
+}
+#send_raw ul li input.send{
+	width:100px;
+}
+#send_raw ul li input{
+	width:400Px;
+	float:left;
+}
+#send_raw ul li span{
+	display:block;
+	float:left;
+	width:200px;
+}
+#send_raw ul li{
+	height:25px;
+	line-height:25px;
+}
+#send_raw ul{
+	list-style-type:none;
+}
+#ape_debug_list li.out{
+	background-image:url('./out.png');
+}
+#ape_debug_list li.in{
+	background-image:url('./in.png');
+}
+#ape_debug_list span.type_Info{
+	background-image:url('./info.png');
+}
+#ape_debug_list span.type_Error,
+#ape_debug_list span.type_Raw.Error{
+	background-image:url('./error.png');
+}
+#ape_debug_list span.type_Request,
+#ape_debug_list span.type_Raw{
+	background-image:url('./request.png');
+}
+#ape_debug_list li.out,
+#ape_debug_list li.in,
+#ape_debug_list li,
+#ape_debug_list span.type_Info,
+#ape_debug_list span.type_Error,
+#ape_debug_list span.type_Request,
+#ape_debug_list span.type_Raw{
+	background-repeat:no-repeat;
+	padding-left:20px;
+	line-height:20px;
+}
+#ape_debug_list li.new{
+	background-color:#f7e6aa;
+	color:#000000;
+	font-weight:bold;
+}
+#ape_debug_list{
+	overflow:auto;
+	height:230px;
+	overflow-x:hidden;
+	list-style-type:none;
+	padding-left:0px;
+	margin:0;
+}
+
+#ape_debug_list ul{
+	list-style-type:circle;
+}
+#ape_debug input{
+	border:1Px solid #000000;
+	background:#FFFFFF;
+	color:#000000;
+	font-weight:bold;
+	margin-right:15px;
+}
+#ape_debug{
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:100%;
+	height:400px;
+/*	background:url('./bg_alpha.png'); */
+	background:#292929;
+	color:#FFFFFF;
+	font-size:13px;
+}

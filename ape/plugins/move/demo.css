@@ -1,0 +1,75 @@
+#ape_master_container{
+	width:685px;
+	height:385px;
+	background:url('bg.png');
+	border:8px solid #4c4c4c;
+}
+#sendbox_input{
+	border:none;
+	font-weight:bold;
+	width:540px;
+	margin-right:10px;
+	border:none;
+	background:none;
+	color:#FFF;
+}
+.demo_box_container .user{
+	width:100%;
+	height:100%;
+}
+.demo_box_container{
+	width:36px;
+	height:36px;
+	position:absolute;
+}
+.demo_box_container .user{
+	background:url('round.png');
+	-background-image:none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod=crop src='/ACE_client_new/trunk/ape/plugins/move/round.png');
+}
+.demo_box_container span{
+	color:white;
+	font-size:14px;
+}
+#ape_sendbox_container{
+	background:url('bottom.png');
+	width:686px;
+	height:49px;
+	margin-top:-8px;
+	color:#FFF;
+	font-weight:bold;
+	padding-left:15px;
+	line-height:51px;
+	font-size:13px;
+}
+#sendbox_button{
+	color:#d58025;
+	width:70px;
+	height:35px;
+	background:none;
+	font-weight:bold;
+	border:none;
+}
+.ape_message_container{
+	width:244px;	
+	margin-left:21px;
+	margin-top:-77px;
+}
+.msg_top{
+	background:url('./msg_top.png') no-repeat;
+	padding-top:5px;
+	height:17px;
+}
+.ape_message{
+	background:url('./msg_mid.png') repeat-y;
+	padding-left:24px;
+	overflow:hidden;
+	font-size:17px;
+	line-height:17px;
+	font-family:Verdana;
+	color:#5f5f60;
+}
+.msg_bot{
+	background:url('./msg_bot.png') repeat-y;
+	height:9px;
+}

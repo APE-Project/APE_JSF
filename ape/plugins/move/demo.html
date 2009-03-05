@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en">
+<head>	
+	<link rel="stylesheet" type="text/css" href="../debugger/debugger.css" media="screen" title="Normal" />
+	<link rel="stylesheet" type="text/css" href="./demo.css" media="screen" title="Normal" />
+</head>
+	<body>
+	<script type="text/javaScript" src="../../mootools.js"></script>
+	<script type="text/javaScript" src="../../client_moo.js"></script>
+	<script type="text/javaScript" src="../../ape_bootstrap.js"></script>
+	<script type="text/javaScript" src="./move.js"></script>
+	<script type="text/javaScript">
+		function rand_chars(){
+			 var keylist="abcdefghijklmnopqrstuvwxyz123456789"
+			 var temp=''
+			 var plength=5;
+			 for (i=0;i<plength;i++){
+				 temp+=keylist.charAt(Math.floor(Math.random()*keylist.length))
+			}
+			return temp;
+		}
+		var base_url = 'http://www.ape-project.org/ACE_client_new/trunk/ape';
+		ape_bootstrap({
+			'domain':'ape-project.org',
+			'server':'ape.ape-project.org',
+			'identifier':'movedemo',
+			'channel':'move',
+			'complete':function(ape){
+				var Ape_c = new Ape_move(ape);
+				ape.start([rand_chars()]);
+			},
+			'scripts': [
+					base_url+'/mootools.js',
+					base_url+'/core.js',
+					base_url+'/i18n/fr.js',
+					base_url+'/events.js',
+					base_url+'/pipe.js',
+					base_url+'/pipe_multi.js',
+					base_url+'/pipe_single.js',
+					base_url+'/utils.js',
+					base_url+'/session.js'
+				]
+		});
+	</script>
+		<div style="margin-top:250px"><div>
+		<div id="ape_master_container"></div>
+	</body>
+</html>

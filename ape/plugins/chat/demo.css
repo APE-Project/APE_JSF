@@ -1,0 +1,143 @@
+#ape_message_container a{
+	outline:none;
+}
+#more{
+	width:699px;
+}
+#ape_container{
+	width:699px;
+	margin-top:25px;
+	padding-top:25px;
+	height:385px;
+	border:1px solid #bbbdbe;
+       border-right:0px;
+	background:url('./demochat_top.png') repeat-x;
+}
+#ape_sendbox_container{
+	width:699px;
+}
+#ape_sendbox{
+	width:100%;
+	height:38px;
+	background:url('./sendboxbg.png') no-repeat;
+}
+#tabbox_container{
+	width:525px;
+	position:absolute;
+	margin-top:-24px;
+	margin-left:10px;
+	margin:-25px 0 0 5px;
+}
+#sendbox_input{
+	background:none;
+	border:none;
+	float:left;
+	margin-left:12px;
+	margin-top:11px;
+	width:607px;
+}
+#sendbox_button{
+	border:none;
+	width:72px;
+	padding-top:5px;
+	height:38px;
+	background:url('./sendbutton.png') no-repeat;
+	float:right;
+	display:block;
+}
+.ape_users_list{
+	background:url('./users_bg.png') repeat-x right #656f7c;
+	margin-left:4px;
+	width:165px;
+	height:380px;
+	overflow:auto;
+	padding-top:5px;
+}
+.users_right{
+	float:right;
+	width:170px;
+	background:url('./users_left.png') repeat-y top left;
+	height:385px;
+}
+.ape_users_list .ape_user{
+	width:133px;
+	line-height:25px;
+	background:url('./userback_users.png') no-repeat;
+	height:25px;
+	padding-left:15px;
+	font-weight:bold;
+	font-size:13px;
+	margin-bottom:5px;
+	margin-left:10px;
+}
+.ape_users_list .ape_user a{
+	color:#000 !important;
+	text-decoration:none;
+}
+.ape_none{
+	display:none;
+}
+.ape_buffer{
+	background:url('./buffer_bg.png') repeat-x #eef1f7;
+	width:100%;
+	height:385px;
+}
+.ape_messages{
+	float:left;
+	height:358px;
+	overflow:auto;
+	width:528px;
+}
+.msg_top{
+	background:url('./msg_top.png') no-repeat;
+	padding-top:5px;
+}
+.ape_message{
+	padding-left:18px;
+	background:url('./msg_mid.png') 0 5px repeat-y;
+	color:#646465;
+	overflow:hidden;
+}
+.ape_message_container .ape_user{
+	margin-bottom:4px;
+}
+.ape_message_container .ape_user a{
+	color:#656f7c;
+	font-size:13px;
+	font-weight:bold;
+	text-decoration:none;
+}
+.msg_bot{
+	height:8px;
+	background:url('./msg_bot.png');
+}
+.ape_message_container{
+	width:479px;
+	margin-top:5px;
+	margin-left:10px;
+}
+.ape_tab a{
+	color:#545454;
+	font-size:12px;
+	text-decoration:none;
+}
+.ape_tab.new_message{
+	font-weight:bold;
+}
+.ape_tab{
+	float:left;
+	background:#e9ebed;
+	border:1px solid #bbbdbe;
+	border-bottom:none;
+	margin-top:1px;
+	height:23px;
+	line-height:20px;
+	padding:0 8px;
+
+}
+
+.ape_tab.unactive{
+	border-bottom:0px;
+	margin-top:2px;
+	height:21px;
+}

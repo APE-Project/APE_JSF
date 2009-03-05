@@ -1,0 +1,160 @@
+/***
+ * Name : Ape debugger
+ * Description : Ape debugger is a dirty simple debuger for ape, it allow you to send raw or exec ape function
+ * Version : 0.1
+ */
+var Ape_dbg = new Class({
+	Extends: Ape_core,
+	initialize: function(options){
+		/*
+		window.addEvent('keypress',function(ev){
+			var key = ev.code;
+			if(key==339 || key==178){
+				this.toggle_debug_window();
+			}
+		}.bind(this));
+		*/
+		this.open_debug_window();
+		this.parent(options);
+		this.write_debug('Ape options is : '+dump(this.options),'info');
+	},
+	write_debug: function(msg,type,way){
+		if(this.options.debug){
+			type = type || 'Error';
+			way = way || 'out';
+			var colorize = '';
+			if(type!='Info' || way=='in'){
+				//Remove message tagged as new
+				this.ape_debug_list.getElements('li').each(function(el){
+					el.removeClass('new');
+				});
+				colorize = 'new';
+			}
+
+			var li = new Element('li',{'class':type+' '+way+' '+colorize});
+			var debug_title = new Element('span',{'class':'type_'+type});
+			var debug_msg = new Element('span');
+
+			debug_title.appendText(type+' : ');
+			debug_msg.set('html',msg);
+
+			debug_title.injectInside(li);
+			debug_msg.injectInside(li);
+			li.injectTop(this.ape_debug_list);
+		}
+	},
+	send_raw: function(raw,param){
+		if(raw!=''){
+			param = param.replace(/:sesid:/g,this.get_sessid());
+			param = param.replace(/:s:/g,this.get_sessid());
+			this.request(raw,param);
+		}
+	},
+	request: function(raw,param){
+		this.parent(raw,param);
+		var query_string = raw;
+		if($type(param)=='array'){
+			query_string = query_string+'&'+param.join('&');
+		}else if($type(param)=='string' && param!=''){
+			query_string = query_string+'&'+param;
+		}
+		if(this.options.firebug){
+			console.info('Sending raw',raw,param);
+		}
+		this.write_debug('Sending raw : '+query_string,'Request','out');
+	},
+	toggle_debug_window: function(){
+		var coords = $('ape_debug').getCoordinates()
+		if(coords.top>=0){
+			$('ape_debug').setStyle('top',coords.height*-1+'px');
+		}else{
+			$('ape_debug').setStyle('top','0px');
+		}
+	},
+	open_debug_window: function(){
+		var dbg_div = new Element('div',{'id':'ape_debug'});
+		var container = document.body;
+		if(this.options.iframe){
+			container=window.parent.document.body;
+		}
+		dbg_div.injectInside(container);
+		new Element('h1').appendText('Debug').injectInside(dbg_div);
+
+		var send_raw_div = new Element('div',{'id':'send_raw'});
+		var send_raw_ul = new Element('ul')
+
+		send_raw_div.injectInside(dbg_div);
+		send_raw_ul.injectInside(send_raw_div);
+
+		var tmp = new Element('li').injectInside(send_raw_ul);
+		new Element('span').appendText('Raw : ').injectInside(tmp);
+		this.input_raw = new Element('input',{'id':'raw'}).injectInside(tmp);
+		tmp = new Element('li').injectInside(send_raw_ul);
+		new Element('span').appendText('Param (separated by &) : ').injectInside(tmp);
+		this.input_param = new Element('input',{'id':'param'}).injectInside(tmp);
+		tmp = new Element('li').injectInside(send_raw_ul);
+		new Element('span').appendText('Exec ape function').injectInside(tmp);
+		this.input_exec = new Element('input',{'id':'function'}).injectInside(tmp);
+
+		new Element('input',{'value':'Send','type':'submit'}).addEvent('click',function(ev){
+			var fn_value = this.input_exec.get('value');
+			if(fn_value!=''){
+				eval('this.'+fn_value);
+				this.input_exec.set('');
+			}else{
+				this.send_raw(this.input_raw.value,this.input_param.value);
+			}
+		}.bind(this)).injectInside(send_raw_div);
+
+		new Element('input',{'value':'Send quit raw','type':'submit'}).addEvent('click',function(ev){
+			this.send_raw('QUIT',':s:');
+		}.bind(this)).injectInside(send_raw_div);
+
+		new Element('input',{'value':'Send check raw','type':'submit'}).addEvent('click',function(ev){
+			this.send_raw('CHECK',':s:');
+		}.bind(this)).injectInside(send_raw_div);
+
+		this.ape_debug_list = new Element('ul',{'id':'ape_debug_list'}).injectInside(dbg_div);
+	},
+	call_raw: function(raw){
+			if(raw.error){
+				var type = 'Raw Error';
+			}else{
+				var type = 'Raw';
+			}
+//			this.write_debug('Raw received, calling function : raw_'+raw.raw.toLowerCase()+'() <br/>Information received : '+dump(raw),type,'in');
+			try{
+				eval('this.raw_'+raw.raw.toLowerCase()).run(raw,this);
+			}catch(e){
+				this.write_debug('can not exec function');
+			}
+	},
+	restore_session: function(session){
+		this.parent(session);
+		this.write_debug('Session restored :) ','Info');
+	},
+	save_session:function(){
+		this.parent();
+	},
+	parse_response:function(rep){
+		if(rep!=null){
+			if(this.options.firebug){
+				console.group('Receiving raws, starting timer');
+				console.time('Raw timer')
+				rep.each(function(el){
+					console.log(el);
+				});
+			}
+			if(rep=='CLOSE\n'){
+				this.write_debug('Received CLOSE raw','Info','in');
+			}else if(rep=='QUIT\n'){
+				this.write_debug('Received QUIT raw. User left APE.','Info','in');
+			}
+			if(this.options.firebug){
+				console.timeEnd('Raw timer');
+				console.groupEnd();
+			}
+		}
+		this.parent(rep);
+	}
+});

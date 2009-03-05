@@ -1,0 +1,5 @@
+ENGLISH VERSION : 
+To use the debugger just include debugger.js after all plugins, else your application will not work as expected
+
+FRENCH VERSION : 
+Pour utiliser le debugger il vous suffit d'inclure le fichier debugger.js après tous les plugins, sinon votre application ne fonctionnera pas comme attendu
