@@ -26,10 +26,9 @@ var Ape_core = new Class({
 	initialize: function(options){
 		this.setOptions(options);
 		this.pipes = new $H; 
-		this.raw_handlers = new $H;
 		this.sessid = null;
 		this.pubid = null;
-		this.timer;
+		this.timer = null;
 		this.add_event('raw_login',this.raw_login);
 		this.add_event('raw_err',this.raw_err);
 		options.complete(this);
@@ -71,7 +70,7 @@ var Ape_core = new Class({
 	*/
 	pooler: function(){
 		//Check if another request might not running and do not need to be closed
-		//Note : pool time is decrease by 1s beacuse js periodical is not verry accurate
+		//Note : pool time is decrease of 2s beacuse js periodical is not verry accurate
 		if($time()-this.last_action_ut>=this.options.pool_time-20000){
 			this.check();
 		}
@@ -111,7 +110,13 @@ var Ape_core = new Class({
 			query_string +='&'+param.join('&');
 		}
 		var time = $time();
-		this.current_request = new Request.JSON({'async':options.async,method:'post',url:'http://'+this.options.frequency+'.'+this.options.server+'/?q',link:'cancel'}).addEvent('complete',function(rep){if(rep){this.parse_response(rep)}}.bind(this));
+		this.current_request = new Request.JSON({	
+								'async':options.async,
+								'method':'post',
+								'url':'http://'+this.options.frequency+'.'+this.options.server+'/?q',
+								'link':'cancel',
+								'onComplete':function(rep){if(rep){this.parse_response(rep)}}.bind(this)
+							});
 		this.current_request.send(query_string+'&'+time);
 		this.last_action_ut = time;
 		if(!options.event){
@@ -119,7 +124,7 @@ var Ape_core = new Class({
 		}
 	},
 	/**
-	* Parse raw received
+	* Parse received raws
 	*/
 	parse_response: function(raws){
 		if(raws!='CLOSE\n' && raws!='QUIT\n'){
@@ -147,9 +152,9 @@ var Ape_core = new Class({
 			if(!this.pipes.has(pipe_id)){
 				var pipe;
 				if(raw.datas.pipe.casttype=='uni'){
-					pipe = new Ape_pipe_single(this,raw.datas); 
+					pipe = this.new_pipe_single(raw.datas);
 				}else{
-					pipe = new Ape_pipe_multi(this,raw.datas); 
+					pipe = this.new_pipe_multi(raw.datas);
 				}
 			}else{
 				pipe = this.pipes.get(pipe_id);
@@ -160,19 +165,35 @@ var Ape_core = new Class({
 		}
 		this.fire_event('raw_'+raw.raw.toLowerCase(),args);
 	},
+	/***
+	 * Create a new single pipe
+	 */
 	new_pipe_single: function(options){
 		return new Ape_pipe_single(this,options);
 	},
+	/***
+	 * Create a new multi pipe
+	 */
 	new_pipe_multi: function(options){
 		return new Ape_pipe_multi(this,options);
 	},
+	/***
+	 * Private function
+	 * add a pipe to the core pipes hash
+	 */
 	add_pipe: function(pubid,pipe){
 		var ret = this.pipes.set(pubid,pipe); 
 		return ret;
 	},
+	/***
+	 * Return a pipe identified by pubid
+	 */
 	get_pipe: function(pubid){
 		return this.pipes.get(pubid);
 	},
+	/***
+	 * Remove a pipe from the pipe hash
+	 */
 	del_pipe: function(pubid){
 		var pipe = this.pipes.erase(pubid);
 		this.fire_event('pipe_deleted',pipe);
@@ -194,11 +215,12 @@ var Ape_core = new Class({
 	},
 	/***
 	 * Left a channel
-	 * @param	string	buffer name
+	 * @param	string	pipe name
 	 */
-	left: function(buffer_name){
-		this.request('LEFT',[this.get_sessid(),buffer_name]);
-		this.buffers.del('chan_'+buffer_name);
+	left: function(pubid){
+		var pipe = this.get_pipe(pubid);
+		this.request('LEFT',[this.get_sessid(),pipe.name]);
+		this.del_pipe(pubid);
 	},
 	/****
 	* Send connect request to server
@@ -214,47 +236,41 @@ var Ape_core = new Class({
 	raw_err: function(err){
 		switch(err.datas.value){
 			case '001' : 
-				this.inform(_('Wrong parameter count'));
+				this.inform('Wrong parameter count');
 				break;
 			case '002' : 
-				this.inform(_('Bad raw'));
+				this.inform('Bad raw');
 				break;
 			case '003' : 
-				this.clear_session(true);
-				this.inform(_('Nick aleray in use'));
+				this.clear_session();
+				this.inform('Nick aleray in use');
 				break;
 			case '004' :
-				this.clear_session(true);
-				this.inform(_('Incorrect sessid'));
+				this.clear_session();
+				this.inform('Incorrect sessid');
 				break;
 			case '005' :
-				this.inform(_('Incorrect nick'));
-				break;
-			case '006' : 
-				this.inform(_('Bad login/password'));
+				this.inform('Incorrect nick');
 				break;
 			case 'UNKNOWN_PIPE' : 
-				this.inform(_('Uknow pipe'));
-				break;
-			case 'USER_PROTECTED' : 
-				this.inform(_('User is proteced...'));
+				this.inform('Uknow pipe');
 				break;
 			default :
 				this.inform(err.datas.value)
 				break;
 		}
 	},
+	/***
+	 * Return current sessid
+	 */
 	get_sessid:function(){
 		return this.sessid;
 	},
+	/***
+	 * Set current sessid
+	 */
 	set_sessid: function(sessid){
 		this.sessid = sessid;
-	},
-	get_pubid: function(){
-		return this.pubid;
-	},
-	set_pubid: function(pubid){
-		this.pubid = pubid;
 	},
 	/***
 	 * Store a session variable on ape
@@ -285,7 +301,6 @@ var Ape_core = new Class({
 	*/
 	raw_login: function(param){
 		this.set_sessid(param.datas.sessid);
-		this.set_pubid(param.datas.pubid);
 		this.user = param.datas.user;
 		if(this.options.channel){
 			this.join(this.options.channel);
@@ -293,6 +308,9 @@ var Ape_core = new Class({
 		this.fire_event('initialized');
 		this.start_pooler();
 	},
+	/***
+	 * WTF?
+	 */
 	raw_receive: function(param){
 		this.buffers.get(param.buffer).receive(param);
 	},

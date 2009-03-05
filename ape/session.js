@@ -4,11 +4,11 @@ var Ape_core = new Class({
 		this.sessions = {};
 		this.parent(options);
 		//Saving session when page unload
-		window.addEvent('unload',function(){
-			//Save frequency of ape instance in cookie
-			Cookie.write('Ape_restore',this.options.frequency,{domain:this.options.domain});
+		window.addEvent('beforeunload',function(){
 			//Saving session without tagging it and make it synchronous
 			this.save_session(false,false);
+			//Save frequency of ape instance in cookie
+			Cookie.write('Ape_restore',this.options.frequency,{domain:this.options.domain});
 		}.bind(this));
 		this.add_event('initialized',this.initialized);
 		this.add_event('raw_sessions',this.restore_session);
@@ -28,14 +28,22 @@ var Ape_core = new Class({
 		var tmp = this.pipes.getValues();
 		this.sessions.pipes = new Array();
 		this.sessions.sessid = this.get_sessid();
-		this.sessions.pubid = this.get_pubid();
 		this.sessions.user = this.user;
 		this.pipes.each(function(pipe){
+			//fire event on each pipe
 			this.fire_event('save_pipe',pipe);
 			this.sessions.pipes.push(pipe.sessions);
 		}.bind(this));
 		this.save_cookie();
 		this.set_session('param',JSON.encode(this.sessions),{'tag':tag,'async':async});
+	},
+	request: function(raw,param,options){
+		if(raw!='CHECK'){
+			//remove restore cookie if informations is exchanged with server
+			console.log('cookie removed');
+			Cookie.dispose('Ape_restore',{domain:this.options.domain});
+		}
+		this.parent(raw,param,options);
 	},
 	initialized :function(){
 		this.create_cookie();
@@ -43,6 +51,7 @@ var Ape_core = new Class({
 		Cookie.dispose('Ape_restore',{domain:this.options.domain});
 	},
 	connect:function(options){
+		console.log('connect');
 		var cookie = this.init_cookie();
 		if(!cookie){//No cookie defined start a new connection
 			this.parent(options);
@@ -73,16 +82,21 @@ var Ape_core = new Class({
 		this.fire_event('end_restore',sessions);
 	},
 	save_cookie: function(){
+		//Update frequency
+		var tmp = JSON.decode(Cookie.read('Ape_cookie',{domain:this.options.domain}));
+		if(tmp && tmp.frequency>this.cookie.frequency) this.cookie.frequency = tmp.frequency;
+
+		//Save it
 		Cookie.write('Ape_cookie',JSON.encode(this.cookie),{domain:this.options.domain});
 	},
 	clear_session: function(){
 		this.parent();
-		window.removeEvent('unload');
+		window.removeEvent('beforeunload');
 		this.remove_cookie();
 	},
 	remove_cookie: function(){
-//		Cookie.dispose('Ape_cookie',{domain:this.options.domain});
-//		Cookie.dispose('Ape_restore',{domain:this.options.domain});
+		Cookie.dispose('Ape_cookie',{domain:this.options.domain});
+		Cookie.dispose('Ape_restore',{domain:this.options.domain});
 	},
 	/***
 	 * Init cookie
@@ -90,24 +104,26 @@ var Ape_core = new Class({
 	 */
 	init_cookie: function(){
 		var tmp = Cookie.read('Ape_cookie');
+		console.log('Init cookie');
 		if(tmp){
+			console.log('Ape cookie found');
 			tmp = JSON.decode(tmp);
+			console.log(tmp);
 			//Get the instance of ape in cookie
 			for(var i = 0;i<tmp.instance.length;i++){
 				if(tmp.instance[i].identifier==this.options.identifier){
-					//Increment frequency
+					console.log('identifier found');
 					this.set_sessid(tmp.instance[i].sessid);
-					this.set_pubid(tmp.instance[i].sessid);
-					if(!Cookie.read('Ape_restore')){
 						tmp.frequency = tmp.frequency.toInt()+1;
-					}
 					this.cookie = tmp;
 					return true;
 				}
 			}
 			//no instance found for the identifier 
+			console.log('no identifier found');
 			return false;
 		}else{
+			console.log('No ape cookie found');
 			this.cookie = null;
 			return false;
 		}
@@ -121,7 +137,7 @@ var Ape_core = new Class({
 			tmp = {};
 			tmp.frequency = 1;
 			tmp.instance  = new Array();
-			tmp.instance.push({'identifier':this.options.identifier,'sessid':this.get_sessid(),'pubid':this.get_pubid()});
+			tmp.instance.push({'identifier':this.options.identifier,'sessid':this.get_sessid()});
 			this.cookie = tmp;
 		}
 	}

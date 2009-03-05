@@ -19,6 +19,15 @@ var Ape_chat = new Class({
 		this.add_event('save_pipe', this.save_pipe);
 		this.add_event('end_restore',this.restore_session);
 		this.add_event('save_session',this.save_session);
+		this.add_event('raw_err',this.raw_err);
+	},
+	start: function(){
+		this._core.start(this.options.name);
+	},
+	raw_err: function(raw){
+		if(raw.datas.value=='004'){
+			this.reset();
+		}
 	},
 	toggle_logging: function(){
 		if(this.logging) this.logging = false;
@@ -59,26 +68,26 @@ var Ape_chat = new Class({
 		this.scroll_msg_box(this.current_pipe);
 		return this.current_pipe;
 	},
-	raw_send: function(buffer,sessid,pubid,message){
-		this.write_message(buffer,message,this._core.user);
+	raw_send: function(pipe,sessid,pubid,message){
+		this.write_message(pipe,message,this._core.user);
 	},
-	raw_data: function(buffer,raw){
-		this.write_message(buffer,raw.datas.msg,raw.datas.sender);
+	raw_data: function(pipe,raw){
+		this.write_message(pipe,raw.datas.msg,raw.datas.sender);
 	},
 	parse_message: function(message){
 		return unescape(message);
 	},
-	notify: function(buffer){
-		buffer.els.tab.addClass('new_message');
+	notify: function(pipe){
+		pipe.els.tab.addClass('new_message');
 	},
-	scroll_msg_box: function(buffer){
-		var scrollSize = buffer.els.message.getScrollSize();
-		buffer.els.message.scrollTo(0,scrollSize.y);
+	scroll_msg_box: function(pipe){
+		var scrollSize = pipe.els.message.getScrollSize();
+		pipe.els.message.scrollTo(0,scrollSize.y);
 	},
-	write_message: function(buffer,message,sender){
+	write_message: function(pipe,message,sender){
 		//Append message to last message
-		if(buffer.last_msg && buffer.last_msg.sender.properties.name == sender.properties.name){
-			var cnt = buffer.last_msg.el;
+		if(pipe.last_msg && pipe.last_msg.sender.properties.name == sender.properties.name){
+			var cnt = pipe.last_msg.el;
 		}else{//Create new one
 			//Create message container
 			var msg = new Element('div',{'class':'ape_message_container'});
@@ -87,29 +96,29 @@ var Ape_chat = new Class({
 			       new Element('div',{'class':'ape_user','text':sender.properties.name}).inject(msg,'top');
 			}
 			new Element('div',{'class':'msg_bot'}).inject(msg);
-			msg.inject(buffer.els.message);
+			msg.inject(pipe.els.message);
 		}
 		new Element('div',{
 			'text':this.parse_message(message),
 			'class':'ape_message'
 		}).inject(cnt);
 		//Scroll message box
-		this.scroll_msg_box(buffer);
+		this.scroll_msg_box(pipe);
 		//Add message to logs
-		if(buffer.logs.length>=this.options.logs_limit){
-			buffer.logs.shift();
+		if(pipe.logs.length>=this.options.logs_limit){
+			pipe.logs.shift();
 		}
-		buffer.logs.push({'message':message,'sender':sender});
-		buffer.last_msg = {sender:sender,el:cnt};
+		pipe.logs.push({'message':message,'sender':sender});
+		pipe.last_msg = {sender:sender,el:cnt};
 		//notify 
-		if(this.get_current_pipe().pipe.pubid!=buffer.pipe.pubid){
-			this.notify(buffer);
+		if(this.get_current_pipe().get_pubid()!=pipe.get_pubid()){
+			this.notify(pubid);
 		}
 	},
-	create_user: function(buffer,user){
+	create_user: function(pubid,user){
 		user.el = new Element('div',{
 			'class':'ape_user'
-			}).inject(buffer.els.users);
+			}).inject(pubid.els.users);
 		new Element('a',{
 				'text':user.properties.name,
 				'href':'javascript:void(0)',
@@ -125,61 +134,60 @@ var Ape_chat = new Class({
 				}
 			}).inject(user.el,'inside');
 	},
-	delete_user: function(buffer,user){
+	delete_user: function(pubid,user){
 		user.el.dispose();
 	},
-	create_pipe: function(buffer,options){
-		//Define some buffer variables to handle logging and buffer elements
-		buffer.els = {};
-		buffer.logs = new Array();
+	create_pipe: function(pipe,options){
+		//Define some pipe variables to handle logging and pipe elements
+		pipe.els = {};
+		pipe.logs = new Array();
 		//Container
-		buffer.els.container = new Element('div',{
-							'class':'ape_buffer ape_none '
-						}).inject(this.els.buffer_container);
+		pipe.els.container = new Element('div',{
+							'class':'ape_pipe ape_none '
+						}).inject(this.els.pipe_container);
 		//Message container
-		buffer.els.message = new Element('div',{'class':'ape_messages'}).inject(buffer.els.container,'inside');
+		pipe.els.message = new Element('div',{'class':'ape_messages'}).inject(pipe.els.container,'inside');
 
 		var tmp = new Element('div');
-		//If buffer has a users list 
-		if(buffer.users){
-			buffer.els.users_right = new Element('div',{
+		//If pipe has a users list 
+		if(pipe.users){
+			pipe.els.users_right = new Element('div',{
 				'class':'users_right'
-			}).inject(buffer.els.container);
+			}).inject(pipe.els.container);
 
-			buffer.els.users = new Element('div',{
+			pipe.els.users = new Element('div',{
 			                                 'class':'ape_users_list'
-		                                 }).inject(buffer.els.users_right);;
+		                                 }).inject(pipe.els.users_right);;
 		}
 		//Add tab
-		buffer.els.tab = new Element('div',{
+		pipe.els.tab = new Element('div',{
 			'class':'ape_tab unactive'
 		}).inject(this.els.tabs);
 		var tmp = new Element('a',{
-				'text':buffer.name,
+				'text':pipe.name,
 				'href':'javascript:void(0)',
 				'events':{
-					'click':function(buffer){
-							this.set_current_pipe(buffer.get_pubid())
-						}.bind(this,[buffer])
+					'click':function(pipe){
+							this.set_current_pipe(pipe.get_pubid())
+						}.bind(this,[pipe])
 					}
-				}).inject(buffer.els.tab);
+				}).inject(pipe.els.tab);
 		//Hide other pipe and show this one
-		this.set_current_pipe(buffer.get_pubid());
+		this.set_current_pipe(pipe.get_pubid());
 		//If logs, lets create it
 		if(options.logs && options.logs.length>0){
 			var logs = options.logs;
 			for(var i = 0; i<logs.length; i++){
-				this.write_message(buffer,logs[i].message,logs[i].sender);
+				this.write_message(pipe,logs[i].message,logs[i].sender);
 			}
 		}
 	},
 	create_chat: function(){
 		this.els.container = $('ape_master_container');
-		this.els.buffer_container = new Element('div',{'id':'ape_container'});
-		this.els.buffer_container.inject(this.els.container);
+		this.els.pipe_container = new Element('div',{'id':'ape_container'});
+		this.els.pipe_container.inject(this.els.container);
 
 		this.els.more = new Element('div',{'id':'more'}).inject(this.els.container,'after');
-
 		this.els.tabs = new Element('div',{'id':'tabbox_container'}).inject(this.els.more);
 		this.els.sendbox_container = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);
 
@@ -214,6 +222,13 @@ var Ape_chat = new Class({
 								}.bind(this)
 							}
 						}).inject(this.els.send_box);
+	},
+	reset: function(){
+		this._core.clear_session();
+		this.els.pipe_container.destroy();
+		this.els.more.destroy();
+		this.initialize(this._core,this.options);
+		this._core.initialize(this._core.options);
 	},
 	restore_session: function(sessions){
 		this.set_current_pipe(sessions.current_pipe);

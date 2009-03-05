@@ -22,8 +22,10 @@ function ape_bootstrap(config){
 	}
 	var restore = ape_cookie('Ape_restore')
 	if(restore){
+		console.log('boostrap restore cookie');
 		config.frequency = restore;
 	}
+	console.log('frequency',config.frequency);
 	document.domain = config.domain;
 	var frame = document.createElement('iframe');
 	frame.setAttribute('id','ape_frequency');

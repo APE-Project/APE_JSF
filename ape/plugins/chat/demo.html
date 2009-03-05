@@ -19,15 +19,14 @@
 			}
 			return temp;
 		}
-		var base_url = 'http://www.ape-project.org/ACE_client_new/trunk/ape';
+		var base_url = 'http://www.ape-project.org/svn/ape/APE_JSF/ape/';
 		ape_bootstrap({
 			'domain':'ape-project.org',
 			'server':'ape.ape-project.org',
 			'identifier':'chatdemo',
 			'channel':'test',
 			'complete':function(ape){
-				var Ape_c = new Ape_chat(ape);
-				ape.start([rand_chars()]);
+				var Ape_c = new Ape_chat(ape,{'name':rand_chars()}).start();
 			},
 			'scripts': [
 					base_url+'/mootools.js',
