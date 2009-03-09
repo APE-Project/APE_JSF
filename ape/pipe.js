@@ -5,8 +5,8 @@ var Ape_pipe  = new Class({
 		this._core = core;
 		this._core.add_pipe(this.get_pubid(),this);
 	},
-	send: function(message){
-		this.request('SEND',[this._core.get_sessid(),this.get_pubid(),escape(message)]);
+	send: function(data){
+		this.request('SEND',[this._core.get_sessid(),this.get_pubid(),escape(data)]);
 	},
 	request: function(raw,param){
 		this._core.request(raw,param,{'event':false});

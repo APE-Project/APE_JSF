@@ -31,7 +31,9 @@ var Ape_core = new Class({
 		this.timer = null;
 		this.add_event('raw_login',this.raw_login);
 		this.add_event('raw_err',this.raw_err);
-		options.complete(this);
+
+		if(options.init) options.init.apply(null,[this]);
+		if(options.complete) options.complete.apply(null,[this]);
 	},
 	/***
 	 * Register an event
@@ -321,9 +323,10 @@ var Ape_core = new Class({
 		this.stop_pooler();
 	}
 });
-if(window.parent.ape_config.init_ape){
+if(window.parent.ape_client.ape_config.init_ape){
 	var Ape;
 	window.addEvent('domready',function(){
-		Ape = new Ape_core(window.parent.ape_config);
+		Ape = new Ape_core(window.parent.ape_client.ape_config);
+		window.parent.Ape_client._core = Ape;
 	});
 }

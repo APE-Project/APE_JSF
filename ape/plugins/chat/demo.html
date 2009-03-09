@@ -20,7 +20,8 @@
 			return temp;
 		}
 		var base_url = 'http://www.ape-project.org/svn/ape/APE_JSF/ape/';
-		ape_bootstrap({
+		var ape_client = new Ape_client();
+		ape_client.load({
 			'domain':'ape-project.org',
 			'server':'ape.ape-project.org',
 			'identifier':'chatdemo',

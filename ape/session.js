@@ -40,7 +40,6 @@ var Ape_core = new Class({
 	request: function(raw,param,options){
 		if(raw!='CHECK'){
 			//remove restore cookie if informations is exchanged with server
-			console.log('cookie removed');
 			Cookie.dispose('Ape_restore',{domain:this.options.domain});
 		}
 		this.parent(raw,param,options);
@@ -51,7 +50,6 @@ var Ape_core = new Class({
 		Cookie.dispose('Ape_restore',{domain:this.options.domain});
 	},
 	connect:function(options){
-		console.log('connect');
 		var cookie = this.init_cookie();
 		if(!cookie){//No cookie defined start a new connection
 			this.parent(options);
@@ -104,15 +102,11 @@ var Ape_core = new Class({
 	 */
 	init_cookie: function(){
 		var tmp = Cookie.read('Ape_cookie');
-		console.log('Init cookie');
 		if(tmp){
-			console.log('Ape cookie found');
 			tmp = JSON.decode(tmp);
-			console.log(tmp);
 			//Get the instance of ape in cookie
 			for(var i = 0;i<tmp.instance.length;i++){
 				if(tmp.instance[i].identifier==this.options.identifier){
-					console.log('identifier found');
 					this.set_sessid(tmp.instance[i].sessid);
 						tmp.frequency = tmp.frequency.toInt()+1;
 					this.cookie = tmp;
@@ -120,10 +114,8 @@ var Ape_core = new Class({
 				}
 			}
 			//no instance found for the identifier 
-			console.log('no identifier found');
 			return false;
 		}else{
-			console.log('No ape cookie found');
 			this.cookie = null;
 			return false;
 		}

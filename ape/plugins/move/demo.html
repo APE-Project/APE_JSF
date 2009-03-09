@@ -19,8 +19,9 @@
 			}
 			return temp;
 		}
-		var base_url = 'http://www.ape-project.org/ACE_client_new/trunk/ape';
-		ape_bootstrap({
+		var base_url = 'http://www.ape-project.org/svn/ape/APE_JSF/ape/';
+		var ape_client = new Ape_client();
+		ape_client.load({
 			'domain':'ape-project.org',
 			'server':'ape.ape-project.org',
 			'identifier':'movedemo',
@@ -38,7 +39,8 @@
 					base_url+'/pipe_multi.js',
 					base_url+'/pipe_single.js',
 					base_url+'/utils.js',
-					base_url+'/session.js'
+					base_url+'/session.js',
+					base_url+'/plugins/debugger/debugger.js'
 				]
 		});
 	</script>

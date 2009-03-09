@@ -112,13 +112,13 @@ var Ape_chat = new Class({
 		pipe.last_msg = {sender:sender,el:cnt};
 		//notify 
 		if(this.get_current_pipe().get_pubid()!=pipe.get_pubid()){
-			this.notify(pubid);
+			this.notify(pipe);
 		}
 	},
-	create_user: function(pubid,user){
+	create_user: function(pipe,user){
 		user.el = new Element('div',{
 			'class':'ape_user'
-			}).inject(pubid.els.users);
+			}).inject(pipe.els.users);
 		new Element('a',{
 				'text':user.properties.name,
 				'href':'javascript:void(0)',
@@ -134,7 +134,7 @@ var Ape_chat = new Class({
 				}
 			}).inject(user.el,'inside');
 	},
-	delete_user: function(pubid,user){
+	delete_user: function(pipe,user){
 		user.el.dispose();
 	},
 	create_pipe: function(pipe,options){
