@@ -7,7 +7,7 @@ String.implement({
 	}
 });
 //Override setInterval to be done outside the frame (there is some issue inside the frame)
-if (!Browser.Engine.trident){
+if (!Browser.Engine.trident && !Browser.Engine.presto){
 	setInterval = function(fn,time){
 		return window.parent.setInterval(fn,time);
 	}

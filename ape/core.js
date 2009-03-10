@@ -29,11 +29,35 @@ var Ape_core = new Class({
 		this.sessid = null;
 		this.pubid = null;
 		this.timer = null;
+
 		this.add_event('raw_login',this.raw_login);
 		this.add_event('raw_err',this.raw_err);
 
+		this.add_event('err_003',this.clear_session);
+		this.add_event('err_004',this.clear_session);
+		this.fire_event('loaded',this);
+
+		if(Browser.Engine.presto){
+			this.watch_var_changed = false;
+			this.watch_var.periodical(10,this);
+		}
+
 		if(options.init) options.init.apply(null,[this]);
 		if(options.complete) options.complete.apply(null,[this]);
+
+	},
+	/****
+	 * This method is only used by opera.
+	 * Opera have a bug, when request are sent trought user action (ex : a click), opera throw a security violation when trying to make a XHR.
+	 * The only way is to set a class var and watch when this var change
+	 */
+	watch_var: function(){
+		if(this.watch_var_changed){
+			this.watch_var_changed = false;
+			if(!this.watch_var_cnt[2]) this.watch_var_cnt[2]= {};
+			this.watch_var_cnt[2].no_watch = true;
+			this.request.run(this.watch_var_cnt,this);
+		}
 	},
 	/***
 	 * Register an event
@@ -95,6 +119,11 @@ var Ape_core = new Class({
 	 * @param Mixed Array||String||Object Lorsque il y a plusieurs élement en paramètre donné un tableau, quand il n'y en a qu'un une String est accepté
 	 */
 	request: function(raw,param,options){
+		if(Browser.Engine.presto && options && !options.no_watch){
+			this.watch_var_changed = true;
+			this.watch_var_cnt = [raw,param,options];
+			return;
+		}
 		if(!options) options = {};
 		if(!options.event) options.event = true;
 		if(!$type(options.async)) options.async = true;
@@ -119,6 +148,7 @@ var Ape_core = new Class({
 								'link':'cancel',
 								'onComplete':function(rep){if(rep){this.parse_response(rep)}}.bind(this)
 							});
+		document.domain = this.options.domain;
 		this.current_request.send(query_string+'&'+time);
 		this.last_action_ut = time;
 		if(!options.event){
@@ -236,31 +266,7 @@ var Ape_core = new Class({
 	* Raw : Getion des érreurs
 	*/
 	raw_err: function(err){
-		switch(err.datas.value){
-			case '001' : 
-				this.inform('Wrong parameter count');
-				break;
-			case '002' : 
-				this.inform('Bad raw');
-				break;
-			case '003' : 
-				this.clear_session();
-				this.inform('Nick aleray in use');
-				break;
-			case '004' :
-				this.clear_session();
-				this.inform('Incorrect sessid');
-				break;
-			case '005' :
-				this.inform('Incorrect nick');
-				break;
-			case 'UNKNOWN_PIPE' : 
-				this.inform('Uknow pipe');
-				break;
-			default :
-				this.inform(err.datas.value)
-				break;
-		}
+		this.fire_event('err_'+err.datas.value,err);
 	},
 	/***
 	 * Return current sessid
@@ -320,6 +326,8 @@ var Ape_core = new Class({
 	 * Clear the sessions, clean timer, remove cookies, remove unload events
 	 */
 	clear_session:function(){
+		this.set_sessid(null);
+		this.$events = {} //Clear events
 		this.stop_pooler();
 	}
 });

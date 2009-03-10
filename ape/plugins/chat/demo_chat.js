@@ -25,7 +25,7 @@ var Ape_chat = new Class({
 		this._core.start(this.options.name);
 	},
 	raw_err: function(raw){
-		if(raw.datas.value=='004'){
+		if(raw.datas.value=='004'){//Incorrect sessid
 			this.reset();
 		}
 	},
@@ -225,9 +225,10 @@ var Ape_chat = new Class({
 	},
 	reset: function(){
 		this._core.clear_session();
-		this.els.pipe_container.destroy();
-		this.els.more.destroy();
-		this.initialize(this._core,this.options);
+		if(this.els){
+			this.els.pipe_container.dispose();
+			this.els.more.dispose();
+		}
 		this._core.initialize(this._core.options);
 	},
 	restore_session: function(sessions){

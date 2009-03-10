@@ -42,5 +42,9 @@ var Ape_core = new Class({
 		//console.log('Fn : ',fn);
 		//console.groupEnd();
 		this.parent(type,fn,internal);
+	},
+	raw_err: function(err){
+		console.log('Error',err);
+		this.parent(err);
 	}
 });

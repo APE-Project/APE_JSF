@@ -5,10 +5,12 @@ var Ape_core = new Class({
 		this.parent(options);
 		//Saving session when page unload
 		window.addEvent('beforeunload',function(){
-			//Saving session without tagging it and make it synchronous
-			this.save_session(false,false);
-			//Save frequency of ape instance in cookie
-			Cookie.write('Ape_restore',this.options.frequency,{domain:this.options.domain});
+			if(this.get_sessid()){
+				//Saving session without tagging it and make it synchronous
+				this.save_session(false,false);
+				//Save frequency of ape instance in cookie
+				Cookie.write('Ape_restore',this.options.frequency,{domain:this.options.domain});
+			}
 		}.bind(this));
 		this.add_event('initialized',this.initialized);
 		this.add_event('raw_sessions',this.restore_session);
@@ -90,9 +92,9 @@ var Ape_core = new Class({
 	clear_session: function(){
 		this.parent();
 		window.removeEvent('beforeunload');
-		this.remove_cookie();
+		this.remove_cookies();
 	},
-	remove_cookie: function(){
+	remove_cookies: function(){
 		Cookie.dispose('Ape_cookie',{domain:this.options.domain});
 		Cookie.dispose('Ape_restore',{domain:this.options.domain});
 	},
