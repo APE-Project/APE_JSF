@@ -1,7 +1,7 @@
 var Ape_chat = new Class({
 	Implements: [Ape_client, Options],
 	options:{
-		logs_limit:10
+		logs_limit:10,
 	},
 	initialize: function(core,options){
 		this._core = core;
@@ -14,17 +14,36 @@ var Ape_chat = new Class({
 		this.add_event('new_pipe_single', this.set_pipe_name);
 		this.add_event('new_user', this.create_user);
 		this.add_event('user_left', this.delete_user);
-		this.add_event('raw_send', this.raw_send);
+		this.add_event('cmd_send', this.cmd_send);
 		this.add_event('raw_data', this.raw_data);
 		this.add_event('save_pipe', this.save_pipe);
 		this.add_event('end_restore',this.restore_session);
 		this.add_event('save_session',this.save_session);
 		this.add_event('raw_err',this.raw_err);
+		//If name is not set & it's not a session restore ask user for his nickname
+		if(!this.options.name && !this._core.options.restore){
+			this.prompt_name();
+		}else{
+			this.start();
+		}
+	},
+	prompt_name: function(){
+		this.els.name_prompt = {};
+		this.els.name_prompt.div = new Element('form',{'class':'ape_name_prompt','text':'Choose a nickname : '}).inject($('ape_master_container'))
+		this.els.name_prompt.div.addEvent('submit',function(ev){
+									ev.stop();
+									this.options.name = this.els.name_prompt.input.get('value');
+									this.els.name_prompt.div.dispose();
+									this.start()
+								}.bindWithEvent(this));
+		this.els.name_prompt.input = new Element('input',{'class':'text'}).inject(this.els.name_prompt.div);
+		new Element('input',{'class':'submit','type':'submit','value':'GO!'}).inject(this.els.name_prompt.div)
 	},
 	start: function(){
 		this._core.start(this.options.name);
 	},
 	raw_err: function(raw){
+			 console.log('err');
 		if(raw.datas.value=='004'){//Incorrect sessid
 			this.reset();
 		}
@@ -35,12 +54,7 @@ var Ape_chat = new Class({
 	},
 	save_pipe: function(pipe){
 		pipe.sessions = {};
-		if(pipe.users){
-			pipe.sessions.users = pipe.users.getValues();
-		}
 		pipe.sessions.logs = pipe.logs;
-		pipe.sessions.type = pipe.type;
-		pipe.sessions.pipe = pipe.pipe;
 	},
 	set_pipe_name: function(pipe,options){
 		if(options.name){
@@ -68,7 +82,7 @@ var Ape_chat = new Class({
 		this.scroll_msg_box(this.current_pipe);
 		return this.current_pipe;
 	},
-	raw_send: function(pipe,sessid,pubid,message){
+	cmd_send: function(pipe,sessid,pubid,message){
 		this.write_message(pipe,message,this._core.user);
 	},
 	raw_data: function(pipe,raw){
@@ -192,36 +206,28 @@ var Ape_chat = new Class({
 		this.els.sendbox_container = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);
 
 		this.els.send_box = new Element('div',{'id':'ape_sendbox'}).inject(this.els.sendbox_container,'bottom');
-		this.els.sendbox = new Element('input',{
-							'type':'text',
-							'id':'sendbox_input',
-							'autocomplete':'off',
-							'events':{
-								'keypress':function(ev){
-										if(ev.code == 13){
+		this.els.sendbox_form = new Element('form',{
+								'events':{
+									'submit':function(ev){
+											ev.stop();
 											var val = this.els.sendbox.get('value');
 											if(val!=''){
 												this.get_current_pipe().send(val);
 												this.els.sendbox.set('value','');
 											}
-										}
-									}.bind(this)
-							}
-						}).inject(this.els.send_box);
+										}.bindWithEvent(this)
+									}
+				}).inject(this.els.send_box);
+		this.els.sendbox = new Element('input',{
+							'type':'text',
+							'id':'sendbox_input',
+							'autocomplete':'off'
+						}).inject(this.els.sendbox_form);
 		this.els.send_button = new Element('input',{
 							'type':'button',
 							'id':'sendbox_button',
-							'value':'',
-							'events': {
-								'click': function(){
-									var val = this.els.sendbox.get('value');
-									if(val!=''){
-										this.get_current_pipe().send(val);
-										this.els.sendbox.set('value','');
-									}
-								}.bind(this)
-							}
-						}).inject(this.els.send_box);
+							'value':''
+						}).inject(this.els.sendbox_form);
 	},
 	reset: function(){
 		this._core.clear_session();

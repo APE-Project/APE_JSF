@@ -30,6 +30,7 @@ Ape_client.prototype.load = function(config){
 	}
 	var restore = this.ape_cookie('Ape_restore')
 	if(restore){
+		config.restore = true;
 		config.frequency = restore;
 	}
 	config.init = function(core){

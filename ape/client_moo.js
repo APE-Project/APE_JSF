@@ -16,6 +16,7 @@ var Ape_client = new Class({
 		var restore = Cookie.read('Ape_restore')
 		if(restore){
 			config.frequency = restore;
+			config.restore = true;
 		}
 		config.init = function(core){
 			this._core = core;

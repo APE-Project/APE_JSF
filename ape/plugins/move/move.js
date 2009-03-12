@@ -8,7 +8,7 @@ var Ape_move = new Class({
 		this.add_event('new_pipe_multi', this.set_pipe);
 		this.add_event('raw_positions',this.raw_positions);
 		this.add_event('raw_data',this.raw_data);
-		this.add_event('raw_send', this.raw_send);
+		this.add_event('cmd_send', this.cmd_send);
 		this.add_event('user_left', this.delete_user);
 		this.add_event('save_pipe', this.save_pipe);
 	},
@@ -21,7 +21,6 @@ var Ape_move = new Class({
 	delete_user: function(buffer,user){
 		user.element.dispose();
 	},
-	raw_send: function(pipe,sessid,pubid,message){
 		this.write_message(pipe,message,this._core.user);
 	},
 	raw_data: function(pipe,raw){

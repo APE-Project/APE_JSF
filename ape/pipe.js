@@ -11,7 +11,7 @@ var Ape_pipe  = new Class({
 	request: function(raw,param){
 		this._core.request(raw,param,{'event':false});
 		param = [this].combine(param);
-		this.fire_event('raw_'+raw.toLowerCase(),[this].combine(param));
+		this.fire_event('cmd_'+raw.toLowerCase(),[this].combine(param));
 	},
 	get_pubid: function(){
 		return this.pipe.pubid;

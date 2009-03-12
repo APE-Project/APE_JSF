@@ -25,6 +25,7 @@ var Ape_core = new Class({
 	},
 	initialize: function(options){
 		this.setOptions(options);
+		this.complete_options = {};
 		this.pipes = new $H; 
 		this.sessid = null;
 		this.pubid = null;
@@ -43,7 +44,7 @@ var Ape_core = new Class({
 		}
 
 		if(options.init) options.init.apply(null,[this]);
-		if(options.complete) options.complete.apply(null,[this]);
+		if(options.complete) options.complete.apply(null,[this,this.complete_options]);
 
 	},
 	/****
@@ -152,7 +153,7 @@ var Ape_core = new Class({
 		this.current_request.send(query_string+'&'+time);
 		this.last_action_ut = time;
 		if(!options.event){
-			this.fire_event('raw_'+raw.toLowerCase(),param);
+			this.fire_event('cmd_'+raw.toLowerCase(),param);
 		}
 	},
 	/**
@@ -333,7 +334,7 @@ var Ape_core = new Class({
 });
 if(window.parent.ape_client.ape_config.init_ape){
 	var Ape;
-	window.addEvent('domready',function(){
+	window.addEvent('load',function(){
 		Ape = new Ape_core(window.parent.ape_client.ape_config);
 		window.parent.Ape_client._core = Ape;
 	});
