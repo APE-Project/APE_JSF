@@ -4,7 +4,7 @@ var Ape_core = new Class({
 		this.sessions = {};
 		this.parent(options);
 		//Saving session when page unload
-		window.addEvent('beforeunload',function(){
+		window.addEvent('unload',function(){
 			if(this.get_sessid()){
 				//Saving session without tagging it and make it synchronous
 				this.save_session(false,false);
@@ -34,7 +34,14 @@ var Ape_core = new Class({
 		this.pipes.each(function(pipe){
 			//fire event on each pipe
 			this.fire_event('save_pipe',pipe);
-			this.sessions.pipes.push(pipe.sessions);
+			if(pipes.sessions){
+				pipe.sessions.type = pipe.type;
+				pipe.sessions.pipe = pipe.pipe;
+				if(pipe.users){
+					pipe.sessions.users = pipe.users.getValues();
+				}
+				this.sessions.pipes.push(pipe.sessions);
+			}
 		}.bind(this));
 		this.save_cookie();
 		this.set_session('param',JSON.encode(this.sessions),{'tag':tag,'async':async});
@@ -56,7 +63,7 @@ var Ape_core = new Class({
 		if(!cookie){//No cookie defined start a new connection
 			this.parent(options);
 		}else{//Cookie or instance exist
-			if(Cookie.read('Ape_restore')){//Simple session restore
+			if(this.options.restore){//Simple session restore
 				this.get_session('param');//Get saved session
 			}else{//Complex session restore
 				//User opened a new tab
@@ -91,7 +98,7 @@ var Ape_core = new Class({
 	},
 	clear_session: function(){
 		this.parent();
-		window.removeEvent('beforeunload');
+		window.removeEvent('unload');
 		this.remove_cookies();
 	},
 	remove_cookies: function(){
