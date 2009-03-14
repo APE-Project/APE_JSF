@@ -1,3 +1,4 @@
+var Ape_config = new Array();
 function Ape_client(core){
 	this._core = core;
 }
@@ -30,8 +31,8 @@ Ape_client.prototype.load = function(config){
 	}
 	var restore = this.ape_cookie('Ape_restore')
 	if(restore){
-		config.restore = true;
 		config.frequency = restore;
+		config.direct_restore = true;
 	}
 	config.init = function(core){
 		this._core = core;
@@ -43,8 +44,9 @@ Ape_client.prototype.load = function(config){
 	frame.style.position = 'absolute';
 	frame.style.left = '-300px';
 	frame.style.top = '-300px';
+	Ape_config[config.identifier] = config;
 	document.body.appendChild(frame);
-	frame.setAttribute('src','http://'+config.frequency+'.'+config.server+'?q&script&'+config.scripts.join('&')+'&ac');
+	frame.setAttribute('src','http://'+config.frequency+'.'+config.server+'/?q&script&'+config.scripts.join('&')+'&ac');
 }
 if(Function.prototype.bind==null){
 	Function.prototype.bind = function(bind,args){

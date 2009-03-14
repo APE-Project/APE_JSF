@@ -20,14 +20,13 @@
 		}
 		var base_url = 'http://www.ape-project.org/svn/ape/APE_JSF/ape/';
 		var ape_client = new Ape_client();
-		var ape_c;
 		ape_client.load({
 			'domain':'ape-project.org',
 			'server':'ape.ape-project.org',
 			'identifier':'chatdemo',
 			'channel':'test',
 			'complete':function(ape){
-				ape_c = new Ape_chat(ape);
+				var ape_c = new Ape_chat(ape);
 			},
 			'scripts': [
 					base_url+'/mootools.js',

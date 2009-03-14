@@ -2,6 +2,7 @@ var Ape_core = new Class({
 	Extends: Ape_core,
 	initialize: function(options){
 		this.sessions = {};
+		if(this.get_cookie_instance(options.identifier)) options.restore = true;
 		this.parent(options);
 		//Saving session when page unload
 		window.addEvent('unload',function(){
@@ -63,11 +64,11 @@ var Ape_core = new Class({
 		if(!cookie){//No cookie defined start a new connection
 			this.parent(options);
 		}else{//Cookie or instance exist
-			if(this.options.restore){//Simple session restore
+			if(this.options.direct_restore){//Simple session restore
 				this.get_session('param');//Get saved session
 			}else{//Complex session restore
-				//User opened a new tab
-				this.check();//Send a check raw 	
+				//User opened a new tab/window
+				this.check();//Send a check raw (this ask ape for an updated session)
 			}
 		}
 	},
@@ -106,24 +107,38 @@ var Ape_core = new Class({
 		Cookie.dispose('Ape_restore',{domain:this.options.domain});
 	},
 	/***
-	 * Init cookie
-	 * @return	boolean	false if there were no cookie or instance else true
+	 * Read the cookie Ape_cookie and try to find the application identifier
+	 * @param	string	identifier	
+	 * 		Can be used to force the identifier to find ortherwhise 
+	 * 		identifier defined in the options will be used
+	 * @return false if application identifier isn't found or an object with the instance and the cookie
 	 */
-	init_cookie: function(){
-		var tmp = Cookie.read('Ape_cookie');
+	get_cookie_instance: function(identifier){
+		var 	tmp = Cookie.read('Ape_cookie'),
+			identifier = identifier || this.options.identifier;
 		if(tmp){
 			tmp = JSON.decode(tmp);
 			//Get the instance of ape in cookie
 			for(var i = 0;i<tmp.instance.length;i++){
-				if(tmp.instance[i].identifier==this.options.identifier){
-					this.set_sessid(tmp.instance[i].sessid);
-						tmp.frequency = tmp.frequency.toInt()+1;
-					this.cookie = tmp;
-					return true;
+				if(tmp.instance[i].identifier==identifier){
+					return {'instance':tmp.instance[i],'cookie':tmp};
 				}
 			}
-			//no instance found for the identifier 
-			return false;
+		}
+		//no instance found for the identifier 
+		return false;
+	},
+	/***
+	 * Init cookie
+	 * @return	boolean	false if there were no cookie or instance else true
+	 */
+	init_cookie: function(){
+		var tmp = this.get_cookie_instance();
+		if(tmp){
+			this.set_sessid(tmp.instance.sessid);
+			tmp.cookie.frequency = tmp.cookie.frequency.toInt()+1;
+			this.cookie = tmp.cookie;
+			return tmp;
 		}else{
 			this.cookie = null;
 			return false;

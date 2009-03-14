@@ -21,6 +21,8 @@ var Ape_move = new Class({
 	delete_user: function(buffer,user){
 		user.element.dispose();
 	},
+
+	cmd_send: function(pipe,sessid,pubid,message){
 		this.write_message(pipe,message,this._core.user);
 	},
 	raw_data: function(pipe,raw){

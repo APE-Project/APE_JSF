@@ -251,8 +251,7 @@ var Ape_core = new Class({
 	 * @param	string	pipe name
 	 */
 	left: function(pubid){
-		var pipe = this.get_pipe(pubid);
-		this.request('LEFT',[this.get_sessid(),pipe.name]);
+		this.request('LEFT',[this.get_sessid(),this.pipies.get(pubid).name]);
 		this.del_pipe(pubid);
 	},
 	/****
@@ -332,10 +331,11 @@ var Ape_core = new Class({
 		this.stop_pooler();
 	}
 });
-if(window.parent.ape_client.ape_config.init_ape){
+var identifier 	= window.frameElement.id,
+    config 	= window.parent.Ape_config[identifier.substring(4,identifier.length)];
+if(config.init_ape){
 	var Ape;
 	window.addEvent('load',function(){
-		Ape = new Ape_core(window.parent.ape_client.ape_config);
-		window.parent.Ape_client._core = Ape;
+		Ape = new Ape_core(config);
 	});
 }

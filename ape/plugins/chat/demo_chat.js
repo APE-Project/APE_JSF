@@ -43,7 +43,6 @@ var Ape_chat = new Class({
 		this._core.start(this.options.name);
 	},
 	raw_err: function(raw){
-			 console.log('err');
 		if(raw.datas.value=='004'){//Incorrect sessid
 			this.reset();
 		}
