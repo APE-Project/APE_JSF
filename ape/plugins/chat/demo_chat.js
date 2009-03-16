@@ -129,6 +129,7 @@ var Ape_chat = new Class({
 		}
 	},
 	create_user: function(pipe,user){
+			     console.log(pipe);
 		user.el = new Element('div',{
 			'class':'ape_user'
 			}).inject(pipe.els.users);
