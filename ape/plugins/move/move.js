@@ -112,7 +112,7 @@ var Ape_move = new Class({
 	},
 	sendpos: function(x,y){
 		var pos=this.pos_to_relative(x,y);
-		this._core.request('SETPOS',[this._core.get_sessid(),this.pipe.get_pubid(),pos.x,pos.y]);
+		this._core.request('SETPOS',[this.pipe.get_pubid(),pos.x,pos.y]);
 		this.move_point(this._core.user,pos.x,pos.y);	
 	},
 	pos_to_relative:function(x,y){

@@ -18,12 +18,9 @@ var Ape_core = new Class({
 		}
 		this.parent(options);
 	},
-	request: function(raw,param,options){
-		var $stime = $time();
-		console.log('Sending',raw,param,'time : '+$stime);
-		this.parent(raw,param,options);
-		var $etime = $time()-$stime;
-		console.log('Sending time : '+$etime);
+	request: function(raw,param,sessid,options){
+		console.log('Sending',raw,sessid,param,'fq',this.options.frequency);
+		this.parent(raw,param,sessid,options);
 	},
 	parse_response: function(raws){
 		console.log('Receiving',raws);

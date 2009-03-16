@@ -19,7 +19,7 @@ var Ape_core = new Class({
 		this.add_event('raw_update',this.send_update);
 	},
 	raw_king: function(param){
-		this.request('KONG',[this.get_sessid(),param.datas.value]);
+		this.request('KONG',[param.datas.value]);
 	},
 	send_update: function(){
 		this.save_session(true);
@@ -47,12 +47,12 @@ var Ape_core = new Class({
 		this.save_cookie();
 		this.set_session('param',JSON.encode(this.sessions),{'tag':tag,'async':async});
 	},
-	request: function(raw,param,options){
+	request: function(raw,param,sessid,options){
 		if(raw!='CHECK'){
 			//remove restore cookie if informations is exchanged with server
 			Cookie.dispose('Ape_restore',{domain:this.options.domain});
 		}
-		this.parent(raw,param,options);
+		this.parent(raw,param,sessid,options);
 	},
 	initialized :function(){
 		this.create_cookie();

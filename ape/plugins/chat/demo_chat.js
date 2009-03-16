@@ -1,7 +1,7 @@
 var Ape_chat = new Class({
 	Implements: [Ape_client, Options],
 	options:{
-		logs_limit:10,
+		logs_limit:10
 	},
 	initialize: function(core,options){
 		this._core = core;

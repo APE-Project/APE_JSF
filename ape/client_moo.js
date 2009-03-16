@@ -11,7 +11,7 @@ var 	Ape_config = new Array(),
 		config.init_ape = config.init_ape || true;
 
 		var 	tmp 	= JSON.decode(Cookie.read('Ape_cookie')),
-			restore = Cookie.read('Ape_restore')	
+			restore = Cookie.read('Ape_restore');
 
 		config.frequency = config.frequency || 0;
 		if(tmp){
@@ -32,7 +32,7 @@ var 	Ape_config = new Array(),
 				'display':'none',
 				'position':'absolute',
 				'left':'-300px',
-				'top':'-300px',
+				'top':'-300px'
 			},
 			'src':'http://'+config.frequency+'.'+config.server+'/?q&script&'+config.scripts.join('&')+'&ac'
 		}).inject(document.body);

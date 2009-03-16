@@ -6,10 +6,10 @@ var Ape_pipe  = new Class({
 		this._core.add_pipe(this.get_pubid(),this);
 	},
 	send: function(data){
-		this.request('SEND',[this._core.get_sessid(),this.get_pubid(),escape(data)]);
+		this.request('SEND',[this.get_pubid(),escape(data)]);
 	},
-	request: function(raw,param){
-		this._core.request(raw,param,{'event':false});
+	request: function(raw,param,sessid){
+		this._core.request(raw,param,sessid,{'event':false});
 		param = [this].combine(param);
 		this.fire_event('cmd_'+raw.toLowerCase(),[this].combine(param));
 	},

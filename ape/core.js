@@ -14,14 +14,27 @@
   You should have received a copy of the GNU General Public License
   along with APE ; if not, write to the Free Software Foundation,
   Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  ____________
+  < I love APE >
+  ------------
+	   \  ."`".
+	  .-./ _=_ .-.
+	  {  (,(oYo),) }}
+	  {{ |   "   |} }
+	  { { (---)/  }}
+	  {{  }'-=-'{ } }
+	  { { }._:_.{  }}
+	  {{  } -:- { } }
+	  {_{ }`===`{  _}
+	  (((()     (/)))) 
 */
 var Ape_core = new Class({
 	Implements : [Options, Events],
 	options:{
 		server:window.location.hostname,	//Ape server URL
-		pool_time:25000, 	//Max time for a request
-		identifier:'ape',	//Identifier is used by cookie to differenciate ape instance
-		frequency:0		//frequency identifier
+		pool_time:25000, 			//Max time for a request
+		identifier:'ape',			//Identifier is used by cookie to differenciate ape instance
+		frequency:0				//Ffrequency identifier
 	},
 	initialize: function(options){
 		this.setOptions(options);
@@ -42,55 +55,29 @@ var Ape_core = new Class({
 			this.watch_var_changed = false;
 			this.watch_var.periodical(10,this);
 		}
-
+		//Set _core var for Ape_client instance
 		if(options.init) options.init.apply(null,[this]);
+		//Execute complete function of Ape_client instance
 		if(options.complete) options.complete.apply(null,[this,this.complete_options]);
 
 	},
-	/****
-	 * This method is only used by opera.
-	 * Opera have a bug, when request are sent trought user action (ex : a click), opera throw a security violation when trying to make a XHR.
-	 * The only way is to set a class var and watch when this var change
-	 */
-	watch_var: function(){
-		if(this.watch_var_changed){
-			this.watch_var_changed = false;
-			if(!this.watch_var_cnt[2]) this.watch_var_cnt[2]= {};
-			this.watch_var_cnt[2].no_watch = true;
-			this.request.run(this.watch_var_cnt,this);
-		}
-	},
 	/***
 	 * Register an event
+	 * @param	String	Type (Event name)
+	 * @param	Args	Array or single object, arguments to pass to the function. If more than one argument, must be an array.
+	 * @param	Int	Delay (in ms) to wait to execute the event.
 	 */
 	fire_event: function(type,args,delay){
 		this.fireEvent(type,args,delay);
 	},
 	/****
 	 * Add an handler for an event
+	 * @param	String		Type (Event name)
+	 * @param	Function	Function to execute
+	 * @param	??		??
 	 */
 	add_event: function(type,fn,internal){
 		this.addEvent(type,fn,internal);
-	},
-	/***
-	 * Lauche the connect request
-	 * @param options object
-	 */
-	start: function(options){
-		this.connect(options); 
-	},
-	/***
-	 * Alert a message
-	 * @param	string	message
-	 */
-	inform: function(msg){
-		alert(msg);
-	},
-	/***
-	* Check if there are new message for the user
-	*/
-	check: function(){
-		this.request('CHECK',this.get_sessid());
 	},
 	/***
 	* Execute check request each X seconde
@@ -109,26 +96,37 @@ var Ape_core = new Class({
 		this.timer = this.pooler.periodical(this.options.pool_time,this);//Creating pooler 
 	},
 	/***
-	 * Stop the pooler (who send check raw)
+	 * Stop the pooler (Witch send check raw)
 	 */
 	stop_pooler: function(){
 		$clear(this.timer);
 	},
 	/***
 	 * Make a xmlhttrequest, once result received the parse_response function is called 
-	 * @param string raw le raw a exécute
-	 * @param Mixed Array||String||Object Lorsque il y a plusieurs élement en paramètre donné un tableau, quand il n'y en a qu'un une String est accepté
+	 * @param 	string	Raw to send
+	 * @param	boolean	If true sessid is added to request
+	 * @param	Mixed	Can be array,object or string, if more than one, must be a string	
+	 * @param	Object	Options
 	 */
-	request: function(raw,param,options){
+	request: function(raw,param,sessid,options){
+		//Opera dirty fix
 		if(Browser.Engine.presto && options && !options.no_watch){
 			this.watch_var_changed = true;
-			this.watch_var_cnt = [raw,param,options];
+			this.watch_var_cnt = [raw,param,sessid,options];
 			return;
 		}
+
+		//Set options
 		if(!options) options = {};
 		if(!options.event) options.event = true;
+		//This id dirty -_-
 		if(!$type(options.async)) options.async = true;
-		var query_string = raw;
+		if(!$type(sessid)) sessid = true;
+		param = param || [];
+
+		//Format params
+		var query_string = raw,
+		    time = $time();
 		if($type(param)=='object'){
 			var tmp = new Array();
 			for(var i in param){
@@ -138,10 +136,15 @@ var Ape_core = new Class({
 		}else{
 			param = $splat(param);
 		}
+		//Add sessid
+		if(sessid) param.unshift(this.get_sessid());
+	console.log(param);	
+		//Create query string
 		if(param.length > 0){
 			query_string +='&'+param.join('&');
 		}
-		var time = $time();
+
+		//Make XHR
 		this.current_request = new Request.JSON({	
 								'async':options.async,
 								'method':'post',
@@ -149,15 +152,16 @@ var Ape_core = new Class({
 								'link':'cancel',
 								'onComplete':function(rep){if(rep){this.parse_response(rep)}}.bind(this)
 							});
-		document.domain = this.options.domain;
 		this.current_request.send(query_string+'&'+time);
 		this.last_action_ut = time;
+
 		if(!options.event){
 			this.fire_event('cmd_'+raw.toLowerCase(),param);
 		}
 	},
 	/**
 	* Parse received raws
+	* @param	Array	An array of raw 
 	*/
 	parse_response: function(raws){
 		if(raws!='CLOSE\n' && raws!='QUIT\n'){
@@ -176,8 +180,9 @@ var Ape_core = new Class({
 		}
 	},
 	/***
-	* Call raw sent by server
-	*/
+	 * Fire event raw_'raw', if needed create also new pipe object
+	 * @param	Object	raw object
+	 */
 	call_raw: function(raw){
 		var args;
 		if(raw.datas.pipe){
@@ -200,19 +205,24 @@ var Ape_core = new Class({
 	},
 	/***
 	 * Create a new single pipe
+	 * @param	Object	Options used to instanciate Ape_pipe_single
+	 * @return	Object	Ape_pipe_single object
 	 */
 	new_pipe_single: function(options){
 		return new Ape_pipe_single(this,options);
 	},
 	/***
 	 * Create a new multi pipe
+	 * @param	Object	Options used to instanciate Ape_pipe_multi
+	 * @return	Object	Ape_pipe_multi object
 	 */
 	new_pipe_multi: function(options){
 		return new Ape_pipe_multi(this,options);
 	},
 	/***
-	 * Private function
-	 * add a pipe to the core pipes hash
+	 * Add a pipe to the core pipes hash
+	 * @param	string	Pipe pubid (this will be the key hash)
+	 * @return	object	Pipe object
 	 */
 	add_pipe: function(pubid,pipe){
 		var ret = this.pipes.set(pubid,pipe); 
@@ -220,12 +230,16 @@ var Ape_core = new Class({
 	},
 	/***
 	 * Return a pipe identified by pubid
+	 * @param	string	Pipe pubid
+	 * @return	Object	pipe
 	 */
 	get_pipe: function(pubid){
 		return this.pipes.get(pubid);
 	},
 	/***
-	 * Remove a pipe from the pipe hash
+	 * Remove a pipe from the pipe hash and fire event 'pipe_deleted'
+	 * @param	string	Pipe pubid
+	 * @return	object	The pipe object
 	 */
 	del_pipe: function(pubid){
 		var pipe = this.pipes.erase(pubid);
@@ -233,49 +247,57 @@ var Ape_core = new Class({
 		return pipe;
 	},
 	/***
-	* Do necesary stuff to quit ape 
-	*/
-	quit: function(){
-		this.request('QUIT',this.get_sessid());
-		this.clear_session();
-	},
-	/***
-	* Join a channel
-	* @param String le channel a rejoindre
-	*/
-	join: function(chan){
-		this.request('JOIN',[this.get_sessid(),chan]);
-	},
-	/***
-	 * Left a channel
-	 * @param	string	pipe name
+	 * Lauche the connect request
+	 * @param	Mixed	Can be array,object or string, if more than one, must be a string	
 	 */
-	left: function(pubid){
-		this.request('LEFT',[this.get_sessid(),this.pipies.get(pubid).name]);
-		this.del_pipe(pubid);
+	start: function(options){
+		this.connect(options); 
+	},
+	/***
+	* Check if there are new message for the user
+	*/
+	check: function(){
+		this.request('CHECK');
 	},
 	/****
 	* Send connect request to server
-	* @param	string	connect options {chan,[uid]}
-	* @return boolean true if connect request is send else false
+	* @param	Mixed	Can be array,object or string, if more than one, must be a string	
 	*/
 	connect: function(options){
-		this.request('CONNECT',options);
+		this.request('CONNECT',options,false);
 	},
 	/***
-	* Raw : Getion des érreurs
+	* Join a channel
+	* @param	string	Channel name
 	*/
-	raw_err: function(err){
-		this.fire_event('err_'+err.datas.value,err);
+	join: function(chan){
+		this.request('JOIN',[chan]);
+	},
+	/***
+	 * Left a channel
+	 * @param	string	Pipe pubid
+	 */
+	left: function(pubid){
+		this.request('LEFT',[this.pipies.get(pubid).name]);
+		this.del_pipe(pubid);
+	},
+	/***
+	* Do necesary stuff to quit ape 
+	*/
+	quit: function(){
+		this.request('QUIT');
+		this.clear_session();
 	},
 	/***
 	 * Return current sessid
+	 * @return	string	sessid
 	 */
 	get_sessid:function(){
 		return this.sessid;
 	},
 	/***
 	 * Set current sessid
+	 * @param	string	sessid
 	 */
 	set_sessid: function(sessid){
 		this.sessid = sessid;
@@ -289,18 +311,18 @@ var Ape_core = new Class({
 		if(!options) options = {};
 		//session var is tagged as "update" response
 		if(!options.tag) options.tag = false;
-		var arr = [this.get_sessid(),'set',key,escape(value)]
+		var arr = ['set',key,escape(value)]
 		if(options.tag){
 			arr.push(1);
 		}
-		this.request('SESSION',arr,options);
+		this.request('SESSION',arr,true,options);
 	},
 	/***
 	 * Receive a session variable from ape
 	 * @param	string	key
 	 */
 	get_session: function(key){
-		this.request('SESSION',[this.get_sessid(),'get',key]);
+		this.request('SESSION',['get',key]);
 	},
 	/***
 	* Handle login raw
@@ -317,10 +339,24 @@ var Ape_core = new Class({
 		this.start_pooler();
 	},
 	/***
-	 * WTF?
+	* Fire event for all error raw
+	* @param	object	raw
+	*/
+	raw_err: function(err){
+		this.fire_event('err_'+err.datas.value,err);
+	},
+	/****
+	 * This method is only used by opera.
+	 * Opera have a bug, when request are sent trought user action (ex : a click), opera throw a security violation when trying to make a XHR.
+	 * The only way is to set a class var and watch when this var change
 	 */
-	raw_receive: function(param){
-		this.buffers.get(param.buffer).receive(param);
+	watch_var: function(){
+		if(this.watch_var_changed){
+			this.watch_var_changed = false;
+			if(!this.watch_var_cnt[2]) this.watch_var_cnt[2]= {};
+			this.watch_var_cnt[2].no_watch = true;
+			this.request.run(this.watch_var_cnt,this);
+		}
 	},
 	/***
 	 * Clear the sessions, clean timer, remove cookies, remove unload events
@@ -331,11 +367,12 @@ var Ape_core = new Class({
 		this.stop_pooler();
 	}
 });
+
 var identifier 	= window.frameElement.id,
+    Ape,
     config 	= window.parent.Ape_config[identifier.substring(4,identifier.length)];
 if(config.init_ape){
-	var Ape;
-	window.addEvent('load',function(){
+	window.addEvent('domready',function(){
 		Ape = new Ape_core(config);
 	});
 }
