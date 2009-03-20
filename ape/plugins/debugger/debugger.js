@@ -26,20 +26,6 @@ var Ape_core = new Class({
 		console.log('Receiving',raws);
 		this.parent(raws);
 	},
-	fire_event: function(type,args,delay){
-		//console.group('Fire event');
-		//console.log('Type : ',type);
-		//console.log('Args : ',args);
-		//console.groupEnd();
-		this.parent(type,args,delay);
-	},
-	add_event: function(type,fn,internal){
-		//console.group('Register event');
-		//console.log('Type : ',type);
-		//console.log('Fn : ',fn);
-		//console.groupEnd();
-		this.parent(type,fn,internal);
-	},
 	raw_err: function(err){
 		console.log('Error',err);
 		this.parent(err);

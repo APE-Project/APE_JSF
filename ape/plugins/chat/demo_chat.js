@@ -129,7 +129,6 @@ var Ape_chat = new Class({
 		}
 	},
 	create_user: function(pipe,user){
-			     console.log(pipe);
 		user.el = new Element('div',{
 			'class':'ape_user'
 			}).inject(pipe.els.users);
@@ -231,7 +230,7 @@ var Ape_chat = new Class({
 	},
 	reset: function(){
 		this._core.clear_session();
-		if(this.els){
+		if(this.els.pipe_container){
 			this.els.pipe_container.dispose();
 			this.els.more.dispose();
 		}

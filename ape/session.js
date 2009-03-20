@@ -51,7 +51,7 @@ var Ape_core = new Class({
 
 		this.pipes.each(function(pipe){
 			//fire event on each pipe
-			this.fire_event('save_pipe', ipe);
+			this.fire_event('save_pipe', pipe);
 			if (pipe.sessions) {
 				pipe.sessions.type = pipe.type;
 				pipe.sessions.pipe = pipe.pipe;

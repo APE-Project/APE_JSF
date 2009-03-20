@@ -39,7 +39,7 @@ Ape_client.prototype.load = function(config){
 	}.bind(this);
 	document.domain = config.domain;
 	var frame = document.createElement('iframe');
-	frame.setAttribute('id','ape_frequency');
+	frame.setAttribute('id','ape_' + config.identifier);
 	frame.style.display = 'none';
 	frame.style.position = 'absolute';
 	frame.style.left = '-300px';

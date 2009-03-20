@@ -48,6 +48,7 @@ var Ape_core = new Class({
 		server:window.location.hostname,	//Ape server URL
 		pool_time:25000, 			//Max time for a request
 		identifier:'ape',			//Identifier is used by cookie to differenciate ape instance
+		transport:1,
 		frequency:0				//Ffrequency identifier
 	},
 
@@ -64,18 +65,39 @@ var Ape_core = new Class({
 
 		this.add_event('err_003', this.clear_session);
 		this.add_event('err_004', this.clear_session);
-		this.fire_event('loaded', this);
 
-		if(Browser.Engine.presto){
+		this.fire_event('loaded', this);
+		
+		/*
+		 * Browser using webkit and presto let a loading bar (or cursor), even if page loaded 
+		 * This case happend, only if XHR is made while parent page is loading
+		 */
+		if (Browser.Engine.webkit || Browser.Engine.presto) {
+			var oldonload = window.parent.onload,
+			fn = function(){
+				this.stop_window = true;
+			}.bind(this);
+
+			//Add function to load event
+			if (typeof window.parent.onload != 'function') {
+				window.parent.onload = fn;
+			} else {
+				window.parent.onload = function(){
+					oldonload(); 
+					fn();
+				}
+			}
+		}
+		
+		//Fix presto bug (see request method)
+		if (Browser.Engine.presto) {
 			this.watch_var_changed = false;
 			this.watch_var.periodical(10, this);
 		}
-
 		//Set _core var for Ape_client instance
 		if(options.init) options.init.apply(null, [this]);
 		//Execute complete function of Ape_client instance
 		if(options.complete) options.complete.apply(null, [this ,this.complete_options]);
-
 	},
 
 	/***
@@ -172,11 +194,7 @@ var Ape_core = new Class({
 								'method': 'post',
 								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?q',
 								'link': 'cancel',
-								'onComplete': function(rep){
-									if(rep){
-										this.parse_response(rep)
-									}
-								}.bind(this)
+								'onComplete': this.parse_response.bind(this)
 							});
 		this.current_request.send(query_string + '&' + time);
 		this.last_action_ut = time;
@@ -191,15 +209,23 @@ var Ape_core = new Class({
 	* @param	Array	An array of raw 
 	*/
 	parse_response: function(raws){
-		if (raws != 'CLOSE\n' && raws != 'QUIT\n') {
+		//This is fix for Webkit and Presto, see initialize method for more information
+		if (this.stop_window) { 
+			window.parent.stop();
+			this.stop_window=false;
+		}
+
+		if (raws && raws != 'CLOSE\n' && raws != 'QUIT\n') {
 			var 	l = raws.length,
 				raw;
 			for (var i=0; i<l; i++) {
 				//Last request is finished
 				raw = raws[i];
 				this.call_raw(raw);
-				if (this.current_request.xhr.readyState == 4 && raw.datas.value != '001' && raw.datas.value != '004' && raw.datas.value != '003' && raw.raw != 'QUIT') {
-					this.check();
+				if (this.current_request.xhr.readyState == 4) {
+					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003') {
+						this.check();
+					}
 				}
 			}
 		}
@@ -218,10 +244,16 @@ var Ape_core = new Class({
 			var pipe_id = raw.datas.pipe.pubid;
 			if (!this.pipes.has(pipe_id)) {
 				var pipe;
-				if (raw.datas.pipe.casttype == 'uni') {
-					pipe = this.new_pipe_single(raw.datas);
-				} else {
-					pipe = this.new_pipe_multi(raw.datas);
+				switch (raw.datas.pipe.casttype) {
+					case 'uni':
+						pipe = this.new_pipe_single(raw.datas);
+					break;
+					case 'proxy':
+						pipe = this.new_pipe_proxy(raw.datas);
+					break;
+					case 'multi':
+						pipe = this.new_pipe_multi(raw.datas);
+					break;
 				}
 			} else {
 				pipe = this.pipes.get(pipe_id);
@@ -250,6 +282,18 @@ var Ape_core = new Class({
 	new_pipe_multi: function(options){
 		return new Ape_pipe_multi(this, options);
 	},
+	
+	/***
+	 * Create a proxy pipe
+	 * @param	Object	Options used to instanciate Ape_pipe_proxy
+	 */
+	new_pipe_proxy: function(options){
+		return new Ape_pipe_proxy(this,options);
+	},
+	/***
+	 * This allow ape to be compatible with TCPSocket
+	 */
+	TCPSocket: Ape_pipe_proxy,
 
 	/***
 	 * Add a pipe to the core pipes hash
@@ -257,8 +301,7 @@ var Ape_core = new Class({
 	 * @return	object	Pipe object
 	 */
 	add_pipe: function(pubid, pipe){
-		var ret = this.pipes.set(pubid, pipe); 
-		return ret;
+		return this.pipes.set(pubid, pipe); 
 	},
 
 	/***
@@ -298,9 +341,11 @@ var Ape_core = new Class({
 
 	/****
 	* Send connect request to server
-	* @param	Mixed	Can be array,object or string, if more than one, must be a string	
+	* @param	Mixed string or array with options to send to ape server with connect cmd, if more than one, must be an array
 	*/
 	connect: function(options){
+		options = $splat(options);
+		options.push(this.options.transport);
 		this.request('CONNECT', options, false);
 	},
 
@@ -380,6 +425,7 @@ var Ape_core = new Class({
 		if (this.options.channel) {
 			this.join(this.options.channel);
 		}
+		this.running = true;
 		this.fire_event('initialized');
 		this.start_pooler();
 	},
@@ -413,14 +459,14 @@ var Ape_core = new Class({
 		this.set_sessid(null);
 		this.$events = {} //Clear events
 		this.stop_pooler();
+		this.current_request.cancel();
+		this.running = false;
 	}
 });
 
 var identifier 	= window.frameElement.id,
     Ape,
     config 	= window.parent.Ape_config[identifier.substring(4, identifier.length)];
-if (config.init_ape) {
-	window.addEvent('domready', function(){
-		Ape = new Ape_core(config);
-	});
-}
+window.addEvent('domready', function(){
+	Ape = new Ape_core(config);
+});

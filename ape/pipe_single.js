@@ -1,5 +1,7 @@
 var Ape_pipe_single = new Class({
+
 	Extends: Ape_pipe,
+
 	initialize: function(core,options){
 		this.parent(core,options);
 		this.type = 'uni';
