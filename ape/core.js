@@ -301,6 +301,16 @@ var Ape_core = new Class({
 	 * @return	object	Pipe object
 	 */
 	add_pipe: function(pubid, pipe){
+		var tmp = this.pipes.get(pubid);
+		if(tmp){
+			tmp.toto = 'toto';
+			console.log('pipe deleted',tmp);
+	//		this.removeEvent('raw_proxy',tmp.raw_proxy);
+	//		this.removeEvent('raw_proxy_event',tmp.raw_proxy_event);
+			console.log(tmp);
+			console.log(this.$events);
+		}
+		console.log('adding pipe',pubid,pipe);
 		return this.pipes.set(pubid, pipe); 
 	},
 
@@ -435,7 +445,7 @@ var Ape_core = new Class({
 	* @param	object	raw
 	*/
 	raw_err: function(err){
-		this.fire_event('err_' + err.datas.value, err);
+		this.fire_event('err_' + err.datas.code, err);
 	},
 
 	/****
