@@ -48,7 +48,7 @@ var Ape_core = new Class({
 		server:window.location.hostname,	//Ape server URL
 		pool_time:25000, 			//Max time for a request
 		identifier:'ape',			//Identifier is used by cookie to differenciate ape instance
-		transport:1,
+		transport:1,				//Trasport 1: long pooling, 2: pooling (didn't work yet), 3: forever iframe, 4: jsonp (didn't work yet), 5: websocket (didn't work yet)
 		frequency:0				//Ffrequency identifier
 	},
 
@@ -150,7 +150,7 @@ var Ape_core = new Class({
 	 * @param 	string	Raw to send
 	 * @param	boolean	If true sessid is added to request
 	 * @param	Mixed	Can be array,object or string, if more than one, must be a string	
-	 * @param	Object	Options
+	 * @param	Object	Options (event, async, callback )
 	 */
 	request: function(raw, param, sessid, options){
 		//Opera dirty fix
@@ -163,6 +163,7 @@ var Ape_core = new Class({
 		//Set options
 		if (!options) options = {};
 		if (!options.event) options.event = true;
+		if (!options.callback) options.callback = null;
 		//This id dirty -_-
 		if (!$type(options.async)) options.async = true;
 		if (!$type(sessid)) sessid = true;
@@ -189,12 +190,12 @@ var Ape_core = new Class({
 		}
 
 		//XHR Time
-		this.current_request = new Request.JSON({	
+		this.current_request = new Request({	
 								'async': options.async,
 								'method': 'post',
 								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?q',
 								'link': 'cancel',
-								'onComplete': this.parse_response.bind(this)
+								'onComplete': this.parse_response.bindWithEvent(this,options.callback)
 							});
 		this.current_request.send(query_string + '&' + time);
 		this.last_action_ut = time;
@@ -208,20 +209,23 @@ var Ape_core = new Class({
 	* Parse received raws
 	* @param	Array	An array of raw 
 	*/
-	parse_response: function(raws){
+	parse_response: function(raws,callback){
+		raws = JSON.decode(raws);
 		//This is fix for Webkit and Presto, see initialize method for more information
 		if (this.stop_window) { 
 			window.parent.stop();
 			this.stop_window=false;
 		}
-
 		if (raws && raws != 'CLOSE\n' && raws != 'QUIT\n') {
 			var 	l = raws.length,
 				raw;
 			for (var i=0; i<l; i++) {
-				//Last request is finished
 				raw = raws[i];
+
+				if (callback) callback.run(raw);
 				this.call_raw(raw);
+
+				//Last request is finished and it's not an error
 				if (this.current_request.xhr.readyState == 4) {
 					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003') {
 						this.check();
@@ -301,16 +305,6 @@ var Ape_core = new Class({
 	 * @return	object	Pipe object
 	 */
 	add_pipe: function(pubid, pipe){
-		var tmp = this.pipes.get(pubid);
-		if(tmp){
-			tmp.toto = 'toto';
-			console.log('pipe deleted',tmp);
-	//		this.removeEvent('raw_proxy',tmp.raw_proxy);
-	//		this.removeEvent('raw_proxy_event',tmp.raw_proxy_event);
-			console.log(tmp);
-			console.log(this.$events);
-		}
-		console.log('adding pipe',pubid,pipe);
 		return this.pipes.set(pubid, pipe); 
 	},
 

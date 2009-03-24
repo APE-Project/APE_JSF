@@ -19,7 +19,7 @@ var Ape_chat = new Class({
 		this.add_event('save_pipe', this.save_pipe);
 		this.add_event('end_restore',this.restore_session);
 		this.add_event('save_session',this.save_session);
-		this.add_event('raw_err',this.raw_err);
+		this.add_event('err_004',this.reset);
 		//If name is not set & it's not a session restore ask user for his nickname
 		if(!this.options.name && !this._core.options.restore){
 			this.prompt_name();
@@ -41,11 +41,6 @@ var Ape_chat = new Class({
 	},
 	start: function(){
 		this._core.start(this.options.name);
-	},
-	raw_err: function(raw){
-		if(raw.datas.value=='004'){//Incorrect sessid
-			this.reset();
-		}
 	},
 	toggle_logging: function(){
 		if(this.logging) this.logging = false;
