@@ -15,7 +15,7 @@ var Ape_pipe_multi = new Class({
 			var users = options.users;
 		}
 
-		this.fire_event('new_pipe_multi', [options, this]);
+		this.fire_event('new_pipe_multi', [this, options]);
 		this.fire_event('new_pipe', [this, options]);
 
 		if (options.users) {

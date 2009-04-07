@@ -17,7 +17,7 @@ var Ape_pipe_proxy = new Class({
 		this.add_event('raw_proxy_event',this.raw_proxy_event, true);
 
 		this.fire_event('new_pipe_proxy',[this, options]);
-		this.fire_event('new_pipe',[options, this]);
+		this.fire_event('new_pipe',[this, options]);
 	},
 	open: function(hostname, port){
 		//Adding a callback to request response to create a new pipe
