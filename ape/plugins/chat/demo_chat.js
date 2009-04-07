@@ -1,8 +1,8 @@
 var Ape_chat = new Class({
 	Implements: [Ape_client, Options],
 	options:{
-		logs_limit:10,
-		container: $('ape_master_container')
+		container: document.body,
+		logs_limit:10
 	},
 	initialize: function(core,options){
 		this._core = core;
