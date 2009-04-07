@@ -65,6 +65,7 @@ var Ape_core = new Class({
 
 		this.add_event('err_003', this.clear_session);
 		this.add_event('err_004', this.clear_session);
+		this.add_event('raw_ident',this.raw_ident);
 
 		this.fire_event('loaded', this);
 		
@@ -107,6 +108,9 @@ var Ape_core = new Class({
 	 * @param	Int	Delay (in ms) to wait to execute the event.
 	 */
 	fire_event: function(type, args, delay){
+		this.pipes.each(function(pipe){
+			pipe.fireEvent(type, args, delay);
+		});
 		this.fireEvent(type, args, delay);
 	},
 
@@ -193,8 +197,7 @@ var Ape_core = new Class({
 		this.current_request = new Request({	
 								'async': options.async,
 								'method': 'post',
-								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?q',
-								'link': 'cancel',
+								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?',
 								'onComplete': this.parse_response.bindWithEvent(this,options.callback)
 							});
 		this.current_request.send(query_string + '&' + time);
@@ -210,13 +213,27 @@ var Ape_core = new Class({
 	* @param	Array	An array of raw 
 	*/
 	parse_response: function(raws,callback){
-		raws = JSON.decode(raws);
 		//This is fix for Webkit and Presto, see initialize method for more information
 		if (this.stop_window) { 
 			window.parent.stop();
 			this.stop_window=false;
 		}
-		if (raws && raws != 'CLOSE\n' && raws != 'QUIT\n') {
+		if (raws == 'CLOSE' && this.current_request.xhr.readyState == 4){
+			if (callback) callback.run(raw);
+			this.check() 
+			return;
+		}
+		if (raws == 'QUIT') { 
+			this.quit();
+			return;
+		}
+		var check = false;
+		if (raws && raws!='CLOSE' && raws!='QUIT') {
+			raws = JSON.decode(raws,true);
+			if(!raws){//Something went wrong, json decode failed
+				this.check(); 
+				return;
+			}
 			var 	l = raws.length,
 				raw;
 			for (var i=0; i<l; i++) {
@@ -228,13 +245,13 @@ var Ape_core = new Class({
 				//Last request is finished and it's not an error
 				if (this.current_request.xhr.readyState == 4) {
 					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003') {
-						this.check();
+						check = true;
 					}
 				}
 			}
 		}
-		if (raws == 'QUIT\n') {
-			this.quit();
+		if(check){
+			this.check();
 		}
 	},
 
@@ -262,7 +279,7 @@ var Ape_core = new Class({
 			} else {
 				pipe = this.pipes.get(pipe_id);
 			}
-			args = [pipe, raw];
+			args = [raw, pipe];
 		} else {
 			args = raw;
 		}
@@ -324,7 +341,7 @@ var Ape_core = new Class({
 	 */
 	del_pipe: function(pubid){
 		var pipe = this.pipes.erase(pubid);
-		this.fire_event('pipe_deleted', pipe);
+		this.fire_event('pipe_' + pipe.type + '_deleted', pipe);
 		return pipe;
 	},
 
@@ -339,8 +356,8 @@ var Ape_core = new Class({
 	/***
 	* Check if there are new message for the user
 	*/
-	check: function(){
-		this.request('CHECK');
+	check: function(callback){
+		this.request('CHECK',null,true,{'callback':callback});
 	},
 
 	/****
@@ -378,6 +395,14 @@ var Ape_core = new Class({
 		this.clear_session();
 	},
 
+	set_pubid: function(pubid){
+		this.pubid = pubid;
+	},
+
+	get_pubid: function(){
+		return this.pubid;
+	},
+
 	/***
 	 * Return current sessid
 	 * @return	string	sessid
@@ -395,27 +420,41 @@ var Ape_core = new Class({
 	},
 
 	/***
-	 * Store a session variable on ape
+	 * Store a session variable on APE
+	 * Note : set_session can't be used while APE is currently restoring
 	 * @param	string	key
 	 * @param	string	value
 	 */
 	set_session: function(key, value, options){
-		if (!options) options = {};
-		//session var is tagged as "update" response
-		if (!options.tag) options.tag = false;
-		var arr = ['set', key, escape(value)]
-		if (options.tag){
-			arr.push(1);
+		if (!this.restoring) {
+			if (!options) options = {};
+			//session var is tagged as "update" response
+			//if (!options.tag) options.tag = false;
+			var arr = ['set', key, escape(value)]
+			/* Not used anymore
+			if (options.tag){
+				arr.push(1);
+			}
+			*/
+			this.request('SESSION', arr, true, options);
 		}
-		this.request('SESSION', arr, true, options);
 	},
 
 	/***
 	 * Receive a session variable from ape
 	 * @param	string	key
 	 */
-	get_session: function(key){
-		this.request('SESSION', ['get', key]);
+	get_session: function(key,callback){
+		this.request('SESSION', ['get', key],true,{'callback':callback});
+	},
+	
+	/***
+	 * Save in the core a variable with all information relative to the current user
+	 * @param	object	raw
+	 */
+	raw_ident: function(raw){
+		this.user = raw.datas.user;
+		this.set_pubid(raw.datas.user.pubid);
 	},
 
 	/***
@@ -425,7 +464,6 @@ var Ape_core = new Class({
 	*/
 	raw_login: function(param){
 		this.set_sessid(param.datas.sessid);
-		this.user = param.datas.user;
 		if (this.options.channel) {
 			this.join(this.options.channel);
 		}
@@ -461,10 +499,12 @@ var Ape_core = new Class({
 	 */
 	clear_session:function(){
 		this.set_sessid(null);
+		this.set_pubid(null);
 		this.$events = {} //Clear events
 		this.stop_pooler();
 		this.current_request.cancel();
 		this.running = false;
+		this.options.restore = false;
 	}
 });
 

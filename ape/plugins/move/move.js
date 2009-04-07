@@ -4,7 +4,6 @@ var Ape_move = new Class({
 		this._core = core;
 		this.add_event('initialized', this.init_playground);
 		this.add_event('new_user', this.create_user);
-		this.add_event('raw_login', this.raw_login);
 		this.add_event('new_pipe_multi', this.set_pipe);
 		this.add_event('raw_positions',this.raw_positions);
 		this.add_event('raw_data',this.raw_data);
@@ -18,24 +17,21 @@ var Ape_move = new Class({
 		pipe.sessions.type = pipe.type;
 		pipe.sessions.pipe = pipe.pipe;
 	},
-	delete_user: function(buffer,user){
+	delete_user: function(user, pipe){
 		user.element.dispose();
 	},
 
 	cmd_send: function(pipe,sessid,pubid,message){
 		this.write_message(pipe,message,this._core.user);
 	},
-	raw_data: function(pipe,raw){
+	raw_data: function(raw,pipe){
 		this.write_message(pipe,raw.datas.msg,raw.datas.sender);
 	},
-	set_pipe: function(pipe){
+	set_pipe: function(raw,pipe){
 		this.pipe = pipe;
 	},
- 	raw_login: function(raw){
- 		this._core.user= raw.datas.user;
-	},
-	raw_positions: function(buffer,options){
-		this.move_point(options.datas.sender,options.datas.sender.properties.x,options.datas.sender.properties.y);
+	raw_positions: function(raw, pipe){
+		this.move_point(raw.datas.sender,raw.datas.sender.properties.x,raw.datas.sender.properties.y);
 	},
 	parse_message: function(message){
 		return unescape(message);
@@ -72,7 +68,7 @@ var Ape_move = new Class({
 			}).delay(300,el);
 		 }).delay(3000,this,msg);
 	},
-	create_user: function(buffer,user){
+	create_user: function(user, pipe){
 		if(user.properties.x){
 			var x = user.properties.x;
 			var y = user.properties.y;

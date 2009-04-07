@@ -7,8 +7,7 @@ var 	Ape_config = new Array(),
 		no_bind ? this._core.addEvent(type,fn,internal) : this._core.addEvent(type,fn.bind(this),internal); 
 	},
 	load: function(config){
-		var 	tmp 	= JSON.decode(Cookie.read('Ape_cookie')),
-			restore = Cookie.read('Ape_restore');
+		var 	tmp 	= JSON.decode(Cookie.read('Ape_cookie'));
 
 		config.identifier = config.identifier || 'ape';
 		config.init_ape = config.init_ape || true;
@@ -24,12 +23,6 @@ var 	Ape_config = new Array(),
 		if (tmp) {
 			config.frequency = tmp.frequency.toInt();
 		}
-
-		if (restore) {
-			config.frequency = restore;
-			config.direct_restore = true;
-		}
-
 		Ape_config[config.identifier] = config;
 		var iframe = new Element('iframe', {
 			'id':'ape_' + config.identifier,
@@ -38,8 +31,8 @@ var 	Ape_config = new Array(),
 				'position': 'absolute',
 				'left': '-300px',
 				'top': '-300px'
-			},
-			'src': 'http://' + config.frequency + '.' + config.server + '/?q&script&' + config.scripts.join('&') + '&ac'
+			}
 		}).inject(document.body);
+		iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?script&' + config.scripts.join('&') + '&' + $time());
 	}
 });
