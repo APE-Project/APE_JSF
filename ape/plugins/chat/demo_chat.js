@@ -143,7 +143,7 @@ var Ape_chat = new Class({
 	delete_user: function(user, pipe){
 		user.el.dispose();
 	},
-	create_pipe: function(options, pipe){
+	create_pipe: function(pipe, options){
 		//Define some pipe variables to handle logging and pipe elements
 		pipe.els = {};
 		pipe.logs = new Array();

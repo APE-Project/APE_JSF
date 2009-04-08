@@ -5,16 +5,15 @@ body{
 #ape_message_container a{
 	outline:none;
 }
-#more{
+#more, #ape_container{
 	width:699px;
+	margin:auto;
 }
 #ape_container{
-	width:699px;
-	margin-top:25px;
 	padding-top:25px;
 	height:385px;
 	border:1px solid #bbbdbe;
-       border-right:0px;
+    border-right:0px;
 	background:url('./demochat_top.png') repeat-x;
 }
 #ape_sendbox_container{
