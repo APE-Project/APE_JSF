@@ -1,7 +1,12 @@
 var Ape_move = new Class({
 	Implements: [Ape_client, Options],
+	options: {
+		container: document.body
+	},
+
 	initialize: function(core,options){
 		this._core = core;
+		this.setOptions(options);
 		this.add_event('initialized', this.init_playground);
 		this.add_event('new_user', this.create_user);
 		this.add_event('new_pipe_multi', this.set_pipe);
@@ -27,7 +32,7 @@ var Ape_move = new Class({
 	raw_data: function(raw,pipe){
 		this.write_message(pipe,raw.datas.msg,raw.datas.sender);
 	},
-	set_pipe: function(raw,pipe){
+	set_pipe: function(pipe, options){
 		this.pipe = pipe;
 	},
 	raw_positions: function(raw, pipe){
@@ -143,12 +148,12 @@ var Ape_move = new Class({
 		fx.start({'left':pos.left+x,'top':pos.top+y});
 	},
 	init_playground: function(){
-		this.element = $('ape_master_container');
+		this.element = this.options.container;
 		move_box = this.element.addEvent('click',function(ev){
 			this.sendpos(ev.page.x,ev.page.y);
 		}.bind(this));
 		this.els = {};
-		this.els.more = new Element('div',{'id':'more'}).inject(this.element,'after');
+		this.els.more = new Element('div',{'id':'more'}).inject(this.element,'inside');
 
 		this.els.sendbox_container = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);
 

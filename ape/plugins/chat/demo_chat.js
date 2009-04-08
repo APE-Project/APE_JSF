@@ -8,7 +8,6 @@ var Ape_chat = new Class({
 		this._core = core;
 		this.setOptions(options);
 		this.els = {};
-		this.options.container = $(this.options.container);
 		this.current_pipe = null;
 		this.logging = true;
 		this.add_event('initialized', this.create_chat);

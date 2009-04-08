@@ -27,7 +27,7 @@
 			'identifier':'movedemo',
 			'channel':'move',
 			'complete':function(ape){
-				var Ape_c = new Ape_move(ape);
+				var Ape_c = new Ape_move(ape,{'container':$('ape_master_container')});
 				ape.start([rand_chars()]);
 			},
 			'scripts': [

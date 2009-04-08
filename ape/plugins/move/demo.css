@@ -1,5 +1,9 @@
+#more,
 #ape_master_container{
 	width:685px;
+	margin:auto;
+}
+#ape_master_container{
 	height:385px;
 	background:url('bg.png');
 	border:8px solid #4c4c4c;
@@ -32,8 +36,11 @@
 	font-size:14px;
 }
 #ape_sendbox_container{
+	border-left:4px #FFF;
 	background:url('bottom.png');
 	width:686px;
+	margin-left:-8px;
+	margin-top:385px;
 	height:49px;
 	margin-top:-8px;
 	color:#FFF;
