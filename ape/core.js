@@ -54,6 +54,20 @@ var Ape_core = new Class({
 
 	initialize: function(options){
 		this.setOptions(options);
+		switch (this.options.transport) {
+			case 1:
+				this.transport = {
+					request: Request,
+					options: {'method':'post'}
+				}
+				break;
+			case 4:
+				this.transport = {
+					request: Request.JSONP,
+					options: {}
+				}
+				break;
+		}
 		this.complete_options = {};
 		this.pipes = new $H; 
 		this.sessid = null;
@@ -169,7 +183,6 @@ var Ape_core = new Class({
 		if (!options.event) options.event = true;
 		if (!options.callback) options.callback = null;
 		//This id dirty -_-
-		if (!$type(options.async)) options.async = true;
 		if (!$type(sessid)) sessid = true;
 		param = param || [];
 
@@ -193,13 +206,11 @@ var Ape_core = new Class({
 			query_string += '&' + param.join('&');
 		}
 
-		//XHR Time
-		this.current_request = new Request({	
-								'async': options.async,
-								'method': 'post',
+		//Show time
+		this.current_request = new this.transport.request($extend(this.transport.options,{	
 								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?',
 								'onComplete': this.parse_response.bindWithEvent(this,options.callback)
-							});
+							}));
 		this.current_request.send(query_string + '&' + time);
 		this.last_action_ut = time;
 

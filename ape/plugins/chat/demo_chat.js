@@ -11,6 +11,7 @@ var Ape_chat = new Class({
 		this.current_pipe = null;
 		this.logging = true;
 		this.add_event('initialized', this.create_chat);
+		this.add_event('raw_login', this.set_name);
 		this.add_event('new_pipe', this.create_pipe);
 		this.add_event('new_pipe_single', this.set_pipe_name);
 		this.add_event('new_user', this.create_user);
@@ -25,6 +26,10 @@ var Ape_chat = new Class({
 		}else{
 			this.start();
 		}
+	},
+	set_name: function(){
+		console.log(this._core.user);
+		this._core.user.properties.name = this.options.name;
 	},
 	prompt_name: function(){
 		this.els.name_prompt = {};
