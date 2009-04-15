@@ -50,7 +50,7 @@ var Ape_chat = new Class({
 		if(this.logging) this.logging = false;
 		else this.logging = true;
 	},
-	set_pipe_name: function(options, pipe){
+	set_pipe_name: function(pipe, options){
 		if(options.name){
 			pipe.name = options.name;
 			return;

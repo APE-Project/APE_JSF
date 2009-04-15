@@ -15,8 +15,8 @@ var Ape_core = new Class({
 	save_session_pipe:function(){
 		this.set_session('single_pipe',JSON.encode(this.single_pipe.getValues()));
 	},
-	save_pipe_single: function(options, pipe) {
-		this.single_pipe.set(pipe. pubid, options);
+	save_pipe_single: function(pipe, options) {
+		this.single_pipe.set(pipe.get_pubid(), options);
 		this.save_session_pipe();
 	},
 
