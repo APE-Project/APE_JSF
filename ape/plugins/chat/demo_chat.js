@@ -28,7 +28,7 @@ var Ape_chat = new Class({
 		}
 	},
 	set_name: function(){
-		console.log(this._core.user);
+		if(!this._core.user.properties) this._core.user.properties = {}
 		this._core.user.properties.name = this.options.name;
 	},
 	prompt_name: function(){
