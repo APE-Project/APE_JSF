@@ -115,6 +115,7 @@ body{
 	background:url('./msg_bot.png');
 }
 .ape_message_container{
+	position:relative !important;
 	width:479px;
 	margin-top:5px;
 	margin-left:10px;
