@@ -80,3 +80,8 @@
 	background:url('./msg_bot.png') repeat-y;
 	height:9px;
 }
+.move_box{
+	height:345px;
+	width:682px;
+	position:absolute;
+}

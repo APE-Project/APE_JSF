@@ -149,7 +149,8 @@ var Ape_move = new Class({
 	},
 	init_playground: function(){
 		this.element = this.options.container;
-		move_box = this.element.addEvent('click',function(ev){
+		var move_box = new Element('div',{'class':'move_box'}).inject(this.element);
+		move_box.addEvent('click',function(ev){ 
 			this.sendpos(ev.page.x,ev.page.y);
 		}.bind(this));
 		this.els = {};

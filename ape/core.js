@@ -250,7 +250,7 @@ var Ape_core = new Class({
 			for (var i=0; i<l; i++) {
 				raw = raws[i];
 
-				if (callback) callback.run(raw);
+				if (callback && $type(callback)=='function') callback.run(raw);
 				this.call_raw(raw);
 
 				//Last request is finished and it's not an error
