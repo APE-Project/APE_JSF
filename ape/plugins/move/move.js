@@ -14,13 +14,6 @@ var Ape_move = new Class({
 		this.add_event('raw_data',this.raw_data);
 		this.add_event('cmd_send', this.cmd_send);
 		this.add_event('user_left', this.delete_user);
-		this.add_event('save_pipe', this.save_pipe);
-	},
-	save_pipe: function(pipe){
-		pipe.sessions = {};
-		pipe.sessions.users = pipe.users.getValues();
-		pipe.sessions.type = pipe.type;
-		pipe.sessions.pipe = pipe.pipe;
 	},
 	delete_user: function(user, pipe){
 		user.element.dispose();
