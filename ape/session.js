@@ -4,7 +4,7 @@ var Ape_core = new Class({
 
 	initialize: function(options){
 		this.sessions = {};
-		if (this.get_cookie_instance(options.identifier)) options.restore = true;
+		if (this.get_cookie_instance(options.identifier).instance) options.restore = true;
 		this.parent(options);
 		this.add_event('initialized',this.initialized);
 		this.add_event('new_pipe_single',this.save_pipe_single);
@@ -79,22 +79,41 @@ var Ape_core = new Class({
 					return {'instance': tmp.instance[i], 'cookie': tmp};
 				}
 			}
+			//No instance found, just return the cookie
+			return {'cookie':tmp};
 		}
-		//no instance found for the identifier 
+		//no instance found, no cookie found 
 		return false;
 	},
+	/***
+	 * Initialize cookie and some application variable is instance is found
+	 * set this.cookie variable
+	 * @return 	boolean	true if instance is found, else false
+	 */
 	init_cookie: function(){
 		var tmp = this.get_cookie_instance();
-		if(tmp){
+		if(tmp && tmp.instance){
 			this.set_sessid(tmp.instance.sessid);
 			this.set_pubid(tmp.instance.pubid);
 			tmp.cookie.frequency = tmp.cookie.frequency.toInt() + 1;
 			this.cookie = tmp.cookie;
-			return tmp;
-		}else{
+			return true;
+		} else if (tmp.cookie) {
+			this.create_cookie_instance(tmp.cookie);
+			tmp.cookie.frequency = tmp.cookie.frequency.toInt() + 1;
+			this.cookie = tmp.cookie;
+			return false;
+		} else {
 			this.cookie = null;
 			return false;
 		}
+	},
+	/***
+	 * Create a cookie instance (add to the instance array of the cookie the current application)
+	 * @param	object	Ape cookie
+	 */
+	create_cookie_instance: function(cookie) {
+		cookie.instance.push({'identifier': this.options.identifier, 'pubid': this.get_pubid(), 'sessid': this.get_sessid()})
 	},
 	/***
 	 * Create ape cookie if needed (but do not write it)
@@ -106,7 +125,7 @@ var Ape_core = new Class({
 				frequency: 1,
 				instance: []
 			};
-			tmp.instance.push({'identifier': this.options.identifier, 'pubid': this.get_pubid(), 'sessid': this.get_sessid()})
+			this.create_cookie_instance(tmp);
 			this.cookie = tmp;
 		}
 	},
