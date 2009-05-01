@@ -14,6 +14,8 @@ var Ape_move = new Class({
 		this.add_event('raw_data',this.raw_data);
 		this.add_event('cmd_send', this.cmd_send);
 		this.add_event('user_left', this.delete_user);
+		this.add_event('err_004',this.reset);
+		if (this.options.name) this._core.start(this.options.name);
 	},
 	delete_user: function(user, pipe){
 		user.element.dispose();
@@ -142,11 +144,11 @@ var Ape_move = new Class({
 	},
 	init_playground: function(){
 		this.element = this.options.container;
-		var move_box = new Element('div',{'class':'move_box'}).inject(this.element);
-		move_box.addEvent('click',function(ev){ 
+		this.els = {};
+		this.els.move_box = new Element('div',{'class':'move_box'}).inject(this.element);
+		this.els.move_box.addEvent('click',function(ev){ 
 			this.sendpos(ev.page.x,ev.page.y);
 		}.bind(this));
-		this.els = {};
 		this.els.more = new Element('div',{'id':'more'}).inject(this.element,'inside');
 
 		this.els.sendbox_container = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);
@@ -183,5 +185,12 @@ var Ape_move = new Class({
 								}.bind(this)
 							}
 						}).inject(this.els.send_box);
+	},
+	reset: function(){
+		this._core.clear_session();
+		if (this.element) {
+			this.element.empty();
+		}
+		this._core.initialize(this._core.options);
 	}
 });
