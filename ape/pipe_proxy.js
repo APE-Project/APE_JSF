@@ -20,8 +20,8 @@ var Ape_pipe_proxy = new Class({
 		this.fire_event('new_pipe', [this, options]);
 	},
 	open: function(hostname, port){
-		//Adding a callback to request response to create a new pipe
-		this.request('PROXY_CONNECT', [hostname,port], true, {'callback':this.pipe ? null : this.callback.bind(this)});
+		//Adding a callback to request response to create a new pipe if this.pipe haven't been initialized
+		this.request('PROXY_CONNECT', [hostname,port], true, this.pipe ? null : {'callback':this.callback.bind(this)});
 	},
 	send: function(data){
 	      this.request('PROXY_WRITE',[this.get_pubid(),B64.encode(data)]);

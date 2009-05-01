@@ -249,7 +249,6 @@ var Ape_core = new Class({
 				raw;
 			for (var i=0; i<l; i++) {
 				raw = raws[i];
-
 				if (callback && $type(callback)=='function') callback.run(raw);
 				this.call_raw(raw);
 
@@ -258,6 +257,9 @@ var Ape_core = new Class({
 					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003') {
 						check = true;
 					}
+				} else {
+					//Invalidate check if something went wrong with other raw or a new request have been launched
+					check = false;
 				}
 			}
 		}
