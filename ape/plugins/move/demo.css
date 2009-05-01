@@ -58,6 +58,7 @@
 	border:none;
 }
 .ape_message_container{
+	white-space:normal;
 	width:244px;	
 	margin-left:21px;
 	margin-top:-77px;
@@ -71,8 +72,8 @@
 	background:url('./msg_mid.png') repeat-y;
 	padding-left:24px;
 	overflow:hidden;
-	font-size:17px;
-	line-height:17px;
+	font-size:16px;
+	line-height:20px;
 	font-family:Verdana;
 	color:#5f5f60;
 }
