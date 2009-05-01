@@ -2,8 +2,8 @@
 // This code is from http://orbited.org
 
 var CHANNEL = "#ape-project"
-var IRC_SERVER = 'irc.freenode.org'
-var IRC_PORT = 8000
+var IRC_SERVER = 'irc.freenode.net'
+var IRC_PORT = 6667
 
 var nickname = null;
 var users = {};
