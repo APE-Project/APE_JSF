@@ -167,23 +167,23 @@ var Ape_core = new Class({
 	 * Make a xmlhttrequest, once result received the parse_response function is called 
 	 * @param 	string	Raw to send
 	 * @param	boolean	If true sessid is added to request
-	 * @param	Mixed	Can be array,object or string, if more than one, must be a string	
+	 * @param	Mixed	Can be array,object or string, if more than one, must an array 
 	 * @param	Object	Options (event, async, callback )
+	 * @param	Boolean	Used only by opera
 	 */
-	request: function(raw, param, sessid, options){
+	request: function(raw, param, sessid, options, no_watch){
 		//Opera dirty fix
-		if (Browser.Engine.presto && options && !options.no_watch) {
+		if (Browser.Engine.presto && !no_watch) {
 			this.watch_var_changed = true;
 			this.watch_var_cnt = [raw, param, sessid, options];
 			return;
 		}
 
 		//Set options
+		if (!$type(sessid)) sessid = true;
 		if (!options) options = {};
 		if (!options.event) options.event = true;
 		if (!options.callback) options.callback = null;
-		//This id dirty -_-
-		if (!$type(sessid)) sessid = true;
 		param = param || [];
 
 		//Format params
@@ -205,7 +205,6 @@ var Ape_core = new Class({
 		if (param.length > 0) {
 			query_string += '&' + param.join('&');
 		}
-
 		//Show time
 		this.current_request = new this.transport.request($extend(this.transport.options,{	
 								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?',
@@ -263,7 +262,7 @@ var Ape_core = new Class({
 				}
 			}
 		}
-		if(check){
+		if(check && !this.watch_var_changed){
 			this.check();
 		}
 	},
@@ -501,8 +500,7 @@ var Ape_core = new Class({
 	watch_var: function(){
 		if (this.watch_var_changed) {
 			this.watch_var_changed = false;
-			if (!this.watch_var_cnt[2]) this.watch_var_cnt[2] = {};
-			this.watch_var_cnt[2].no_watch = true;
+			this.watch_var_cnt[4] = true;
 			this.request.run(this.watch_var_cnt, this);
 		}
 	},

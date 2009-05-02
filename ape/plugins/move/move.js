@@ -101,7 +101,7 @@ var Ape_move = new Class({
 		var i=0;
 		while(i<3 && i<nickname.length){
 			//Transformation du code ascii du caractère en code couleur
-			color[i] = Math.round(((nickname.charCodeAt(i)-97)/26)*200+10);			
+			color[i] = Math.abs(Math.round(((nickname.charCodeAt(i)-97)/26)*200+10));			
 			i++;
 		}
 		return color.join(',');
@@ -148,7 +148,7 @@ var Ape_move = new Class({
 		this.els.move_box = new Element('div',{'class':'move_box'}).inject(this.element);
 		this.els.move_box.addEvent('click',function(ev){ 
 			this.sendpos(ev.page.x,ev.page.y);
-		}.bind(this));
+		}.bindWithEvent(this));
 		this.els.more = new Element('div',{'id':'more'}).inject(this.element,'inside');
 
 		this.els.sendbox_container = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);

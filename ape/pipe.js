@@ -12,7 +12,10 @@ var Ape_pipe  = new Class({
 	},
 	request: function(raw, param, sessid, options){
 		var tmp = {'event': false}
-		this._core.request(raw,param,sessid, options ? $extend(tmp,options) : tmp);
+		this._core.request(raw, param, sessid, options ? $extend(tmp, options) : tmp);
+		if (!$type(sessid) || sessid) {
+			param.unshift(this._core.get_sessid());
+		}
 		this.fire_event('cmd_' + raw.toLowerCase(), [this].combine(param));
 	},
 	get_pubid: function(){
