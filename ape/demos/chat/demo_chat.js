@@ -10,26 +10,21 @@ var Ape_chat = new Class({
 		this.els = {};
 		this.current_pipe = null;
 		this.logging = true;
-		this.add_event('initialized', this.create_chat);
-		this.add_event('raw_login', this.set_name);
-		this.add_event('new_pipe', this.create_pipe);
-		this.add_event('new_pipe_single', this.set_pipe_name);
-		this.add_event('new_user', this.create_user);
-		this.add_event('user_left', this.delete_user);
-		this.add_event('cmd_send', this.cmd_send);
-		this.add_event('end_restore',this.end_restore);
-		this.add_event('raw_data', this.raw_data);
-		this.add_event('err_004',this.reset);
+		this.addEvent('initialized', this.create_chat);
+		this.addEvent('new_pipe', this.create_pipe);
+		this.addEvent('new_pipe_single', this.set_pipe_name);
+		this.addEvent('new_user', this.create_user);
+		this.addEvent('user_left', this.delete_user);
+		this.addEvent('cmd_send', this.cmd_send);
+		this.addEvent('end_restore',this.end_restore);
+		this.addEvent('raw_data', this.raw_data);
+		this.addEvent('err_004',this.reset);
 		//If name is not set & it's not a session restore ask user for his nickname
 		if(!this.options.name && !this._core.options.restore){
 			this.prompt_name();
 		}else{
 			this.start();
 		}
-	},
-	set_name: function(){
-		if(!this._core.user.properties) this._core.user.properties = {}
-		this._core.user.properties.name = this.options.name;
 	},
 	prompt_name: function(){
 		this.els.name_prompt = {};
@@ -137,7 +132,7 @@ var Ape_chat = new Class({
 					function(ev,user){
 							if(!this._core.getPipe(user.pubid)){
 								user.pipe = {pubid:user.pubid,properties:user.properties};
-								var pipe = this._core.new_pipe_single(user);
+								var pipe = this._core.newPipe('uni', user);
 							}
 							this.set_current_pipe(user.pubid);
 						}.bindWithEvent(this,[user])

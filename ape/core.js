@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2008  Nicolas Trani <n.trani@weelya.com> / Antohny Catel <a.catel@weelya.com> / Florian Gasquez <f.gasquez@weelya.com / John Chavarria <j.chavarria@weelya.com>
+  Copyright (C) 2008-2009  Nicolas Trani <n.trani@weelya.com> / Antohny Catel <a.catel@weelya.com> / Florian Gasquez <f.gasquez@weelya.com / John Chavarria <j.chavarria@weelya.com>
   This file is part of APE Client.
   APE is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -42,14 +42,15 @@
 
 var APECore = new Class({
 
-	Implements : [Options, Events],
+	Implements: Options,
+	Extends: Events,
 
 	options:{
-		server:window.location.hostname,	//Ape server URL
-		poolTime:25000, 			//Max time for a request
-		identifier:'ape',			//Identifier is used by cookie to differenciate ape instance
-		transport:1,				//Trasport 1: long pooling, 2: pooling (didn't work yet), 3: forever iframe, 4: jsonp (didn't work yet), 5: websocket (didn't work yet)
-		frequency:0				//Ffrequency identifier
+		server: window.location.hostname,	//Ape server URL
+		poolTime: 25000, 			//Max time for a request
+		identifier: 'ape',			//Identifier is used by cookie to differenciate ape instance
+		transport: 1,				//Trasport 1: long pooling, 2: pooling (didn't work yet), 3: forever iframe, 4: jsonp (didn't work yet), 5: websocket (didn't work yet)
+		frequency: 0				//Ffrequency identifier
 	},
 
 	initialize: function(options){
@@ -71,16 +72,17 @@ var APECore = new Class({
 		this.pipes = new $H; 
 		this.sessid = null;
 		this.pubid = null;
+		this.xhr = null;
 		this.timer = null;
 
-		this.add_event('raw_login', this.raw_login);
-		this.add_event('raw_err', this.raw_err);
+		this.addEvent('raw_login', this.raw_login);
+		this.addEvent('raw_err', this.raw_err);
 
-		this.add_event('err_003', this.clearSession);
-		this.add_event('err_004', this.clearSession);
-		this.add_event('raw_ident',this.raw_ident);
+		this.addEvent('err_003', this.clearSession);
+		this.addEvent('err_004', this.clearSession);
+		this.addEvent('raw_ident',this.raw_ident);
 
-		this.fire_event('loaded', this);
+		this.fireEvent('loaded', this);
 		
 		/*
 		 * Browser using webkit and presto let a loading bar (or cursor), even if page loaded 
@@ -120,21 +122,12 @@ var APECore = new Class({
 	 * @param	Args	Array or single object, arguments to pass to the function. If more than one argument, must be an array.
 	 * @param	Int	Delay (in ms) to wait to execute the event.
 	 */
-	fire_event: function(type, args, delay){
+	fireEvent: function(type, args, delay){
+		//Fire the event on each pipe
 		this.pipes.each(function(pipe){
-			pipe.fireEvent(type, args, delay);
+			pipe.fireEvent(type, args, true, delay);
 		});
-		this.fireEvent(type, args, delay);
-	},
-
-	/****
-	 * Add an handler for an event
-	 * @param	String		Type (Event name)
-	 * @param	Function	Function to execute
-	 * @param	??		??
-	 */
-	add_event: function(type, fn, internal){
-		this.addEvent(type, fn, internal);
+		this.parent(type, args, delay);
 	},
 
 	/***
@@ -205,15 +198,15 @@ var APECore = new Class({
 			queryString += '&' + param.join('&');
 		}
 		//Show time
-		this.request = new this.transport.request($extend(this.transport.options,{	
+		this.xhr = new this.transport.request($extend(this.transport.options,{	
 								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?',
 								'onComplete': this.parseResponse.bindWithEvent(this,options.callback)
 							}));
-		this.request.send(queryString + '&' + time);
+		this.xhr.send(queryString + '&' + time);
 		this.lastAction = time;
 
 		if (!options.event) {
-			this.fire_event('cmd_' + raw.toLowerCase(), param);
+			this.fireEvent('cmd_' + raw.toLowerCase(), param);
 		}
 	},
 
@@ -221,13 +214,13 @@ var APECore = new Class({
 	* Parse received raws
 	* @param	Array	An array of raw 
 	*/
-	parseResponse: function(raws,callback){
+	parseResponse: function(raws, callback){
 		//This is fix for Webkit and Presto, see initialize method for more information
 		if (this.stopWindow) { 
 			window.parent.stop();
 			this.stopWindow=false;
 		}
-		if (raws == 'CLOSE' && this.request.xhr.readyState == 4){
+		if (raws == 'CLOSE' && this.xhr.xhr.readyState == 4){
 			if (callback) callback.run(raw);
 			this.check() 
 			return;
@@ -243,7 +236,7 @@ var APECore = new Class({
 				this.check(); 
 				return;
 			}
-			var 	l = raws.length,
+			var	l = raws.length,
 				raw;
 			for (var i=0; i<l; i++) {
 				raw = raws[i];
@@ -251,7 +244,7 @@ var APECore = new Class({
 				this.callRaw(raw);
 
 				//Last request is finished and it's not an error
-				if (this.request.xhr.readyState == 4) {
+				if (this.xhr.xhr.readyState == 4) {
 					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003') {
 						check = true;
 					}
@@ -273,9 +266,10 @@ var APECore = new Class({
 	callRaw: function(raw){
 		var args;
 		if (raw.datas.pipe) {
-			var pipe_id = raw.datas.pipe.pubid;
+			var pipe_id = raw.datas.pipe.pubid,
+				pipe;
 			if (!this.pipes.has(pipe_id)) {
-				var	pipe = this.new_pipe(raw.datas.pipe.casttype, raw.datas);
+				pipe = this.newPipe(raw.datas.pipe.casttype, raw.datas);
 			} else {
 				pipe = this.pipes.get(pipe_id);
 			}
@@ -283,7 +277,7 @@ var APECore = new Class({
 		} else {
 			args = raw;
 		}
-		this.fire_event('raw_' + raw.raw.toLowerCase(), args);
+		this.fireEvent('raw_' + raw.raw.toLowerCase(), args);
 	},
 	
 	/***
@@ -292,16 +286,16 @@ var APECore = new Class({
 	 * @param	Object	Options used to instanciate pipe
 	 * @return	Object	pipe
 	 */
-	new_pipe: function(type, options) {
+	newPipe: function(type, options) {
 		switch (type) {
 			case 'uni':
-				return new APEPipeSingle(raw.datas);
+				return new APEPipeSingle(this,options);
 			break;
 			case 'proxy':
-				return new APEPipeProxy(raw.datas);
+				return new APEPipeProxy(this,options);
 			break;
 			case 'multi':
-				return new APEPipeMulti(raw.datas);
+				return new APEPipeMulti(this,options);
 			break;
 		}
 	},
@@ -336,7 +330,7 @@ var APECore = new Class({
 	 */
 	delPipe: function(pubid){
 		var pipe = this.pipes.erase(pubid);
-		this.fire_event('pipe_' + pipe.type + '_deleted', pipe);
+		this.fireEvent('pipe_' + pipe.type + '_deleted', pipe);
 		return pipe;
 	},
 
@@ -350,9 +344,10 @@ var APECore = new Class({
 
 	/***
 	* Check if there are new message for the user
+	* @param	function	Callback (see request)
 	*/
 	check: function(callback){
-		this.request('CHECK',null,true,{'callback':callback});
+		this.request('CHECK', null, true, {'callback': callback});
 	},
 
 	/****
@@ -463,7 +458,7 @@ var APECore = new Class({
 			this.join(this.options.channel);
 		}
 		this.running = true;
-		this.fire_event('initialized');
+		this.fireEvent('initialized');
 		this.startPooler();
 	},
 
@@ -472,7 +467,7 @@ var APECore = new Class({
 	* @param	object	raw
 	*/
 	raw_err: function(err){
-		this.fire_event('err_' + err.datas.code, err);
+		this.fireEvent('err_' + err.datas.code, err);
 	},
 
 	/****

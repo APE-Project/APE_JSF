@@ -18,12 +18,12 @@
 			}
 			return temp;
 		}
-		var base_url = 'http://www.ape-project.org/svn/ape/APE_JSF/ape/';
-		var ape_client = new Ape_client();
+		var baseUrl= 'http://ape.loc/APE_JSF/ape/';
+		var client = new APEClient()
 		var TCPSocket;
-		ape_client.load({
-			'domain':'ape-project.org',
-			'server':'ape.ape-project.org',
+		client.load({
+			'domain':'ape.loc',
+			'server':'ape.loc',
 			'identifier':'chatdemo',
 			'complete':function(ape){
 
@@ -37,7 +37,7 @@
 							var key = e.charCode || e.keyCode || 0
 							if (key == ENTER_KEY) {
 								ape.start(rand_chars());
-								ape.add_event('initialized',function(){
+								ape.addEvent('initialized',function(){
 									connect();
 								});
 							};
@@ -53,14 +53,14 @@
 					});
 			},
 			'scripts': [
-					base_url+'/mootools.js',
-					base_url+'/events.js',
-					base_url+'/pipe.js',
-					base_url+'/pipe_multi.js',
-					base_url+'/pipe_single.js',
-					base_url+'/pipe_proxy.js',
-					base_url+'/core.js',
-					base_url+'/utils.js'
+					baseUrl+'/mootools.js',
+					baseUrl+'/events.js',
+					baseUrl+'/pipe.js',
+					baseUrl+'/pipe_multi.js',
+					baseUrl+'/pipe_single.js',
+					baseUrl+'/pipe_proxy.js',
+					baseUrl+'/core.js',
+					baseUrl+'/utils.js'
 				]
 		});
 	</script>

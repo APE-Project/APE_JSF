@@ -1,6 +1,6 @@
 var APEPipe  = new Class({
 
-	Implements: Ape_events,
+	Implements: APEEvents,
 
 	initialize: function(core, options){
 		this.pipe = options.pipe;
@@ -19,7 +19,7 @@ var APEPipe  = new Class({
 			//I know i would be better to use param.unshift but when i did it opera get some trouble (try it yourself if you want to know what happend)
 			eventParam = [this._core.getSessid()].combine(param);
 		}
-		this.fire_event('cmd_' + raw.toLowerCase(), [this].combine(eventParam));
+		this.fireEvent('cmd_' + raw.toLowerCase(), [this].combine(eventParam));
 	},
 	getPubid: function(){
 		return this.pipe.pubid;

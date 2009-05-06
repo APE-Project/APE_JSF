@@ -7,14 +7,14 @@ var Ape_move = new Class({
 	initialize: function(core,options){
 		this._core = core;
 		this.setOptions(options);
-		this.add_event('initialized', this.init_playground);
-		this.add_event('new_user', this.create_user);
-		this.add_event('new_pipe_multi', this.set_pipe);
-		this.add_event('raw_positions',this.raw_positions);
-		this.add_event('raw_data',this.raw_data);
-		this.add_event('cmd_send', this.cmd_send);
-		this.add_event('user_left', this.delete_user);
-		this.add_event('err_004',this.reset);
+		this.addEvent('initialized', this.init_playground);
+		this.addEvent('new_user', this.create_user);
+		this.addEvent('new_pipe_multi', this.set_pipe);
+		this.addEvent('raw_positions',this.raw_positions);
+		this.addEvent('raw_data',this.raw_data);
+		this.addEvent('cmd_send', this.cmd_send);
+		this.addEvent('user_left', this.delete_user);
+		this.addEvent('err_004',this.reset);
 		if (this.options.name) this._core.start(this.options.name);
 	},
 	delete_user: function(user, pipe){

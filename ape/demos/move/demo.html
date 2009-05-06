@@ -7,7 +7,6 @@
 	<body>
 	<script type="text/javaScript" src="../../mootools.js"></script>
 	<script type="text/javaScript" src="../../client_moo.js"></script>
-	<script type="text/javaScript" src="../../ape_bootstrap.js"></script>
 	<script type="text/javaScript" src="./move.js"></script>
 	<script type="text/javaScript">
 		function rand_chars(){
@@ -19,11 +18,11 @@
 			}
 			return temp;
 		}
-		var base_url = 'http://www.ape-project.org/svn/ape/APE_JSF/ape/';
-		var ape_client = new Ape_client();
-		ape_client.load({
-			'domain':'ape-project.org',
-			'server':'ape.ape-project.org',
+		var baseUrl = 'http://ape.loc/APE_JSF/ape/';
+		var client = new APEClient();
+		client.load({
+			'domain':'ape.loc',
+			'server':'ape.loc',
 			'identifier':'movedemo',
 			'channel':'move',
 			'complete':function(ape){
@@ -31,15 +30,14 @@
 				ape.start([rand_chars()]);
 			},
 			'scripts': [
-					base_url+'/mootools.js',
-					base_url+'/events.js',
-					base_url+'/pipe.js',
-					base_url+'/pipe_proxy.js',
-					base_url+'/pipe_multi.js',
-					base_url+'/pipe_single.js',
-					base_url+'/core.js',
-					base_url+'/i18n/fr.js',
-					base_url+'/utils.js'
+					baseUrl+'/mootools.js',
+					baseUrl+'/events.js',
+					baseUrl+'/pipe.js',
+					baseUrl+'/pipe_proxy.js',
+					baseUrl+'/pipe_multi.js',
+					baseUrl+'/pipe_single.js',
+					baseUrl+'/core.js',
+					baseUrl+'/utils.js'
 				]
 		});
 	</script>

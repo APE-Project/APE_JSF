@@ -5,7 +5,7 @@ var APEPipeSingle = new Class({
 	initialize: function(core, options){
 		this.parent(core, options);
 		this.type = 'uni';
-		this.fire_event('new_pipe_single',[this, options]);
-		this.fire_event('new_pipe',[this, options]);
+		this.fireEvent('new_pipe_single',[this, options]);
+		this.fireEvent('new_pipe',[this, options]);
 	}
 });

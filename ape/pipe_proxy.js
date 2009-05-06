@@ -14,10 +14,10 @@ var APEPipeProxy = new Class({
 
 		this._core.addPipe(this.getPubid(), this);
 
-		this.add_event('raw_proxy_event', this.raw_proxy_event, true);
+		this.addEvent('raw_proxy_event', this.raw_proxy_event, true);
 
-		this.fire_event('new_pipe_proxy', [this, options]);
-		this.fire_event('new_pipe', [this, options]);
+		this.fireEvent('new_pipe_proxy', [this, options]);
+		this.fireEvent('new_pipe', [this, options]);
 	},
 	open: function(hostname, port){
 		//Adding a callback to request response to create a new pipe if this.pipe haven't been initialized
@@ -31,15 +31,15 @@ var APEPipeProxy = new Class({
 		switch (resp.datas.event) {
 			case 'READ':
 				var data = B64.decode(resp.datas.data)
-				this.fire_event('proxy_read',data);
+				this.fireEvent('proxy_read',data);
 				if(this.onread) this.onread(data);
 				break;
 			case 'CONNECT':
-				this.fire_event('proxy_connect');
+				this.fireEvent('proxy_connect');
 				if(this.onopen) this.onopen();
 				break;
 			case 'CLOSE':
-				this.fire_event('proxy_close');
+				this.fireEvent('proxy_close');
 				if(this.onclose) this.onclose();
 				break;
 		}

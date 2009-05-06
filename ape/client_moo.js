@@ -1,9 +1,9 @@
 var 	APEConfig = new Array(),
 	APEClient = new Class({
-	fire_event: function(type, args, delay){
+	fireEvent: function(type, args, delay){
 		this._core.fireEvent(type, args, delay);
 	},
-	add_event: function(type, fn, no_bind, internal){
+	addEvent: function(type, fn, no_bind, internal){
 		no_bind ? this._core.addEvent(type,fn,internal) : this._core.addEvent(type,fn.bind(this),internal); 
 	},
 	load: function(config){

@@ -2,10 +2,10 @@ var APEConfig = new Array();
 function APEClient(core){
 	this._core = core;
 }
-APEClient.prototype.fire_event = function(type, args, delay){
+APEClient.prototype.fireEvent = function(type, args, delay){
 	this._core.fireEvent(type,args,delay);
 }
-APEClient.prototype.add_event = function(type, fn, no_bind, internal){
+APEClient.prototype.addEvent = function(type, fn, no_bind, internal){
 	no_bind ? this._core.addEvent(type, fn, internal) : this._core.addEvent(type, fn.bind(this), internal); 
 }
 APEClient.prototype.apeCookie = function (name, remove) {

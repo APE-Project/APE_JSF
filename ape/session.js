@@ -5,11 +5,11 @@ var APECore = new Class({
 	initialize: function(options){
 		if (this.getInstance(options.identifier).instance) options.restore = true;
 		this.parent(options);
-		this.add_event('initialized',this.initialized);
-		this.add_event('new_pipe_single',this.save_pipe_single);
-		this.add_event('pipe_single_deleted',this.pipe_single_deleted);
+		this.addEvent('initialized',this.initialized);
+		this.addEvent('new_pipe_single',this.save_pipe_single);
+		this.addEvent('pipe_single_deleted',this.pipe_single_deleted);
 		this.session = {
-			singlePipe: new $H;
+			singlePipe: new $H
 		}
 	},
 	
@@ -36,7 +36,7 @@ var APECore = new Class({
 				}
 			}
 		}
-		this.fire_event('end_restore');
+		this.fireEvent('end_restore');
 		this.restoring = false;
 	},
 
@@ -48,7 +48,7 @@ var APECore = new Class({
 
 	callback_check: function(resp){
 		if (resp.raw!='ERR' && !this.running) { 
-			this.fire_event('initialized');
+			this.fireEvent('initialized');
 			this.running = true;
 			this.getSession('single_pipe',this.restore_single_pipe.bind(this));
 			this.startPooler();
@@ -61,7 +61,7 @@ var APECore = new Class({
 			this.parent(options);
 		}else{//Cookie or instance exist
 			this.restoring = true;
-			this.fire_event('start_restore');
+			this.fireEvent('start_restore');
 			this.check(this.callback_check.bind(this));//Send a check raw (this ask ape for an updated session)
 		}
 	},

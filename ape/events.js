@@ -1,12 +1,11 @@
-var Ape_events = new Class({
+var APEEvents = new Class({
 
-	Implements: Events,
+	Extends: Events,
 
-	fire_event: function(type, args, pipe, delay){
-		pipe ? this.fireEvent(type, args, delay) : this._core.fireEvent(type, args, delay);
+	fireEvent: function(type, args, pipe, delay){
+		pipe ? this.parent(type, args, delay) : this._core.fireEvent(type, args, delay);
 	},
-	add_event: function(type, fn, pipe, no_bind, internal){
-		no_bind ? fn = fn : fn = fn.bind(this);
-		pipe ? this.addEvent(type, fn, internal) : this._core.addEvent(type, fn, internal);
+	addEvent: function(type, fn, pipe, internal){
+		pipe ? this.parent(type, fn, internal) : this._core.addEvent(type, fn, internal);
 	}
 });
