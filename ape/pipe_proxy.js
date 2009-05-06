@@ -1,6 +1,6 @@
-var Ape_pipe_proxy = new Class({
+var APEPipeProxy = new Class({
 
-	Extends: Ape_pipe,	
+	Extends: APEPipe,	
 
 	initialize: function(core, options){
 		this._core = core || window.Ape;
@@ -12,7 +12,7 @@ var Ape_pipe_proxy = new Class({
 	init: function(options){
 		this.pipe = options.pipe;
 
-		this._core.add_pipe(this.get_pubid(), this);
+		this._core.addPipe(this.getPubid(), this);
 
 		this.add_event('raw_proxy_event', this.raw_proxy_event, true);
 
@@ -24,7 +24,7 @@ var Ape_pipe_proxy = new Class({
 		this.request('PROXY_CONNECT', [hostname,port], true, this.pipe ? null : {'callback':this.callback.bind(this)});
 	},
 	send: function(data){
-	      this.request('PROXY_WRITE',[this.get_pubid(),B64.encode(data)]);
+	      this.request('PROXY_WRITE',[this.getPubid(),B64.encode(data)]);
 	},
 	raw_proxy_event: function(resp, pipe){
 		if(!this.pipe) this.init(resp.datas);

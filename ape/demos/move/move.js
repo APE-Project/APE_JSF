@@ -1,5 +1,5 @@
 var Ape_move = new Class({
-	Implements: [Ape_client, Options],
+	Implements: [APEClient, Options],
 	options: {
 		container: document.body
 	},
@@ -38,7 +38,7 @@ var Ape_move = new Class({
 	},
 	write_message: function(pipe,message,sender){
 		//Define sender
-		sender = this.pipe.get_user(sender.pubid);
+		sender = this.pipe.getUser(sender.pubid);
 
 		//destory old message
 		sender.element.getElements('.ape_message_container').destroy();
@@ -108,7 +108,7 @@ var Ape_move = new Class({
 	},
 	sendpos: function(x,y){
 		var pos=this.pos_to_relative(x,y);
-		this._core.request('SETPOS',[this.pipe.get_pubid(),pos.x,pos.y]);
+		this._core.request('SETPOS',[this.pipe.getPubid(),pos.x,pos.y]);
 		this.move_point(this._core.user,pos.x,pos.y);	
 	},
 	pos_to_relative:function(x,y){
@@ -122,7 +122,7 @@ var Ape_move = new Class({
 		return {'x':x,'y':y};
 	},
 	move_point:function(user,x,y){
-		var user = this.pipe.get_user(user.pubid); 
+		var user = this.pipe.getUser(user.pubid); 
 		var el = user.element;
 		var fx = el.retrieve('fx'); 
 
@@ -187,7 +187,7 @@ var Ape_move = new Class({
 						}).inject(this.els.send_box);
 	},
 	reset: function(){
-		this._core.clear_session();
+		this._core.clearSession();
 		if (this.element) {
 			this.element.empty();
 		}

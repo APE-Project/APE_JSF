@@ -1,5 +1,5 @@
-var Ape_core = new Class({
-	Extends:Ape_core,
+var APECore = new Class({
+	Extends:APECore,
 	initialize: function(options){
 		if (!window.console || !console.firebug){
 			var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
@@ -22,7 +22,7 @@ var Ape_core = new Class({
 		console.log('Sending',raw,sessid,param,'fq',this.options.frequency);
 		this.parent(raw,param,sessid,options,no_watch);
 	},
-	parse_response: function(raws){
+	parseResponse: function(raws){
 		console.log('Receiving',raws);
 		this.parent(raws);
 	},

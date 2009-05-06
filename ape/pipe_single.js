@@ -1,9 +1,9 @@
-var Ape_pipe_single = new Class({
+var APEPipeSingle = new Class({
 
-	Extends: Ape_pipe,
+	Extends: APEPipe,
 
-	initialize: function(core,options){
-		this.parent(core,options);
+	initialize: function(core, options){
+		this.parent(core, options);
 		this.type = 'uni';
 		this.fire_event('new_pipe_single',[this, options]);
 		this.fire_event('new_pipe',[this, options]);

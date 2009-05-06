@@ -17,8 +17,8 @@
   
 */
 
-/***				    ________________________________________________________
- *                 __------__      /							    \
+/***							    ________________________________________________________
+ *                 __------__      /													    \
  *               /~          ~\   | APE, the Ajax Push Engine made with heart (and MooTools) |
  *              |    //^\\//^\|   |    http://www.weelya.net - http://www.ape-project.org    |
  *            /~~\  ||  o| |o|:~\  \ _______________________________________________________/
@@ -40,13 +40,13 @@
  *                `\_______/^\______/
  */
 
-var Ape_core = new Class({
+var APECore = new Class({
 
 	Implements : [Options, Events],
 
 	options:{
 		server:window.location.hostname,	//Ape server URL
-		pool_time:25000, 			//Max time for a request
+		poolTime:25000, 			//Max time for a request
 		identifier:'ape',			//Identifier is used by cookie to differenciate ape instance
 		transport:1,				//Trasport 1: long pooling, 2: pooling (didn't work yet), 3: forever iframe, 4: jsonp (didn't work yet), 5: websocket (didn't work yet)
 		frequency:0				//Ffrequency identifier
@@ -68,7 +68,6 @@ var Ape_core = new Class({
 				}
 				break;
 		}
-		this.complete_options = {};
 		this.pipes = new $H; 
 		this.sessid = null;
 		this.pubid = null;
@@ -77,8 +76,8 @@ var Ape_core = new Class({
 		this.add_event('raw_login', this.raw_login);
 		this.add_event('raw_err', this.raw_err);
 
-		this.add_event('err_003', this.clear_session);
-		this.add_event('err_004', this.clear_session);
+		this.add_event('err_003', this.clearSession);
+		this.add_event('err_004', this.clearSession);
 		this.add_event('raw_ident',this.raw_ident);
 
 		this.fire_event('loaded', this);
@@ -88,9 +87,9 @@ var Ape_core = new Class({
 		 * This case happend, only if XHR is made while parent page is loading
 		 */
 		if (Browser.Engine.webkit || Browser.Engine.presto) {
-			var oldonload = window.parent.onload,
+			var oldOnload = window.parent.onload,
 			fn = function(){
-				this.stop_window = true;
+				this.stopWindow = true;
 			}.bind(this);
 
 			//Add function to load event
@@ -98,7 +97,7 @@ var Ape_core = new Class({
 				window.parent.onload = fn;
 			} else {
 				window.parent.onload = function(){
-					oldonload(); 
+					oldOnload(); 
 					fn();
 				}
 			}
@@ -109,10 +108,10 @@ var Ape_core = new Class({
 			this.watch_var_changed = false;
 			this.watch_var.periodical(10, this);
 		}
-		//Set _core var for Ape_client instance
+		//Set _core var for APEClient instance
 		if(options.init) options.init.apply(null, [this]);
-		//Execute complete function of Ape_client instance
-		if(options.complete) options.complete.apply(null, [this ,this.complete_options]);
+		//Execute complete function of APEClient instance
+		if(options.complete) options.complete.apply(null, [this]);
 	},
 
 	/***
@@ -142,9 +141,9 @@ var Ape_core = new Class({
 	* Execute check request each X seconde
 	*/
 	pooler: function(){
-		//Check if another request might not running and do not need to be closed
+		//Check if another request might not running and don't need to be closed
 		//Note : pool time is decrease of 2s beacuse js periodical is not verry accurate
-		if($time() - this.last_action_ut >= this.options.pool_time - 20000){
+		if ($time() - this.lastAction >= this.options.poolTime - 20000) {
 			this.check();
 		}
 	},
@@ -152,8 +151,8 @@ var Ape_core = new Class({
 	/***
 	 * Start the pooler
 	 */
-	start_pooler: function(){
-		this.timer = this.pooler.periodical(this.options.pool_time, this);//Creating pooler 
+	startPooler: function(){
+		this.timer = this.pooler.periodical(this.options.poolTime, this);//Creating pooler 
 	},
 
 	/***
@@ -164,7 +163,7 @@ var Ape_core = new Class({
 	},
 
 	/***
-	 * Make a xmlhttrequest, once result received the parse_response function is called 
+	 * Make a xmlhttrequest, once result received the parseResponse function is called 
 	 * @param 	string	Raw to send
 	 * @param	boolean	If true sessid is added to request
 	 * @param	Mixed	Can be array,object or string, if more than one, must an array 
@@ -187,10 +186,10 @@ var Ape_core = new Class({
 		param = param || [];
 
 		//Format params
-		var query_string = raw,
-		    time = $time();
+		var queryString = raw,
+		    time = $time(),
+			tmp = [];
 		if ($type(param) == 'object') {
-			var tmp = [];
 			for (var i in param) {
 				tmp.push(param[i]);
 			}
@@ -199,19 +198,19 @@ var Ape_core = new Class({
 			param = $splat(param);
 		}
 		//Add sessid
-		if (sessid) param.unshift(this.get_sessid());
+		if (sessid) param.unshift(this.getSessid());
 
 		//Create query string
 		if (param.length > 0) {
-			query_string += '&' + param.join('&');
+			queryString += '&' + param.join('&');
 		}
 		//Show time
-		this.current_request = new this.transport.request($extend(this.transport.options,{	
+		this.request = new this.transport.request($extend(this.transport.options,{	
 								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?',
-								'onComplete': this.parse_response.bindWithEvent(this,options.callback)
+								'onComplete': this.parseResponse.bindWithEvent(this,options.callback)
 							}));
-		this.current_request.send(query_string + '&' + time);
-		this.last_action_ut = time;
+		this.request.send(queryString + '&' + time);
+		this.lastAction = time;
 
 		if (!options.event) {
 			this.fire_event('cmd_' + raw.toLowerCase(), param);
@@ -222,13 +221,13 @@ var Ape_core = new Class({
 	* Parse received raws
 	* @param	Array	An array of raw 
 	*/
-	parse_response: function(raws,callback){
+	parseResponse: function(raws,callback){
 		//This is fix for Webkit and Presto, see initialize method for more information
-		if (this.stop_window) { 
+		if (this.stopWindow) { 
 			window.parent.stop();
-			this.stop_window=false;
+			this.stopWindow=false;
 		}
-		if (raws == 'CLOSE' && this.current_request.xhr.readyState == 4){
+		if (raws == 'CLOSE' && this.request.xhr.readyState == 4){
 			if (callback) callback.run(raw);
 			this.check() 
 			return;
@@ -249,10 +248,10 @@ var Ape_core = new Class({
 			for (var i=0; i<l; i++) {
 				raw = raws[i];
 				if (callback && $type(callback)=='function') callback.run(raw);
-				this.call_raw(raw);
+				this.callRaw(raw);
 
 				//Last request is finished and it's not an error
-				if (this.current_request.xhr.readyState == 4) {
+				if (this.request.xhr.readyState == 4) {
 					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003') {
 						check = true;
 					}
@@ -271,23 +270,12 @@ var Ape_core = new Class({
 	 * Fire event raw_'raw', if needed create also new pipe object
 	 * @param	Object	raw object
 	 */
-	call_raw: function(raw){
+	callRaw: function(raw){
 		var args;
 		if (raw.datas.pipe) {
 			var pipe_id = raw.datas.pipe.pubid;
 			if (!this.pipes.has(pipe_id)) {
-				var pipe;
-				switch (raw.datas.pipe.casttype) {
-					case 'uni':
-						pipe = this.new_pipe_single(raw.datas);
-					break;
-					case 'proxy':
-						pipe = this.new_pipe_proxy(raw.datas);
-					break;
-					case 'multi':
-						pipe = this.new_pipe_multi(raw.datas);
-					break;
-				}
+				var	pipe = this.new_pipe(raw.datas.pipe.casttype, raw.datas);
 			} else {
 				pipe = this.pipes.get(pipe_id);
 			}
@@ -297,43 +285,38 @@ var Ape_core = new Class({
 		}
 		this.fire_event('raw_' + raw.raw.toLowerCase(), args);
 	},
-
-	/***
-	 * Create a new single pipe
-	 * @param	Object	Options used to instanciate Ape_pipe_single
-	 * @return	Object	Ape_pipe_single object
-	 */
-	new_pipe_single: function(options){
-		return new Ape_pipe_single(this, options);
-	},
-
-	/***
-	 * Create a new multi pipe
-	 * @param	Object	Options used to instanciate Ape_pipe_multi
-	 * @return	Object	Ape_pipe_multi object
-	 */
-	new_pipe_multi: function(options){
-		return new Ape_pipe_multi(this, options);
-	},
 	
 	/***
-	 * Create a proxy pipe
-	 * @param	Object	Options used to instanciate Ape_pipe_proxy
+	 * Create a new pipe
+	 * @param	String	Pipe type [uni, proxy, single]
+	 * @param	Object	Options used to instanciate pipe
+	 * @return	Object	pipe
 	 */
-	new_pipe_proxy: function(options){
-		return new Ape_pipe_proxy(this,options);
+	new_pipe: function(type, options) {
+		switch (type) {
+			case 'uni':
+				return new APEPipeSingle(raw.datas);
+			break;
+			case 'proxy':
+				return new APEPipeProxy(raw.datas);
+			break;
+			case 'multi':
+				return new APEPipeMulti(raw.datas);
+			break;
+		}
 	},
+
 	/***
 	 * This allow ape to be compatible with TCPSocket
 	 */
-	TCPSocket: Ape_pipe_proxy,
+	TCPSocket: APEPipeProxy,
 
 	/***
 	 * Add a pipe to the core pipes hash
 	 * @param	string	Pipe pubid (this will be the key hash)
 	 * @return	object	Pipe object
 	 */
-	add_pipe: function(pubid, pipe){
+	addPipe: function(pubid, pipe){
 		return this.pipes.set(pubid, pipe); 
 	},
 
@@ -342,7 +325,7 @@ var Ape_core = new Class({
 	 * @param	string	Pipe pubid
 	 * @return	Object	pipe
 	 */
-	get_pipe: function(pubid){
+	getPipe: function(pubid){
 		return this.pipes.get(pubid);
 	},
 
@@ -351,7 +334,7 @@ var Ape_core = new Class({
 	 * @param	string	Pipe pubid
 	 * @return	object	The pipe object
 	 */
-	del_pipe: function(pubid){
+	delPipe: function(pubid){
 		var pipe = this.pipes.erase(pubid);
 		this.fire_event('pipe_' + pipe.type + '_deleted', pipe);
 		return pipe;
@@ -395,8 +378,8 @@ var Ape_core = new Class({
 	 * @param	string	Pipe pubid
 	 */
 	left: function(pubid){
-		this.request('LEFT', this.pipies.get(pubid).name);
-		this.del_pipe(pubid);
+		this.request('LEFT', this.pipes.get(pubid).name);
+		this.delPipe(pubid);
 	},
 
 	/***
@@ -404,14 +387,14 @@ var Ape_core = new Class({
 	*/
 	quit: function(){
 		this.request('QUIT');
-		this.clear_session();
+		this.clearSession();
 	},
 
-	set_pubid: function(pubid){
+	setPubid: function(pubid){
 		this.pubid = pubid;
 	},
 
-	get_pubid: function(){
+	getPubid: function(){
 		return this.pubid;
 	},
 
@@ -419,7 +402,7 @@ var Ape_core = new Class({
 	 * Return current sessid
 	 * @return	string	sessid
 	 */
-	get_sessid:function(){
+	getSessid:function(){
 		return this.sessid;
 	},
 
@@ -427,17 +410,17 @@ var Ape_core = new Class({
 	 * Set current sessid
 	 * @param	string	sessid
 	 */
-	set_sessid: function(sessid){
+	setSessid: function(sessid){
 		this.sessid = sessid;
 	},
 
 	/***
 	 * Store a session variable on APE
-	 * Note : set_session can't be used while APE is currently restoring
+	 * Note : setSession can't be used while APE is currently restoring
 	 * @param	string	key
 	 * @param	string	value
 	 */
-	set_session: function(key, value, options){
+	setSession: function(key, value, options){
 		if (!this.restoring) {
 			if (!options) options = {};
 			//session var is tagged as "update" response
@@ -456,7 +439,7 @@ var Ape_core = new Class({
 	 * Receive a session variable from ape
 	 * @param	string	key
 	 */
-	get_session: function(key,callback){
+	getSession: function(key,callback){
 		this.request('SESSION', ['get', key],true,{'callback':callback});
 	},
 	
@@ -466,7 +449,7 @@ var Ape_core = new Class({
 	 */
 	raw_ident: function(raw){
 		this.user = raw.datas.user;
-		this.set_pubid(raw.datas.user.pubid);
+		this.setPubid(raw.datas.user.pubid);
 	},
 
 	/***
@@ -475,13 +458,13 @@ var Ape_core = new Class({
 	* @param Object received raw
 	*/
 	raw_login: function(param){
-		this.set_sessid(param.datas.sessid);
+		this.setSessid(param.datas.sessid);
 		if (this.options.channel) {
 			this.join(this.options.channel);
 		}
 		this.running = true;
 		this.fire_event('initialized');
-		this.start_pooler();
+		this.startPooler();
 	},
 
 	/***
@@ -508,12 +491,12 @@ var Ape_core = new Class({
 	/***
 	 * Clear the sessions, clean timer, remove cookies, remove events
 	 */
-	clear_session:function(){
-		this.set_sessid(null);
-		this.set_pubid(null);
+	clearSession:function(){
+		this.setSessid(null);
+		this.setPubid(null);
 		this.$events = {} //Clear events
 		this.stop_pooler();
-		this.current_request.cancel();
+		this.request.cancel();
 		this.running = false;
 		this.options.restore = false;
 	}
@@ -521,7 +504,7 @@ var Ape_core = new Class({
 
 var identifier 	= window.frameElement.id,
     Ape,
-    config 	= window.parent.Ape_config[identifier.substring(4, identifier.length)];
+    config 	= window.parent.APEConfig[identifier.substring(4, identifier.length)];
 window.addEvent('domready', function(){
-	Ape = new Ape_core(config);
+	Ape = new APECore(config);
 });

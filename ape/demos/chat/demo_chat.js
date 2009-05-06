@@ -1,5 +1,5 @@
 var Ape_chat = new Class({
-	Implements: [Ape_client, Options],
+	Implements: [APEClient, Options],
 	options:{
 		container: document.body,
 		logs_limit:10
@@ -75,7 +75,7 @@ var Ape_chat = new Class({
 		this.current_pipe.els.tab.removeClass('unactive');
 		this.current_pipe.els.container.removeClass('ape_none');
 		this.scroll_msg_box(this.current_pipe);
-		if(save) this._core.set_session('current_pipe',this.current_pipe.get_pubid());
+		if(save) this._core.setSession('current_pipe',this.current_pipe.getPubid());
 		return this.current_pipe;
 	},
 	cmd_send: function(pipe, sessid, pubid, message){
@@ -121,7 +121,7 @@ var Ape_chat = new Class({
 		pipe.logs.push({'message':message,'sender':sender});
 		pipe.last_msg = {sender:sender,el:cnt};
 		//notify 
-		if(this.get_current_pipe().get_pubid()!=pipe.get_pubid()){
+		if(this.get_current_pipe().getPubid()!=pipe.getPubid()){
 			this.notify(pipe);
 		}
 	},
@@ -135,7 +135,7 @@ var Ape_chat = new Class({
 				'events': {
 				'click':
 					function(ev,user){
-							if(!this._core.get_pipe(user.pubid)){
+							if(!this._core.getPipe(user.pubid)){
 								user.pipe = {pubid:user.pubid,properties:user.properties};
 								var pipe = this._core.new_pipe_single(user);
 							}
@@ -178,12 +178,12 @@ var Ape_chat = new Class({
 				'href':'javascript:void(0)',
 				'events':{
 					'click':function(pipe){
-							this.set_current_pipe(pipe.get_pubid())
+							this.set_current_pipe(pipe.getPubid())
 						}.bind(this,[pipe])
 					}
 				}).inject(pipe.els.tab);
 		//Hide other pipe and show this one
-		this.set_current_pipe(pipe.get_pubid());
+		this.set_current_pipe(pipe.getPubid());
 		/* Do not work anymore
 		//If logs, lets create it
 		if(options.logs && options.logs.length>0){
@@ -227,12 +227,12 @@ var Ape_chat = new Class({
 						}).inject(this.els.sendbox_form);
 	},
 	end_restore: function(){
-		this._core.get_session('current_pipe',function(resp){
+		this._core.getSession('current_pipe',function(resp){
 			if(resp.raw=='SESSIONS') this.set_current_pipe(resp.datas.sessions.current_pipe);
 		}.bind(this));
 	},
 	reset: function(){
-		this._core.clear_session();
+		this._core.clearSession();
 		if(this.els.pipe_container){
 			this.els.pipe_container.dispose();
 			this.els.more.dispose();

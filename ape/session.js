@@ -1,27 +1,29 @@
-var Ape_core = new Class({
+var APECore = new Class({
 
-	Extends: Ape_core,
+	Extends: APECore,
 
 	initialize: function(options){
-		this.sessions = {};
-		if (this.get_cookie_instance(options.identifier).instance) options.restore = true;
+		if (this.getInstance(options.identifier).instance) options.restore = true;
 		this.parent(options);
 		this.add_event('initialized',this.initialized);
 		this.add_event('new_pipe_single',this.save_pipe_single);
 		this.add_event('pipe_single_deleted',this.pipe_single_deleted);
-		this.single_pipe = new $H;
+		this.session = {
+			singlePipe: new $H;
+		}
 	},
 	
 	save_session_pipe:function(){
-		this.set_session('single_pipe',JSON.encode(this.single_pipe.getValues()));
+		this.setSession('single_pipe',JSON.encode(this.session.singlePipe.getValues()));
 	},
+
 	save_pipe_single: function(pipe, options) {
-		this.single_pipe.set(pipe.get_pubid(), options);
+		this.session.singlePipe.set(pipe.getPubid(), options);
 		this.save_session_pipe();
 	},
 
 	pipe_single_deleted: function(pipe) {
-		this.single_pipe.erase(pipe.get_pubid());
+		this.session.singlePipe.erase(pipe.getPubid());
 		this.save_session_pipe();
 	},
 
@@ -39,20 +41,22 @@ var Ape_core = new Class({
 	},
 
 	initialized: function(){
-		this.init_cookie();
-		this.create_cookie();//Create cookie if needed
-		this.save_cookie();//Save cookie
+		this.initCookie();
+		this.createCookie();//Create cookie if needed
+		this.saveCookie();//Save cookie
 	},
+
 	callback_check: function(resp){
 		if (resp.raw!='ERR' && !this.running) { 
 			this.fire_event('initialized');
 			this.running = true;
-			this.get_session('single_pipe',this.restore_single_pipe.bind(this));
-			this.start_pooler();
+			this.getSession('single_pipe',this.restore_single_pipe.bind(this));
+			this.startPooler();
 		}
 	},
+
 	connect:function(options){
-		var cookie = this.init_cookie();
+		var cookie = this.initCookie();
 		if(!cookie){//No cookie defined start a new connection
 			this.parent(options);
 		}else{//Cookie or instance exist
@@ -61,15 +65,14 @@ var Ape_core = new Class({
 			this.check(this.callback_check.bind(this));//Send a check raw (this ask ape for an updated session)
 		}
 	},
+
 	/***
-	 * Read the cookie Ape_cookie and try to find the application identifier
-	 * @param	string	identifier	
-	 * 		Can be used to force the identifier to find ortherwhise 
-	 * 		identifier defined in the options will be used
-	 * @return false if application identifier isn't found or an object with the instance and the cookie
+	 * Read the cookie APECookie and try to find the application identifier
+	 * @param	String	identifier, can be used to force the identifier to find ortherwhise identifier defined in the options will be used
+	 * @return 	Boolean	false if application identifier isn't found or an object with the instance and the cookie
 	 */
-	get_cookie_instance: function(identifier){
-		var 	tmp = Cookie.read('Ape_cookie'),
+	getInstance: function(identifier){
+		var	tmp = Cookie.read('APECookie'),
 			identifier = identifier || this.options.identifier;
 		if(tmp){
 			tmp = JSON.decode(tmp);
@@ -85,21 +88,22 @@ var Ape_core = new Class({
 		//no instance found, no cookie found 
 		return false;
 	},
+
 	/***
 	 * Initialize cookie and some application variable is instance is found
 	 * set this.cookie variable
 	 * @return 	boolean	true if instance is found, else false
 	 */
-	init_cookie: function(){
-		var tmp = this.get_cookie_instance();
+	initCookie: function(){
+		var tmp = this.getInstance();
 		if(tmp && tmp.instance){
-			this.set_sessid(tmp.instance.sessid);
-			this.set_pubid(tmp.instance.pubid);
+			this.setSessid(tmp.instance.sessid);
+			this.setPubid(tmp.instance.pubid);
 			tmp.cookie.frequency = tmp.cookie.frequency.toInt() + 1;
 			this.cookie = tmp.cookie;
 			return true;
 		} else if (tmp.cookie) {
-			this.create_cookie_instance(tmp.cookie);
+			this.createInstance(tmp.cookie);
 			tmp.cookie.frequency = tmp.cookie.frequency.toInt() + 1;
 			this.cookie = tmp.cookie;
 			return false;
@@ -108,36 +112,41 @@ var Ape_core = new Class({
 			return false;
 		}
 	},
+
 	/***
 	 * Create a cookie instance (add to the instance array of the cookie the current application)
-	 * @param	object	Ape cookie
+	 * @param	object	APECookie
 	 */
-	create_cookie_instance: function(cookie) {
-		cookie.instance.push({'identifier': this.options.identifier, 'pubid': this.get_pubid(), 'sessid': this.get_sessid()})
+	createInstance: function(cookie) {
+		cookie.instance.push({'identifier': this.options.identifier, 'pubid': this.getPubid(), 'sessid': this.getSessid()})
 	},
+
 	/***
 	 * Create ape cookie if needed (but do not write it)
 	 */
-	create_cookie: function(){
+	createCookie: function(){
 		if(!this.cookie){
 			//No Cookie or no ape instance in cookie, lets create the cookie
 			tmp = {
 				frequency: 1,
 				instance: []
 			};
-			this.create_cookie_instance(tmp);
+			this.createInstance(tmp);
 			this.cookie = tmp;
 		}
 	},
-	save_cookie: function(){
+
+	saveCookie: function(){
 		//Save it
-		Cookie.write('Ape_cookie', JSON.encode(this.cookie), {domain:this.options.domain});
+		Cookie.write('APECookie', JSON.encode(this.cookie), {domain:this.options.domain});
 	},
-	clear_session: function(){
+
+	clearSession: function(){
 		this.parent();
-		this.remove_cookies();
+		this.removeCookie();
 	},
-	remove_cookies: function(){
-		Cookie.dispose('Ape_cookie', {domain:this.options.domain});
+
+	removeCookie: function(){
+		Cookie.dispose('APECookie', {domain:this.options.domain});
 	}
 });

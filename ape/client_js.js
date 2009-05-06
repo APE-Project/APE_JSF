@@ -1,14 +1,14 @@
-var Ape_config = new Array();
-function Ape_client(core){
+var APEConfig = new Array();
+function APEClient(core){
 	this._core = core;
 }
-Ape_client.prototype.fire_event = function(type, args, delay){
+APEClient.prototype.fire_event = function(type, args, delay){
 	this._core.fireEvent(type,args,delay);
 }
-Ape_client.prototype.add_event = function(type, fn, no_bind, internal){
+APEClient.prototype.add_event = function(type, fn, no_bind, internal){
 	no_bind ? this._core.addEvent(type, fn, internal) : this._core.addEvent(type, fn.bind(this), internal); 
 }
-Ape_client.prototype.ape_cookie = function (name, remove) {
+APEClient.prototype.apeCookie = function (name, remove) {
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for(var i=0;i < ca.length;i++) {
@@ -21,10 +21,10 @@ Ape_client.prototype.ape_cookie = function (name, remove) {
 	return null;
 }
 
-Ape_client.prototype.load = function(config){
-	this.ape_config = config;
-	config.init_ape = config.init_ape || true;
-	var tmp = eval('('+unescape(this.ape_cookie('Ape_cookie'))+')');
+APEClient.prototype.load = function(config){
+	this.config = config;
+	config.init = config.init || true;
+	var tmp = eval('('+unescape(this.apeCookie('APECookie'))+')');
 	config.frequency = config.frequency || 0;
 	config.init = function(core){
 		this._core = core;
@@ -36,7 +36,7 @@ Ape_client.prototype.load = function(config){
 	frame.style.position = 'absolute';
 	frame.style.left = '-300px';
 	frame.style.top = '-300px';
-	Ape_config[config.identifier] = config;
+	APEConfig[config.identifier] = config;
 	document.body.appendChild(frame);
 	frame.setAttribute('src','http://'+config.frequency+'.'+config.server+'/?script&'+config.scripts.join('&')+'&ac');
 }

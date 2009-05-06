@@ -1,6 +1,6 @@
-var Ape_pipe_multi = new Class({
+var APEPipeMulti = new Class({
 
-	Extends: Ape_pipe,
+	Extends: APEPipe,
 
 	initialize: function(core, options){
 		this.parent(core, options);
@@ -21,7 +21,7 @@ var Ape_pipe_multi = new Class({
 		if (options.users) {
 			var l = users.length;
 			for (var i=0; i < l; i++) {
-				this.add_user(users[i].pubid, users[i]);
+				this.addUser(users[i].pubid, users[i]);
 			}
 			this.add_event('raw_left', this.raw_left, true);
 			this.add_event('raw_join', this.raw_join, true);
@@ -29,28 +29,28 @@ var Ape_pipe_multi = new Class({
 	},
 
 	raw_join: function(raw, pipe){
-		this.add_user(raw.datas.user.pubid,raw.datas.user);
+		this.addUser(raw.datas.user.pubid, raw.datas.user);
 	},
 
 	raw_left: function(raw, pipe){
-		this.del_user(raw.datas.user.pubid);
+		this.delUser(raw.datas.user.pubid);
 	},
 
-	add_user: function(pubid, user){
+	addUser: function(pubid, user){
 		this.users.set(pubid, user);
 		var u = this.users.get(pubid);
 		this.fire_event('new_user', [u, this]);
 		return u;
 	},
 
-	del_user: function(pubid){
+	delUser: function(pubid){
 		var u = this.users.get(pubid);
 		this.users.erase(pubid);
 		this.fire_event('user_left', [u, this]);
 		return u;
 	},
 
-	get_user: function(pubid){
+	getUser: function(pubid){
 		return this.users.get(pubid);
 	}
 });
