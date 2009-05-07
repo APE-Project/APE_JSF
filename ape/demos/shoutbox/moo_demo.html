@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en">
+<head>	
+	<link rel="stylesheet" type="text/css" href="./shoutbox.css" media="screen" title="Normal" />
+</head>
+<body>
+	<script type="text/javaScript" src="../../mootools.js"></script>
+	<script type="text/javaScript" src="../../client_moo.js"></script>
+	<script type="text/javaScript" src="./moo_demo.js"></script>
+	<script type="text/javaScript">
+		var baseUrl = 'http://ape.loc/APE_JSF/ape/';
+		var client = new APEClient();
+		client.load({
+			'domain':'ape.loc',
+			'server':'ape.loc',
+			'identifier':'chatdemo',
+			'channel':'test',
+			'complete':function(ape){
+				//Initialisation de la shoutbox
+				var shoutbox = new APE_Shoutbox(ape, 'ape_master_container');
+			},
+			'scripts': [
+					baseUrl+'/mootools.js',
+					baseUrl+'/events.js',
+					baseUrl+'/pipe.js',
+					baseUrl+'/pipe_proxy.js',
+					baseUrl+'/pipe_multi.js',
+					baseUrl+'/pipe_single.js',
+					baseUrl+'/core.js',
+					baseUrl+'/session.js',
+					baseUrl+'/utils.js'
+				]
+		});
+	</script>
+		<div id="ape_master_container"></div>
+		<div id="debug"></div>
+	</body>
+</html>

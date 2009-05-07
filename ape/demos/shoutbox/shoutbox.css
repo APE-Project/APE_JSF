@@ -1,0 +1,25 @@
+#shoutbox{
+	font-family : Arial,Helvetica,sans-serif;
+	font-size:12px;
+}
+#shoutbox{
+	width:200px;
+}
+#shoutbox .pseudo{
+	font-weight:bold;
+}
+#shoutbox_msg{
+	height:255px;
+	padding:7px;
+	margin-bottom:5px;
+	overflow:hidden;
+	border:1px solid #000;
+}
+#shoutbox form input{
+	border:1px solid #DDD;
+	height:17px;
+	width:198px;
+}
+#shoutbox form input.submit{
+	margin-top:5px;
+}
