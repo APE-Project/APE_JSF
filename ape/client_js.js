@@ -1,14 +1,23 @@
-var APEConfig = new Array();
-function APEClient(core){
+var APE_Config = new Array();
+function APE_Client(core){
 	this._core = core;
 }
-APEClient.prototype.fireEvent = function(type, args, delay){
+APE_Client.prototype.fireEvent = function(type, args, delay) {
 	this._core.fireEvent(type,args,delay);
 }
-APEClient.prototype.addEvent = function(type, fn, no_bind, internal){
+APE_Client.prototype.addEvent = function(type, fn, no_bind, internal) {
 	no_bind ? this._core.addEvent(type, fn, internal) : this._core.addEvent(type, fn.bind(this), internal); 
 }
-APEClient.prototype.apeCookie = function (name, remove) {
+APE_Client.prototype.onRaw = function(type, fn, no_bind, internal) {
+		this.addEvent('raw_' + type, fn, no_bind, internal); 
+}
+APE_Client.prototype.onCmd = function(type, fn, no_bind, internal) {
+		this.addEvent('cmd_' + type, fn, no_bind, internal); 
+}
+APE_Client.prototype.onError = function(type, fn, no_bind, internal) {
+		this.addEvent('err_' + type, fn, no_bind, internal); 
+}
+APE_Client.prototype.apeCookie = function (name, remove) {
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for(var i=0;i < ca.length;i++) {
@@ -21,10 +30,10 @@ APEClient.prototype.apeCookie = function (name, remove) {
 	return null;
 }
 
-APEClient.prototype.load = function(config){
+APE_Client.prototype.load = function(config){
 	this.config = config;
 	config.init = config.init || true;
-	var tmp = eval('('+unescape(this.apeCookie('APECookie'))+')');
+	var tmp = eval('('+unescape(this.apeCookie('APE_Cookie'))+')');
 	config.frequency = config.frequency || 0;
 	config.init = function(core){
 		this._core = core;
@@ -36,7 +45,7 @@ APEClient.prototype.load = function(config){
 	frame.style.position = 'absolute';
 	frame.style.left = '-300px';
 	frame.style.top = '-300px';
-	APEConfig[config.identifier] = config;
+	APE_Config[config.identifier] = config;
 	document.body.appendChild(frame);
 	frame.setAttribute('src','http://'+config.frequency+'.'+config.server+'/?script&'+config.scripts.join('&')+'&ac');
 }

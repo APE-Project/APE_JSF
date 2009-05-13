@@ -1,56 +1,58 @@
-var APECore = new Class({
+var APE_Core = new Class({
 
-	Extends: APECore,
+	Extends: APE_Core,
 
 	initialize: function(options){
 		if (this.getInstance(options.identifier).instance) options.restore = true;
 		this.parent(options);
-		this.addEvent('initialized',this.initialized);
-		this.addEvent('new_pipe_single',this.save_pipe_single);
-		this.addEvent('pipe_single_deleted',this.pipe_single_deleted);
+		this.addEvent('init',this.init);
+		this.addEvent('pipeCreate',this.savePipeUni);
+		this.addEvent('pipeDelete',this.pipeDelete);
 		this.session = {
-			singlePipe: new $H
+			uniPipe: new $H
 		}
 	},
 	
-	save_session_pipe:function(){
-		this.setSession('single_pipe',JSON.encode(this.session.singlePipe.getValues()));
+	saveSessionPipe:function(){
+		this.setSession('uniPipe',JSON.encode(this.session.uniPipe.getValues()));
 	},
 
-	save_pipe_single: function(pipe, options) {
-		this.session.singlePipe.set(pipe.getPubid(), options);
-		this.save_session_pipe();
+	savePipeUni: function(type, pipe, options) {
+		if(type=='uni'){
+			this.session.uniPipe.set(pipe.getPubid(), options);
+			this.saveSessionPipe();
+		}
 	},
 
-	pipe_single_deleted: function(pipe) {
-		this.session.singlePipe.erase(pipe.getPubid());
-		this.save_session_pipe();
+	pipeDelete: function(type, pipe) {
+		this.session.uniPipe.erase(pipe.getPubid());
+		this.saveSessionPipe();
 	},
 
-	restore_single_pipe: function(resp){
+	restoreUniPipe: function(resp){
 		if(resp.raw=='SESSIONS'){
-			var pipes = JSON.decode(unescape(resp.datas.sessions.single_pipe));
+			var pipes = JSON.decode(unescape(resp.datas.sessions.uniPipe));
 			if (pipes) {
 				for (var i = 0; i < pipes.length; i++){
-					this.new_pipe_single(pipes[i]);
+					this.newPipe('uni',pipes[i]);
 				}
 			}
 		}
-		this.fireEvent('end_restore');
+		this.fireEvent('restoreEnd');
 		this.restoring = false;
 	},
 
-	initialized: function(){
+	init: function(){
 		this.initCookie();
 		this.createCookie();//Create cookie if needed
 		this.saveCookie();//Save cookie
 	},
 
-	callback_check: function(resp){
+	callbackCheck: function(resp){
 		if (resp.raw!='ERR' && !this.running) { 
-			this.fireEvent('initialized');
+			this.fireEvent('init');
 			this.running = true;
-			this.getSession('single_pipe',this.restore_single_pipe.bind(this));
+			this.getSession('uniPipe',this.restoreUniPipe.bind(this));
 			this.startPooler();
 		}
 	},
@@ -61,18 +63,18 @@ var APECore = new Class({
 			this.parent(options);
 		}else{//Cookie or instance exist
 			this.restoring = true;
-			this.fireEvent('start_restore');
-			this.check(this.callback_check.bind(this));//Send a check raw (this ask ape for an updated session)
+			this.fireEvent('restoreStart');
+			this.check(this.callbackCheck.bind(this));//Send a check raw (this ask ape for an updated session)
 		}
 	},
 
 	/***
-	 * Read the cookie APECookie and try to find the application identifier
+	 * Read the cookie APE_Cookie and try to find the application identifier
 	 * @param	String	identifier, can be used to force the identifier to find ortherwhise identifier defined in the options will be used
 	 * @return 	Boolean	false if application identifier isn't found or an object with the instance and the cookie
 	 */
 	getInstance: function(identifier){
-		var	tmp = Cookie.read('APECookie'),
+		var	tmp = Cookie.read('APE_Cookie'),
 			identifier = identifier || this.options.identifier;
 		if(tmp){
 			tmp = JSON.decode(tmp);
@@ -115,7 +117,7 @@ var APECore = new Class({
 
 	/***
 	 * Create a cookie instance (add to the instance array of the cookie the current application)
-	 * @param	object	APECookie
+	 * @param	object	APE_Cookie
 	 */
 	createInstance: function(cookie) {
 		cookie.instance.push({'identifier': this.options.identifier, 'pubid': this.getPubid(), 'sessid': this.getSessid()})
@@ -138,7 +140,7 @@ var APECore = new Class({
 
 	saveCookie: function(){
 		//Save it
-		Cookie.write('APECookie', JSON.encode(this.cookie), {domain:this.options.domain});
+		Cookie.write('APE_Cookie', JSON.encode(this.cookie), {domain:this.options.domain});
 	},
 
 	clearSession: function(){
@@ -147,6 +149,6 @@ var APECore = new Class({
 	},
 
 	removeCookie: function(){
-		Cookie.dispose('APECookie', {domain:this.options.domain});
+		Cookie.dispose('APE_Cookie', {domain:this.options.domain});
 	}
 });

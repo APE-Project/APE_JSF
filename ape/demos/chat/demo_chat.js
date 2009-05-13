@@ -1,5 +1,5 @@
 var Ape_chat = new Class({
-	Implements: [APEClient, Options],
+	Implements: [APE_Client, Options],
 	options:{
 		container: document.body,
 		logs_limit:10
@@ -8,44 +8,39 @@ var Ape_chat = new Class({
 		this._core = core;
 		this.setOptions(options);
 		this.els = {};
-		this.current_pipe = null;
+		this.currentPipe = null;
 		this.logging = true;
-		this.addEvent('initialized', this.create_chat);
-		this.addEvent('new_pipe', this.create_pipe);
-		this.addEvent('new_pipe_single', this.set_pipe_name);
-		this.addEvent('new_user', this.create_user);
-		this.addEvent('user_left', this.delete_user);
-		this.addEvent('cmd_send', this.cmd_send);
-		this.addEvent('end_restore',this.end_restore);
-		this.addEvent('raw_data', this.raw_data);
-		this.addEvent('err_004',this.reset);
+		this.addEvent('init', this.createChat);
+		this.addEvent('pipeCreate', this.createPipe);
+		this.addEvent('userJoin', this.createUser);
+		this.addEvent('userLeft', this.deleteUser);
+		this.onCmd('send', this.cmdSend);
+		this.addEvent('restoreEnd',this.restoreEnd);
+		this.onRaw('data', this.rawData);
+		this.onError('004',this.reset);
 		//If name is not set & it's not a session restore ask user for his nickname
 		if(!this.options.name && !this._core.options.restore){
-			this.prompt_name();
+			this.promptName();
 		}else{
 			this.start();
 		}
 	},
-	prompt_name: function(){
-		this.els.name_prompt = {};
-		this.els.name_prompt.div = new Element('form',{'class':'ape_name_prompt','text':'Choose a nickname : '}).inject(this.options.container)
-		this.els.name_prompt.div.addEvent('submit',function(ev){
+	promptName: function(){
+		this.els.namePrompt = {};
+		this.els.namePrompt.div = new Element('form',{'class':'ape_name_prompt','text':'Choose a nickname : '}).inject(this.options.container)
+		this.els.namePrompt.div.addEvent('submit',function(ev){
 									ev.stop();
-									this.options.name = this.els.name_prompt.input.get('value');
-									this.els.name_prompt.div.dispose();
+									this.options.name = this.els.namePrompt.input.get('value');
+									this.els.namePrompt.div.dispose();
 									this.start()
 								}.bindWithEvent(this));
-		this.els.name_prompt.input = new Element('input',{'class':'text'}).inject(this.els.name_prompt.div);
-		new Element('input',{'class':'submit','type':'submit','value':'GO!'}).inject(this.els.name_prompt.div)
+		this.els.namePrompt.input = new Element('input',{'class':'text'}).inject(this.els.namePrompt.div);
+		new Element('input',{'class':'submit','type':'submit','value':'GO!'}).inject(this.els.namePrompt.div)
 	},
 	start: function(){
 		this._core.start(this.options.name);
 	},
-	toggle_logging: function(){
-		if(this.logging) this.logging = false;
-		else this.logging = true;
-	},
-	set_pipe_name: function(pipe, options){
+	setPipeName: function(pipe, options){
 		if(options.name){
 			pipe.name = options.name;
 			return;
@@ -56,43 +51,43 @@ var Ape_chat = new Class({
 			pipe.name = options.pipe.properties.name;
 		}
 	},
-	get_current_pipe: function(){
-		return this.current_pipe;
+	getCurrentPipe: function(){
+		return this.currentPipe;
 	},
-	set_current_pipe: function(pubid,save){
+	setCurrentPipe: function(pubid,save){
 		save = !save;
-		if(this.current_pipe){
-			this.current_pipe.els.tab.addClass('unactive');
-			this.current_pipe.els.container.addClass('ape_none');
+		if(this.currentPipe){
+			this.currentPipe.els.tab.addClass('unactive');
+			this.currentPipe.els.container.addClass('ape_none');
 		}
-		this.current_pipe = this._core.pipes.get(pubid);
-		this.current_pipe.els.tab.removeClass('new_message');
-		this.current_pipe.els.tab.removeClass('unactive');
-		this.current_pipe.els.container.removeClass('ape_none');
-		this.scroll_msg_box(this.current_pipe);
-		if(save) this._core.setSession('current_pipe',this.current_pipe.getPubid());
-		return this.current_pipe;
+		this.currentPipe = this._core.pipes.get(pubid);
+		this.currentPipe.els.tab.removeClass('new_message');
+		this.currentPipe.els.tab.removeClass('unactive');
+		this.currentPipe.els.container.removeClass('ape_none');
+		this.scrollMsg(this.currentPipe);
+		if(save) this._core.setSession('currentPipe',this.currentPipe.getPubid());
+		return this.currentPipe;
 	},
-	cmd_send: function(pipe, sessid, pubid, message){
-		this.write_message(pipe,message,this._core.user);
+	cmdSend: function(pipe, sessid, pubid, message){
+		this.writeMessage(pipe,message,this._core.user);
 	},
-	raw_data: function(raw, pipe){
-		this.write_message(pipe,raw.datas.msg,raw.datas.sender);
+	rawData: function(raw, pipe){
+		this.writeMessage(pipe,raw.datas.msg,raw.datas.sender);
 	},
-	parse_message: function(message){
+	parseMessage: function(message){
 		return unescape(message);
 	},
 	notify: function(pipe){
 		pipe.els.tab.addClass('new_message');
 	},
-	scroll_msg_box: function(pipe){
+	scrollMsg: function(pipe){
 		var scrollSize = pipe.els.message.getScrollSize();
 		pipe.els.message.scrollTo(0,scrollSize.y);
 	},
-	write_message: function(pipe, message, sender){
+	writeMessage: function(pipe, message, sender){
 		//Append message to last message
-		if(pipe.last_msg && pipe.last_msg.sender.properties.name == sender.properties.name){
-			var cnt = pipe.last_msg.el;
+		if(pipe.lastMsg && pipe.lastMsg.sender.properties.name == sender.properties.name){
+			var cnt = pipe.lastMsg.el;
 		}else{//Create new one
 			//Create message container
 			var msg = new Element('div',{'class':'ape_message_container'});
@@ -104,23 +99,25 @@ var Ape_chat = new Class({
 			msg.inject(pipe.els.message);
 		}
 		new Element('div',{
-			'text':this.parse_message(message),
+			'text':this.parseMessage(message),
 			'class':'ape_message'
 		}).inject(cnt);
 		//Scroll message box
-		this.scroll_msg_box(pipe);
+		this.scrollMsg(pipe);
 		//Add message to logs
+		/*
 		if(pipe.logs.length>=this.options.logs_limit){
 			pipe.logs.shift();
 		}
 		pipe.logs.push({'message':message,'sender':sender});
-		pipe.last_msg = {sender:sender,el:cnt};
+		*/
+		pipe.lastMsg = {sender:sender,el:cnt};
 		//notify 
-		if(this.get_current_pipe().getPubid()!=pipe.getPubid()){
+		if(this.getCurrentPipe().getPubid()!=pipe.getPubid()){
 			this.notify(pipe);
 		}
 	},
-	create_user: function(user, pipe){
+	createUser: function(user, pipe){
 		user.el = new Element('div',{
 			'class':'ape_user'
 			}).inject(pipe.els.users);
@@ -134,35 +131,36 @@ var Ape_chat = new Class({
 								user.pipe = {pubid:user.pubid,properties:user.properties};
 								var pipe = this._core.newPipe('uni', user);
 							}
-							this.set_current_pipe(user.pubid);
+							this.setCurrentPipe(user.pubid);
 						}.bindWithEvent(this,[user])
 				}
 			}).inject(user.el,'inside');
 	},
-	delete_user: function(user, pipe){
+	deleteUser: function(user, pipe){
 		user.el.dispose();
 	},
-	create_pipe: function(pipe, options){
+	createPipe: function(type, pipe, options){
+		if(type=='uni') this.setPipeName(pipe, options);
 		//Define some pipe variables to handle logging and pipe elements
 		pipe.els = {};
 		pipe.logs = new Array();
 		//Container
 		pipe.els.container = new Element('div',{
 							'class':'ape_pipe ape_none '
-						}).inject(this.els.pipe_container);
+						}).inject(this.els.pipeContainer);
 		//Message container
 		pipe.els.message = new Element('div',{'class':'ape_messages'}).inject(pipe.els.container,'inside');
 
 		var tmp = new Element('div');
 		//If pipe has a users list 
 		if(pipe.users){
-			pipe.els.users_right = new Element('div',{
+			pipe.els.usersRight = new Element('div',{
 				'class':'users_right'
 			}).inject(pipe.els.container);
 
 			pipe.els.users = new Element('div',{
 			                                 'class':'ape_users_list'
-		                                 }).inject(pipe.els.users_right);;
+		                                 }).inject(pipe.els.usersRight);;
 		}
 		//Add tab
 		pipe.els.tab = new Element('div',{
@@ -173,63 +171,63 @@ var Ape_chat = new Class({
 				'href':'javascript:void(0)',
 				'events':{
 					'click':function(pipe){
-							this.set_current_pipe(pipe.getPubid())
+							this.setCurrentPipe(pipe.getPubid())
 						}.bind(this,[pipe])
 					}
 				}).inject(pipe.els.tab);
 		//Hide other pipe and show this one
-		this.set_current_pipe(pipe.getPubid());
+		this.setCurrentPipe(pipe.getPubid());
 		/* Do not work anymore
 		//If logs, lets create it
 		if(options.logs && options.logs.length>0){
 			var logs = options.logs;
 			for(var i = 0; i<logs.length; i++){
-				this.write_message(pipe,logs[i].message,logs[i].sender);
+				this.writeMessage(pipe,logs[i].message,logs[i].sender);
 			}
 		}
 		*/
 	},
-	create_chat: function(){
-		this.els.pipe_container = new Element('div',{'id':'ape_container'});
-		this.els.pipe_container.inject(this.options.container);
+	createChat: function(){
+		this.els.pipeContainer = new Element('div',{'id':'ape_container'});
+		this.els.pipeContainer.inject(this.options.container);
 
 		this.els.more = new Element('div',{'id':'more'}).inject(this.options.container,'after');
 		this.els.tabs = new Element('div',{'id':'tabbox_container'}).inject(this.els.more);
-		this.els.sendbox_container = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);
+		this.els.sendboxContainer = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);
 
-		this.els.send_box = new Element('div',{'id':'ape_sendbox'}).inject(this.els.sendbox_container,'bottom');
-		this.els.sendbox_form = new Element('form',{
+		this.els.sendBox = new Element('div',{'id':'ape_sendbox'}).inject(this.els.sendboxContainer,'bottom');
+		this.els.sendboxForm = new Element('form',{
 								'events':{
 									'submit':function(ev){
 											ev.stop();
 											var val = this.els.sendbox.get('value');
 											if(val!=''){
-												this.get_current_pipe().send(val);
+												this.getCurrentPipe().send(val);
 												this.els.sendbox.set('value','');
 											}
 										}.bindWithEvent(this)
 									}
-				}).inject(this.els.send_box);
+				}).inject(this.els.sendBox);
 		this.els.sendbox = new Element('input',{
 							'type':'text',
 							'id':'sendbox_input',
 							'autocomplete':'off'
-						}).inject(this.els.sendbox_form);
+						}).inject(this.els.sendboxForm);
 		this.els.send_button = new Element('input',{
 							'type':'button',
 							'id':'sendbox_button',
 							'value':''
-						}).inject(this.els.sendbox_form);
+						}).inject(this.els.sendboxForm);
 	},
-	end_restore: function(){
-		this._core.getSession('current_pipe',function(resp){
-			if(resp.raw=='SESSIONS') this.set_current_pipe(resp.datas.sessions.current_pipe);
+	restoreEnd: function(){
+		this._core.getSession('currentPipe',function(resp){
+			if(resp.raw=='SESSIONS') this.setCurrentPipe(resp.datas.sessions.currentPipe);
 		}.bind(this));
 	},
 	reset: function(){
 		this._core.clearSession();
-		if(this.els.pipe_container){
-			this.els.pipe_container.dispose();
+		if(this.els.pipeContainer){
+			this.els.pipeContainer.dispose();
 			this.els.more.dispose();
 		}
 		this._core.initialize(this._core.options);

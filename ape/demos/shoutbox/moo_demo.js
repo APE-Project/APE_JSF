@@ -1,39 +1,38 @@
 var APE_Shoutbox = new Class({
-	//La classe doit implémenter Ape_client pour intercepter les évènements
-	Implements: APEClient,
+	//This class must implement APE_Client to intercept events
+	Implements: APE_Client,
 
-	//Constructeur de la classe
-	initialize: function(core,container){
-		//Pour que Ape_client fonctionnement correctement il faut créer une variable de classe _core 
+	//Constructor
+	initialize: function(core, container){
+		//To work APE_Client need your class to set a _core variable with a reference to APE_Core
 		this._core = core; 
 
-		//Objet destiné a contenir les eléments du dom
 		this.els = {};
-		//Element dans lequel la shoutbox serra présente
+		//Shoutbox container
 		this.els.container = $(container);
 
-		//Interception de la création d'un nouveau pipe
-		this.addEvent('new_pipe',this.createShoutbox);
+		//Catch pipeCreate events (when a new pipe is created);
+		this.addEvent('pipeCreate',this.createShoutbox);
 
-		//Envoie d'un message
-		this.addEvent('cmd_send',this.cmd_send);
+		//Catch message sending
+		this.onCmd('send',this.cmdSend);
 
-		//Réception d'un message
-		this.addEvent('raw_data',this.raw_data);
+		//Catch message reception
+		this.onRaw('data',this.rawData);
 
-		//Demande du pseudo
+		//Ask the user for his nickname 
 		if(!this._core.options.restore){
-			var nickname = prompt('Pseudo')
+			var nickname = prompt('Your nickname')
 		}else{
 			var nickname = null;
 		}
-		//Appel de la méthode start() du core pour lanncer la connexion
+		//Call start method from core to start connection to APE server
 		this._core.start(nickname);
 	},
 	/***
-	 * Créer la shoutbox
+	 * Create the shoutbox
 	 */
-	createShoutbox:function(pipe, options){
+	createShoutbox:function(type, pipe, options){
 		/***
 		 * Définition d'une variables de class content l'objet pipe
 		 * Il serra utilisez pour envoyer les message
@@ -58,14 +57,14 @@ var APE_Shoutbox = new Class({
 	/***
 	 * Intercepte la commande send et écrits le message dans la shoutbox
 	 */
-	cmd_send: function(pipe, sessid, pubid, message){
+	cmdSend: function(pipe, sessid, pubid, message){
 		this.writeMessage(message, this._core.user.properties.name);
 	},
 
 	/***
 	 * Intercepte le raw data et écrits le message dans la shoutbox
 	 */
-	raw_data: function(raw, pipe){
+	rawData: function(raw, pipe){
 		this.write_message(raw.datas.msg, raw.datas.sender.properties.name);
 	},
 	

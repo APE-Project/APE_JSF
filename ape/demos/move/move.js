@@ -1,5 +1,6 @@
-var Ape_move = new Class({
-	Implements: [APEClient, Options],
+var APE_Move = new Class({
+	Implements: [APE_Client, Options],
+
 	options: {
 		container: document.body
 	},
@@ -7,36 +8,35 @@ var Ape_move = new Class({
 	initialize: function(core,options){
 		this._core = core;
 		this.setOptions(options);
-		this.addEvent('initialized', this.init_playground);
-		this.addEvent('new_user', this.create_user);
-		this.addEvent('new_pipe_multi', this.set_pipe);
-		this.addEvent('raw_positions',this.raw_positions);
-		this.addEvent('raw_data',this.raw_data);
-		this.addEvent('cmd_send', this.cmd_send);
-		this.addEvent('user_left', this.delete_user);
-		this.addEvent('err_004',this.reset);
+		this.addEvent('init', this.initPlayground);
+		this.addEvent('userJoin', this.createUser);
+		this.addEvent('pipeCreate', function(type, pipe, options){
+			if(type=='multi') this.pipe = pipe;
+		});
+		this.onRaw('positions',this.rawPositions);
+		this.onRaw('data',this.rawData);
+		this.onCmd('send', this.cmdSend);
+		this.addEvent('userLeft', this.deleteUser);
+		this.onError('004',this.reset);
 		if (this.options.name) this._core.start(this.options.name);
 	},
-	delete_user: function(user, pipe){
+	deleteUser: function(user, pipe){
 		user.element.dispose();
 	},
 
-	cmd_send: function(pipe,sessid,pubid,message){
-		this.write_message(pipe,message,this._core.user);
+	cmdSend: function(pipe,sessid,pubid,message){
+		this.writeMessage(pipe,message,this._core.user);
 	},
-	raw_data: function(raw,pipe){
-		this.write_message(pipe,raw.datas.msg,raw.datas.sender);
+	rawData: function(raw,pipe){
+		this.writeMessage(pipe,raw.datas.msg,raw.datas.sender);
 	},
-	set_pipe: function(pipe, options){
-		this.pipe = pipe;
+	rawPositions: function(raw, pipe){
+		this.movePoint(raw.datas.sender,raw.datas.sender.properties.x,raw.datas.sender.properties.y);
 	},
-	raw_positions: function(raw, pipe){
-		this.move_point(raw.datas.sender,raw.datas.sender.properties.x,raw.datas.sender.properties.y);
-	},
-	parse_message: function(message){
+	parseMessage: function(message){
 		return unescape(message);
 	},
-	write_message: function(pipe,message,sender){
+	writeMessage: function(pipe,message,sender){
 		//Define sender
 		sender = this.pipe.getUser(sender.pubid);
 
@@ -49,7 +49,7 @@ var Ape_move = new Class({
 
 		//Add message
 		new Element('div',{
-					'html':this.parse_message(message),
+					'html':this.parseMessage(message),
 					'class':'ape_message'
 				}).inject(cnt);
 		new Element('div',{'class':'msg_bot'}).inject(cnt);
@@ -68,7 +68,7 @@ var Ape_move = new Class({
 			}).delay(300,el);
 		 }).delay(3000,this,msg);
 	},
-	create_user: function(user, pipe){
+	createUser: function(user, pipe){
 		if(user.properties.x){
 			var x = user.properties.x;
 			var y = user.properties.y;
@@ -89,14 +89,14 @@ var Ape_move = new Class({
 		new Element('div',{
 				'class':'user',
 				'styles':{
-					'background-color':'rgb('+this.user_color(user.properties.name)+')'
+					'background-color':'rgb('+this.userColor(user.properties.name)+')'
 				}
 				}).inject(user.element,'inside');
 		new Element('span',{
 				'text':user.properties.name
 			}).inject(user.element,'inside');
 	},
-	user_color: function(nickname){
+	userColor: function(nickname){
 		var color = new Array(0,0,0);
 		var i=0;
 		while(i<3 && i<nickname.length){
@@ -107,11 +107,11 @@ var Ape_move = new Class({
 		return color.join(',');
 	},
 	sendpos: function(x,y){
-		var pos=this.pos_to_relative(x,y);
+		var pos=this.posToRelative(x,y);
 		this._core.request('SETPOS',[this.pipe.getPubid(),pos.x,pos.y]);
-		this.move_point(this._core.user,pos.x,pos.y);	
+		this.movePoint(this._core.user,pos.x,pos.y);	
 	},
-	pos_to_relative:function(x,y){
+	posToRelative:function(x,y){
 		var pos = this.element.getCoordinates();
 		x = x-pos.left-36;
 		y = y-pos.top-46;
@@ -121,7 +121,7 @@ var Ape_move = new Class({
 		if(y>pos.height) y = pos.height-10;
 		return {'x':x,'y':y};
 	},
-	move_point:function(user,x,y){
+	movePoint:function(user,x,y){
 		var user = this.pipe.getUser(user.pubid); 
 		var el = user.element;
 		var fx = el.retrieve('fx'); 
@@ -142,7 +142,7 @@ var Ape_move = new Class({
 
 		fx.start({'left':pos.left+x,'top':pos.top+y});
 	},
-	init_playground: function(){
+	initPlayground: function(){
 		this.element = this.options.container;
 		this.els = {};
 		this.els.move_box = new Element('div',{'class':'move_box'}).inject(this.element);
@@ -151,9 +151,9 @@ var Ape_move = new Class({
 		}.bindWithEvent(this));
 		this.els.more = new Element('div',{'id':'more'}).inject(this.element,'inside');
 
-		this.els.sendbox_container = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);
+		this.els.sendboxContainer = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);
 
-		this.els.send_box = new Element('div',{'text':'Dire : ','id':'ape_sendbox'}).inject(this.els.sendbox_container,'bottom');
+		this.els.sendBox = new Element('div',{'text':'Say : ','id':'ape_sendbox'}).inject(this.els.sendboxContainer,'bottom');
 		this.els.sendbox = new Element('input',{
 							'type':'text',
 							'id':'sendbox_input',
@@ -169,11 +169,11 @@ var Ape_move = new Class({
 										}
 									}.bind(this)
 							}
-						}).inject(this.els.send_box);
-		this.els.send_button = new Element('input',{
+						}).inject(this.els.sendBox);
+		this.els.sendButton = new Element('input',{
 							'type':'button',
 							'id':'sendbox_button',
-							'value':'Envoyer',
+							'value':'Send',
 							'events': {
 
 								'click': function(){
@@ -184,7 +184,7 @@ var Ape_move = new Class({
 									}
 								}.bind(this)
 							}
-						}).inject(this.els.send_box);
+						}).inject(this.els.sendBox);
 	},
 	reset: function(){
 		this._core.clearSession();

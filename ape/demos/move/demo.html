@@ -19,14 +19,14 @@
 			return temp;
 		}
 		var baseUrl = 'http://ape.loc/APE_JSF/ape/';
-		var client = new APEClient();
+		var client = new APE_Client();
 		client.load({
 			'domain':'ape.loc',
 			'server':'ape.loc',
 			'identifier':'movedemo',
 			'channel':'move',
 			'complete':function(ape){
-				var Ape_c = new Ape_move(ape,{'container':$('ape_master_container')});
+				var Ape_c = new Ape_Move(ape,{'container':$('ape_master_container')});
 				ape.start([rand_chars()]);
 			},
 			'scripts': [
@@ -35,7 +35,7 @@
 					baseUrl+'/pipe.js',
 					baseUrl+'/pipe_proxy.js',
 					baseUrl+'/pipe_multi.js',
-					baseUrl+'/pipe_single.js',
+					baseUrl+'/pipe_uni.js',
 					baseUrl+'/core.js',
 					baseUrl+'/utils.js'
 				]

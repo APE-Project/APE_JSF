@@ -1,5 +1,5 @@
-var APECore = new Class({
-	Extends:APECore,
+var APE_Core = new Class({
+	Extends:APE_Core,
 	initialize: function(options){
 		if (!window.console || !console.firebug){
 			var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml",
@@ -26,7 +26,7 @@ var APECore = new Class({
 		console.log('Receiving',raws);
 		this.parent(raws);
 	},
-	raw_err: function(err){
+	rawErr: function(err){
 		console.log('Error',err);
 		this.parent(err);
 	}

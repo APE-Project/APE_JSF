@@ -19,7 +19,7 @@
 			return temp;
 		}
 		var baseUrl= 'http://ape.loc/APE_JSF/ape/';
-		var client = new APEClient()
+		var client = new APE_Client()
 		var TCPSocket;
 		client.load({
 			'domain':'ape.loc',
@@ -37,7 +37,7 @@
 							var key = e.charCode || e.keyCode || 0
 							if (key == ENTER_KEY) {
 								ape.start(rand_chars());
-								ape.addEvent('initialized',function(){
+								ape.addEvent('init',function(){
 									connect();
 								});
 							};
@@ -57,7 +57,7 @@
 					baseUrl+'/events.js',
 					baseUrl+'/pipe.js',
 					baseUrl+'/pipe_multi.js',
-					baseUrl+'/pipe_single.js',
+					baseUrl+'/pipe_uni.js',
 					baseUrl+'/pipe_proxy.js',
 					baseUrl+'/core.js',
 					baseUrl+'/utils.js'

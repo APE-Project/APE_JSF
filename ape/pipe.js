@@ -1,6 +1,6 @@
-var APEPipe  = new Class({
+var APE_Pipe  = new Class({
 
-	Implements: APEEvents,
+	Implements: APE_Events,
 
 	initialize: function(core, options){
 		this.pipe = options.pipe;

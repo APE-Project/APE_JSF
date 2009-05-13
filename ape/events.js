@@ -1,4 +1,4 @@
-var APEEvents = new Class({
+var APE_Events = new Class({
 
 	Extends: Events,
 
@@ -7,5 +7,14 @@ var APEEvents = new Class({
 	},
 	addEvent: function(type, fn, pipe, internal){
 		pipe ? this.parent(type, fn, internal) : this._core.addEvent(type, fn, internal);
+	},
+	onRaw: function(type, fn, pipe, internal) {
+		this.addEvent('raw_' + type, fn, pipe, internal);
+	},
+	onCmd: function(type, fn, pipe, internal) {
+		this.addEvent('cmd_' + type, fn, pipe, internal);
+	},
+	onError: function(type, fn, pipe, internal) {
+		this.addEvent('err_' + type, fn, pipe, internal);
 	}
 });

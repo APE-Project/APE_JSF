@@ -40,7 +40,7 @@
  *                `\_______/^\______/
  */
 
-var APECore = new Class({
+var APE_Core = new Class({
 
 	Implements: Options,
 	Extends: Events,
@@ -75,12 +75,12 @@ var APECore = new Class({
 		this.xhr = null;
 		this.timer = null;
 
-		this.addEvent('raw_login', this.raw_login);
-		this.addEvent('raw_err', this.raw_err);
+		this.onRaw('login', this.rawLogin);
+		this.onRaw('err', this.rawErr);
+		this.onRaw('ident',this.rawIdent);
 
-		this.addEvent('err_003', this.clearSession);
-		this.addEvent('err_004', this.clearSession);
-		this.addEvent('raw_ident',this.raw_ident);
+		this.onError('003', this.clearSession);
+		this.onError('004', this.clearSession);
 
 		this.fireEvent('loaded', this);
 		
@@ -110,9 +110,9 @@ var APECore = new Class({
 			this.watch_var_changed = false;
 			this.watch_var.periodical(10, this);
 		}
-		//Set _core var for APEClient instance
+		//Set _core var for APE_Client instance
 		if(options.init) options.init.apply(null, [this]);
-		//Execute complete function of APEClient instance
+		//Execute complete function of APE_Client instance
 		if(options.complete) options.complete.apply(null, [this]);
 	},
 
@@ -129,7 +129,18 @@ var APECore = new Class({
 		});
 		this.parent(type, args, delay);
 	},
+	onError: function(type, fn, internal) {
+		this.addEvent('err_' + type, fn, internal);
+	},
 
+	onRaw: function(type, fn, internal) {
+		this.addEvent('raw_' + type, fn, internal); 
+	},
+	
+	onCmd: function(type, fn, internal) {
+		this.addEvent('cmd_' + type, fn, internal);
+	},
+	
 	/***
 	* Execute check request each X seconde
 	*/
@@ -289,13 +300,13 @@ var APECore = new Class({
 	newPipe: function(type, options) {
 		switch (type) {
 			case 'uni':
-				return new APEPipeSingle(this,options);
+				return new APE_PipeSingle(this,options);
 			break;
 			case 'proxy':
-				return new APEPipeProxy(this,options);
+				return new APE_PipeProxy(this,options);
 			break;
 			case 'multi':
-				return new APEPipeMulti(this,options);
+				return new APE_PipeMulti(this,options);
 			break;
 		}
 	},
@@ -303,7 +314,7 @@ var APECore = new Class({
 	/***
 	 * This allow ape to be compatible with TCPSocket
 	 */
-	TCPSocket: APEPipeProxy,
+	TCPSocket: APE_PipeProxy,
 
 	/***
 	 * Add a pipe to the core pipes hash
@@ -324,13 +335,13 @@ var APECore = new Class({
 	},
 
 	/***
-	 * Remove a pipe from the pipe hash and fire event 'pipe_deleted'
+	 * Remove a pipe from the pipe hash and fire event 'pipeDelete'
 	 * @param	string	Pipe pubid
 	 * @return	object	The pipe object
 	 */
 	delPipe: function(pubid){
 		var pipe = this.pipes.erase(pubid);
-		this.fireEvent('pipe_' + pipe.type + '_deleted', pipe);
+		this.fireEvent('pipeDelete', [pipe.type, pipe]);
 		return pipe;
 	},
 
@@ -442,7 +453,7 @@ var APECore = new Class({
 	 * Save in the core a variable with all information relative to the current user
 	 * @param	object	raw
 	 */
-	raw_ident: function(raw){
+	rawIdent: function(raw){
 		this.user = raw.datas.user;
 		this.setPubid(raw.datas.user.pubid);
 	},
@@ -452,13 +463,13 @@ var APECore = new Class({
 	* If autojoin is defined join the specified channel, then start the pooler and finnaly create cookie session
 	* @param Object received raw
 	*/
-	raw_login: function(param){
+	rawLogin: function(param){
 		this.setSessid(param.datas.sessid);
 		if (this.options.channel) {
 			this.join(this.options.channel);
 		}
 		this.running = true;
-		this.fireEvent('initialized');
+		this.fireEvent('init');
 		this.startPooler();
 	},
 
@@ -466,7 +477,7 @@ var APECore = new Class({
 	* Fire event for all error raw
 	* @param	object	raw
 	*/
-	raw_err: function(err){
+	rawErr: function(err){
 		this.fireEvent('err_' + err.datas.code, err);
 	},
 
@@ -491,7 +502,7 @@ var APECore = new Class({
 		this.setPubid(null);
 		this.$events = {} //Clear events
 		this.stop_pooler();
-		this.request.cancel();
+		this.xhr.cancel();
 		this.running = false;
 		this.options.restore = false;
 	}
@@ -499,7 +510,7 @@ var APECore = new Class({
 
 var identifier 	= window.frameElement.id,
     Ape,
-    config 	= window.parent.APEConfig[identifier.substring(4, identifier.length)];
+    config 	= window.parent.APE_Config[identifier.substring(4, identifier.length)];
 window.addEvent('domready', function(){
-	Ape = new APECore(config);
+	Ape = new APE_Core(config);
 });
