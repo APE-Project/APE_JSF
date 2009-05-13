@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en">
+<head>	
+ 
+</head>
+<body>
+	<script type="text/javaScript" src="../../mootools.js"></script>
+	<script type="text/javaScript" src="../../client_moo.js"></script>
+	<script type="text/javaScript" src="./demo.js"></script>
+	<script type="text/javaScript">
+ 
+		var base_url = 'http://ape.loc/APE_JSF/ape/';
+		var client = new APE_Client();
+		client.load({
+			'domain':'ape.loc',
+			'server':'ape.loc',
+			'identifier':'mailnotif',
+			'channel':'testchannel',
+			'complete':function(ape){
+				var ape_c = new APE_Controller(ape, {'container':$('ape_master_container')});
+			},
+			'scripts': [
+					base_url+'/mootools.js',
+					base_url+'/events.js',
+					base_url+'/pipe.js',
+					base_url+'/pipe_multi.js',
+					base_url+'/pipe_uni.js',
+					base_url+'/pipe_proxy.js',
+					base_url+'/core.js',
+					base_url+'/session.js',
+					base_url+'/utils.js'
+				]
+		});
+	</script>
+ 
+	        <div id="ape_master_container"></div>
+		<div id="debug"></div>
+	</body>
+</html>
