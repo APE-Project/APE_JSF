@@ -23,7 +23,7 @@ var APE_PipeMulti = new Class({
 				this.addUser(users[i].pubid, users[i]);
 			}
 			this.onRaw('left', this.rawLeft, true);
-			this.addEvent('join', this.rawJoin, true);
+			this.onRaw('join', this.rawJoin, true);
 		}
 	},
 
