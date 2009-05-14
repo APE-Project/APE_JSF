@@ -1,7 +1,7 @@
 var APE_config = {
-	'baseUrl': 'http://efyx.fy.to/APE_JSF/ape', //APE JSF 
-	'domain': 'fy.to',//Your domain, must be the same than the domain in aped.conf of your server
-	'server': 'ape.efyx.fy.to' //APE server URL
+	'baseUrl': 'http://yourdomain.com/APE_JSF/ape', //APE JSF 
+	'domain': 'yourdomain.com',//Your domain, must be the same than the domain in aped.conf of your server
+	'server': 'ape.yourdomain.com' //APE server URL
 }
 
 //Scripts to load for APE JSF
