@@ -6,6 +6,7 @@
 	<script type="text/javaScript" src="./jquery.js"></script>
 	<script type="text/javaScript" src="./irc2.js"></script>
 	<script type="text/javaScript" src="./chat.js"></script>
+	<script type="text/javaScript" src="../../config.js"></script>
 </head>
 <body>
 	<script type="text/javaScript">
@@ -18,15 +19,14 @@
 			}
 			return temp;
 		}
-		var baseUrl= 'http://ape.loc/APE_JSF/ape/';
 		var client = new APE_Client()
-		var TCPSocket;
+		var TCPSocket; 
 		client.load({
-			'domain':'ape.loc',
-			'server':'ape.loc',
+			'domain':APE_config.domain,
+			'server':APE_config.server,
 			'identifier':'chatdemo',
 			'complete':function(ape){
-
+				//Define TCPSocket var to be compliant with TCPSocket
 				TCPSocket = ape.TCPSocket;
 				ENTER_KEY = 13
 
@@ -36,6 +36,8 @@
 						$('#nickname').keypress( function(e) {
 							var key = e.charCode || e.keyCode || 0
 							if (key == ENTER_KEY) {
+								//Note : Here we connect to ape and send a username because our ape server use modchat
+								//But if your server don't use mod chat just remove rand_chars() :)
 								ape.start(rand_chars());
 								ape.addEvent('init',function(){
 									connect();
@@ -52,16 +54,7 @@
 						});
 					});
 			},
-			'scripts': [
-					baseUrl+'/mootools.js',
-					baseUrl+'/events.js',
-					baseUrl+'/pipe.js',
-					baseUrl+'/pipe_multi.js',
-					baseUrl+'/pipe_uni.js',
-					baseUrl+'/pipe_proxy.js',
-					baseUrl+'/core.js',
-					baseUrl+'/utils.js'
-				]
+			'scripts': APE_config.scripts //Scripts to load for APE JSF
 		});
 	</script>
 	<div class="chatbox">

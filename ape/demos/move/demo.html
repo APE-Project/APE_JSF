@@ -7,8 +7,10 @@
 	<body>
 	<script type="text/javaScript" src="../../mootools.js"></script>
 	<script type="text/javaScript" src="../../client_moo.js"></script>
+	<script type="text/javaScript" src="../../config.js"></script>
 	<script type="text/javaScript" src="./move.js"></script>
 	<script type="text/javaScript">
+		//Create random string used as user nickname
 		function rand_chars(){
 			 var keylist="abcdefghijklmnopqrstuvwxyz123456789"
 			 var temp=''
@@ -18,27 +20,17 @@
 			}
 			return temp;
 		}
-		var baseUrl = 'http://ape.loc/APE_JSF/ape/';
 		var client = new APE_Client();
 		client.load({
-			'domain':'ape.loc',
-			'server':'ape.loc',
+			'domain':APE_config.domain,
+			'server':APE_config.server,
 			'identifier':'movedemo',
 			'channel':'move',
 			'complete':function(ape){
-				var Ape_c = new Ape_Move(ape,{'container':$('ape_master_container')});
+				var Ape_c = new APE_Move(ape,{'container':$('ape_master_container')});
 				ape.start([rand_chars()]);
 			},
-			'scripts': [
-					baseUrl+'/mootools.js',
-					baseUrl+'/events.js',
-					baseUrl+'/pipe.js',
-					baseUrl+'/pipe_proxy.js',
-					baseUrl+'/pipe_multi.js',
-					baseUrl+'/pipe_uni.js',
-					baseUrl+'/core.js',
-					baseUrl+'/utils.js'
-				]
+			'scripts': APE_config.scripts //Scripts to load for APE JSF
 		});
 	</script>
 		<div id="ape_master_container"></div>

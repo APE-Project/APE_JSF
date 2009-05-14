@@ -6,34 +6,30 @@
 <body>
 	<script type="text/javaScript" src="../../mootools.js"></script>
 	<script type="text/javaScript" src="../../client_moo.js"></script>
+	<script type="text/javaScript" src="../../config.js"></script>
 	<script type="text/javaScript" src="./demo.js"></script>
 	<script type="text/javaScript">
- 
-		var base_url = 'http://ape.loc/APE_JSF/ape/';
 		var client = new APE_Client();
 		client.load({
-			'domain':'ape.loc',
-			'server':'ape.loc',
+			'domain':APE_config.domain,
+			'server':APE_config.server,
 			'identifier':'mailnotif',
 			'channel':'testchannel',
 			'complete':function(ape){
 				var ape_c = new APE_Controller(ape, {'container':$('ape_master_container')});
 			},
-			'scripts': [
-					base_url+'/mootools.js',
-					base_url+'/events.js',
-					base_url+'/pipe.js',
-					base_url+'/pipe_multi.js',
-					base_url+'/pipe_uni.js',
-					base_url+'/pipe_proxy.js',
-					base_url+'/core.js',
-					base_url+'/session.js',
-					base_url+'/utils.js'
-				]
+			'scripts': APE_config.scripts //Scripts to load for APE JSF
 		});
 	</script>
- 
-	        <div id="ape_master_container"></div>
-		<div id="debug"></div>
+		To try this demo, you need : 
+		<ul>
+			<li>mod controller on APE server enabled</li>
+			<li>mod chat on APE server disabled</li>
+			<li>Set your APE server adresse in the controller/test.php</li>
+		</ul>
+		Then load this page and go to <a href="./test.php" target="_blank">controller/test.php</a> and you will see a message appear here.
+		<br/>
+		<br/>
+		<div id="ape_master_container" style="border:1px solid #000;padding:10px;background:#CCC;"></div>
 	</body>
 </html>
