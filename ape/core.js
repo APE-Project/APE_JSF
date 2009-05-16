@@ -114,9 +114,9 @@ var APE_Core = new Class({
 			this.watch_var.periodical(10, this);
 		}
 		//Set core var for APE_Client instance
-		if(options.init) options.init.apply(null, [this]);
+		if (options.init) options.init.apply(null, [this]);
 		//Execute complete function of APE_Client instance
-		if(options.complete) options.complete.apply(null, [this]);
+		if (options.complete) options.complete.apply(null, [this]);
 	},
 
 	/***
@@ -132,6 +132,7 @@ var APE_Core = new Class({
 		});
 		this.parent(type, args, delay);
 	},
+
 	onError: function(type, fn, internal) {
 		this.addEvent('err_' + type, fn, internal);
 	},
@@ -246,7 +247,7 @@ var APE_Core = new Class({
 		var check = false;
 		if (raws && raws!='CLOSE' && raws!='QUIT') {
 			raws = JSON.decode(raws,true);
-			if(!raws){//Something went wrong, json decode failed
+			if (!raws){//Something went wrong, json decode failed
 				this.check(); 
 				return;
 			}
@@ -268,7 +269,7 @@ var APE_Core = new Class({
 				}
 			}
 		}
-		if(check && !this.watch_var_changed){
+		if (check && !this.watch_var_changed){
 			this.check();
 		}
 	},
