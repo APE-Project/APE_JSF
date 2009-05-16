@@ -8,19 +8,19 @@ var APE_Controller = new Class({
  
  
 	initialize: function(core, options){
-		this._core = core; 
+		this.core = core; 
  
 		this.setOptions(options);
 		this.els = {};
  
 		this.onRaw('mailnotif', this.raw_data);
  
-		this._core.start();
+		this.core.start();
 	},
  
 	raw_data: function(raw, pipe){
           new Element('div', {
-            'html': raw.datas.value,
+            'html': decodeURIComponent(raw.datas.value), 
             'class': 'css_class'
           }).inject(this.options.container);
 	}

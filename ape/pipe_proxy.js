@@ -3,7 +3,7 @@ var APE_PipeProxy = new Class({
 	Extends: APE_Pipe,	
 
 	initialize: function(core, options){
-		this._core = core || window.Ape;
+		this.core = core || window.Ape;
 		this.type = 'proxy';
 		if (options) {
 			this.init(options);
@@ -12,7 +12,7 @@ var APE_PipeProxy = new Class({
 	init: function(options){
 		this.pipe = options.pipe;
 
-		this._core.addPipe(this.getPubid(), this);
+		this.core.addPipe(this.getPubid(), this);
 		this.onRaw('proxy_event', this.rawProxyEvent, true);
 		this.fireEvent('pipeCreate', [this.type, this, options]);
 	},

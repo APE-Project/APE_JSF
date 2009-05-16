@@ -5,7 +5,7 @@ var Ape_chat = new Class({
 		logs_limit:10
 	},
 	initialize: function(core,options){
-		this._core = core;
+		this.core = core;
 		this.setOptions(options);
 		this.els = {};
 		this.currentPipe = null;
@@ -19,7 +19,7 @@ var Ape_chat = new Class({
 		this.onRaw('data', this.rawData);
 		this.onError('004',this.reset);
 		//If name is not set & it's not a session restore ask user for his nickname
-		if(!this.options.name && !this._core.options.restore){
+		if(!this.options.name && !this.core.options.restore){
 			this.promptName();
 		}else{
 			this.start();
@@ -38,7 +38,7 @@ var Ape_chat = new Class({
 		new Element('input',{'class':'submit','type':'submit','value':'GO!'}).inject(this.els.namePrompt.div)
 	},
 	start: function(){
-		this._core.start(this.options.name);
+		this.core.start(this.options.name);
 	},
 	setPipeName: function(pipe, options){
 		if(options.name){
@@ -60,16 +60,16 @@ var Ape_chat = new Class({
 			this.currentPipe.els.tab.addClass('unactive');
 			this.currentPipe.els.container.addClass('ape_none');
 		}
-		this.currentPipe = this._core.pipes.get(pubid);
+		this.currentPipe = this.core.pipes.get(pubid);
 		this.currentPipe.els.tab.removeClass('new_message');
 		this.currentPipe.els.tab.removeClass('unactive');
 		this.currentPipe.els.container.removeClass('ape_none');
 		this.scrollMsg(this.currentPipe);
-		if(save) this._core.setSession('currentPipe',this.currentPipe.getPubid());
+		if(save) this.core.setSession('currentPipe',this.currentPipe.getPubid());
 		return this.currentPipe;
 	},
 	cmdSend: function(pipe, sessid, pubid, message){
-		this.writeMessage(pipe,message,this._core.user);
+		this.writeMessage(pipe,message,this.core.user);
 	},
 	rawData: function(raw, pipe){
 		this.writeMessage(pipe,raw.datas.msg,raw.datas.sender);
@@ -127,9 +127,9 @@ var Ape_chat = new Class({
 				'events': {
 				'click':
 					function(ev,user){
-							if(!this._core.getPipe(user.pubid)){
+							if(!this.core.getPipe(user.pubid)){
 								user.pipe = {pubid:user.pubid,properties:user.properties};
-								var pipe = this._core.newPipe('uni', user);
+								var pipe = this.core.newPipe('uni', user);
 							}
 							this.setCurrentPipe(user.pubid);
 						}.bindWithEvent(this,[user])
@@ -220,16 +220,16 @@ var Ape_chat = new Class({
 						}).inject(this.els.sendboxForm);
 	},
 	restoreEnd: function(){
-		this._core.getSession('currentPipe',function(resp){
+		this.core.getSession('currentPipe',function(resp){
 			if(resp.raw=='SESSIONS') this.setCurrentPipe(resp.datas.sessions.currentPipe);
 		}.bind(this));
 	},
 	reset: function(){
-		this._core.clearSession();
+		this.core.clearSession();
 		if(this.els.pipeContainer){
 			this.els.pipeContainer.dispose();
 			this.els.more.dispose();
 		}
-		this._core.initialize(this._core.options);
+		this.core.initialize(this.core.options);
 	}
 });

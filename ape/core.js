@@ -55,6 +55,7 @@ var APE_Core = new Class({
 
 	initialize: function(options){
 		this.setOptions(options);
+
 		switch (this.options.transport) {
 			case 1:
 				this.transport = {
@@ -69,6 +70,7 @@ var APE_Core = new Class({
 				}
 				break;
 		}
+
 		this.pipes = new $H; 
 		this.sessid = null;
 		this.pubid = null;
@@ -90,6 +92,7 @@ var APE_Core = new Class({
 		 */
 		if (Browser.Engine.webkit || Browser.Engine.presto) {
 			var oldOnload = window.parent.onload,
+
 			fn = function(){
 				this.stopWindow = true;
 			}.bind(this);
@@ -110,7 +113,7 @@ var APE_Core = new Class({
 			this.watch_var_changed = false;
 			this.watch_var.periodical(10, this);
 		}
-		//Set _core var for APE_Client instance
+		//Set core var for APE_Client instance
 		if(options.init) options.init.apply(null, [this]);
 		//Execute complete function of APE_Client instance
 		if(options.complete) options.complete.apply(null, [this]);

@@ -4,8 +4,8 @@ var APE_Shoutbox = new Class({
 
 	//Constructor
 	initialize: function(core, container){
-		//To work APE_Client need your class to set a _core variable with a reference to APE_Core
-		this._core = core; 
+		//To work APE_Client need your class to set a core variable with a reference to APE_Core
+		this.core = core; 
 
 		this.els = {};
 		//Shoutbox container
@@ -21,13 +21,13 @@ var APE_Shoutbox = new Class({
 		this.onRaw('data',this.rawData);
 
 		//Ask the user for his nickname 
-		if(!this._core.options.restore){
+		if(!this.core.options.restore){
 			var nickname = prompt('Your nickname')
 		}else{
 			var nickname = null;
 		}
 		//Call start method from core to start connection to APE server
-		this._core.start(nickname);
+		this.core.start(nickname);
 	},
 	/***
 	 * Create the shoutbox
@@ -58,7 +58,7 @@ var APE_Shoutbox = new Class({
 	 * Intercepte la commande send et écrits le message dans la shoutbox
 	 */
 	cmdSend: function(pipe, sessid, pubid, message){
-		this.writeMessage(message, this._core.user.properties.name);
+		this.writeMessage(message, this.core.user.properties.name);
 	},
 
 	/***

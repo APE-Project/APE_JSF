@@ -1,12 +1,12 @@
 var APE_Config = new Array();
 function APE_Client(core){
-	this._core = core;
+	this.core = core;
 }
 APE_Client.prototype.fireEvent = function(type, args, delay) {
-	this._core.fireEvent(type,args,delay);
+	this.core.fireEvent(type,args,delay);
 }
 APE_Client.prototype.addEvent = function(type, fn, no_bind, internal) {
-	no_bind ? this._core.addEvent(type, fn, internal) : this._core.addEvent(type, fn.bind(this), internal); 
+	no_bind ? this.core.addEvent(type, fn, internal) : this.core.addEvent(type, fn.bind(this), internal); 
 }
 APE_Client.prototype.onRaw = function(type, fn, no_bind, internal) {
 		this.addEvent('raw_' + type, fn, no_bind, internal); 
@@ -36,7 +36,7 @@ APE_Client.prototype.load = function(config){
 	var tmp = eval('('+unescape(this.apeCookie('APE_Cookie'))+')');
 	config.frequency = config.frequency || 0;
 	config.init = function(core){
-		this._core = core;
+		this.core = core;
 	}.bind(this);
 	document.domain = config.domain;
 	var frame = document.createElement('iframe');

@@ -6,7 +6,7 @@ var APE_Move = new Class({
 	},
 
 	initialize: function(core,options){
-		this._core = core;
+		this.core = core;
 		this.setOptions(options);
 		this.addEvent('init', this.initPlayground);
 		this.addEvent('userJoin', this.createUser);
@@ -18,14 +18,14 @@ var APE_Move = new Class({
 		this.onCmd('send', this.cmdSend);
 		this.addEvent('userLeft', this.deleteUser);
 		this.onError('004',this.reset);
-		if (this.options.name) this._core.start(this.options.name);
+		if (this.options.name) this.core.start(this.options.name);
 	},
 	deleteUser: function(user, pipe){
 		user.element.dispose();
 	},
 
 	cmdSend: function(pipe,sessid,pubid,message){
-		this.writeMessage(pipe,message,this._core.user);
+		this.writeMessage(pipe,message,this.core.user);
 	},
 	rawData: function(raw,pipe){
 		this.writeMessage(pipe,raw.datas.msg,raw.datas.sender);
@@ -108,8 +108,8 @@ var APE_Move = new Class({
 	},
 	sendpos: function(x,y){
 		var pos=this.posToRelative(x,y);
-		this._core.request('SETPOS',[this.pipe.getPubid(),pos.x,pos.y]);
-		this.movePoint(this._core.user,pos.x,pos.y);	
+		this.core.request('SETPOS',[this.pipe.getPubid(),pos.x,pos.y]);
+		this.movePoint(this.core.user,pos.x,pos.y);	
 	},
 	posToRelative:function(x,y){
 		var pos = this.element.getCoordinates();
@@ -187,10 +187,10 @@ var APE_Move = new Class({
 						}).inject(this.els.sendBox);
 	},
 	reset: function(){
-		this._core.clearSession();
+		this.core.clearSession();
 		if (this.element) {
 			this.element.empty();
 		}
-		this._core.initialize(this._core.options);
+		this.core.initialize(this.core.options);
 	}
 });
