@@ -73,13 +73,16 @@ var B64 = new Hash({
 });
 //Override setInterval to be done outside the frame (there is some issue inside the frame with FF3 and WebKit)
 if (!Browser.Engine.trident && !Browser.Engine.presto && !(Browser.Engine.gecko && Browser.Engine.version<=18)){
-	setInterval = function(fn,time){
+	setInterval = function(fn,time) {
 		return window.parent.setInterval(fn,time);
 	}
-	setTimeout = function(fn,time){
+	setTimeout = function(fn,time) {
 		return window.parent.setTimeout(fn,time);
 	}
-	clearInterval = function(id){
+	clearInterval = function(id) {
 		return window.parent.clearInterval(id);
+	}
+	clearTimeout = function(id) {
+		return window.parent.clearTimeout(id);
 	}
 }

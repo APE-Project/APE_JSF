@@ -29,10 +29,9 @@
 				//Define TCPSocket var to be compliant with TCPSocket
 				TCPSocket = ape.TCPSocket;
 				ENTER_KEY = 13
+					$('#nickname').focus();
 
 					$(function(){
-						$('#nickname').focus();
-
 						$('#nickname').keypress( function(e) {
 							var key = e.charCode || e.keyCode || 0
 							if (key == ENTER_KEY) {
@@ -52,7 +51,6 @@
 								return false;
 							};
 						});
-					});
 			},
 			'scripts': APE_config.scripts //Scripts to load for APE JSF
 		});

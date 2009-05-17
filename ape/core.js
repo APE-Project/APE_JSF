@@ -76,6 +76,9 @@ var APE_Core = new Class({
 		this.pubid = null;
 		this.xhr = null;
 		this.timer = null;
+		this.status = 0; //0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request Failure  
+		this.failCounter = 0;
+		this.xhrFailObserver = [];
 
 		this.onRaw('login', this.rawLogin);
 		this.onRaw('err', this.rawErr);
@@ -107,11 +110,23 @@ var APE_Core = new Class({
 				}
 			}
 		}
-		
+
+		/*
+		this.addEvent('apeReconnect', function(){
+				console.log('apeReconnect');
+		});
+		this.addEvent('apeDisconnect', function(){
+				console.log('apeDisconnect');
+		});
+		*/
+
 		//Fix presto bug (see request method)
 		if (Browser.Engine.presto) {
-			this.watch_var_changed = false;
-			this.watch_var.periodical(10, this);
+			this.requestVar = {
+				'updated': false,
+				'args' : []
+			}
+			this.requestObserver.periodical(10, this);
 		}
 		//Set core var for APE_Client instance
 		if (options.init) options.init.apply(null, [this]);
@@ -128,7 +143,7 @@ var APE_Core = new Class({
 	fireEvent: function(type, args, delay){
 		//Fire the event on each pipe
 		this.pipes.each(function(pipe){
-			pipe.fireEvent(type, args, true, delay);
+			pipe.fireEvent('pipe:'+type, args, delay);
 		});
 		this.parent(type, args, delay);
 	},
@@ -166,7 +181,7 @@ var APE_Core = new Class({
 	/***
 	 * Stop the pooler (Witch send check raw)
 	 */
-	stop_pooler: function(){
+	stopPooler: function(){
 		$clear(this.timer);
 	},
 
@@ -181,8 +196,8 @@ var APE_Core = new Class({
 	request: function(raw, param, sessid, options, no_watch){
 		//Opera dirty fix
 		if (Browser.Engine.presto && !no_watch) {
-			this.watch_var_changed = true;
-			this.watch_var_cnt = [raw, param, sessid, options];
+			this.requestVar.updated = true;
+			this.requestVar.args.push([raw, param, sessid, options]);
 			return;
 		}
 
@@ -194,9 +209,10 @@ var APE_Core = new Class({
 		param = param || [];
 
 		//Format params
-		var queryString = raw,
-		    time = $time(),
-			tmp = [];
+		var queryString = raw;
+		var time = $time();
+		var	tmp = [];
+
 		if ($type(param) == 'object') {
 			for (var i in param) {
 				tmp.push(param[i]);
@@ -206,18 +222,23 @@ var APE_Core = new Class({
 			param = $splat(param);
 		}
 		//Add sessid
-		if (sessid) param.unshift(this.getSessid());
+		if (sessid) queryString += '&' + this.getSessid();
 
 		//Create query string
 		if (param.length > 0) {
 			queryString += '&' + param.join('&');
 		}
+
+		if (this.status == -1) this.cancelRequest();
+
 		//Show time
 		this.xhr = new this.transport.request($extend(this.transport.options,{	
 								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?',
-								'onComplete': this.parseResponse.bindWithEvent(this,options.callback)
+								'onComplete': this.parseResponse.bindWithEvent(this,options.callback),
+								'onFailure': this.xhrFail.bind(this, [arguments,-2])
 							}));
 		this.xhr.send(queryString + '&' + time);
+		this.xhrFailObserver.push(this.xhrFail.delay(this.options.poolTime + 10000, this, [arguments, -1]));
 		this.lastAction = time;
 
 		if (!options.event) {
@@ -225,18 +246,53 @@ var APE_Core = new Class({
 		}
 	},
 
+	/***
+	 * Cancel current Request 
+	 */
+	cancelRequest: function() {
+		this.xhr.cancel();
+		$clear(this.xhrFailObserver.shift());
+	},
+
+	/***
+	 * Function called when a request failed
+	 * @param	Array	Arguments passed to request
+	 * @param	Integer	Fail status
+	 */
+	xhrFail: function(args, failStatus) {
+		if (this.status > 0) {
+			this.status = failStatus;
+			this.stopPooler();
+			this.cancelRequest();
+			this.fireEvent('apeDisconnect');
+		} else if(this.failCounter<6) {
+			this.failCounter++;
+		}
+
+		this.request.delay(this.failCounter*1000, this, args);
+	},
+
 	/**
 	* Parse received raws
 	* @param	Array	An array of raw 
 	*/
 	parseResponse: function(raws, callback){
+		if (raws) {
+			$clear(this.xhrFailObserver.shift());
+			if (this.status < 0 ) {
+				this.failCounter = 0;
+				this.status = 1;
+				this.startPooler();
+				this.fireEvent('apeReconnect');
+			}
+		}
 		//This is fix for Webkit and Presto, see initialize method for more information
 		if (this.stopWindow) { 
 			window.parent.stop();
 			this.stopWindow=false;
 		}
 		if (raws == 'CLOSE' && this.xhr.xhr.readyState == 4){
-			if (callback) callback.run(raw);
+			if (callback) callback.run(raws);
 			this.check() 
 			return;
 		}
@@ -245,15 +301,16 @@ var APE_Core = new Class({
 			return;
 		}
 		var check = false;
-		if (raws && raws!='CLOSE' && raws!='QUIT') {
+		if (raws && raws!='CLOSE') {
+			var	raw;
 			raws = JSON.decode(raws,true);
+
 			if (!raws){//Something went wrong, json decode failed
 				this.check(); 
 				return;
 			}
-			var	l = raws.length,
-				raw;
-			for (var i=0; i<l; i++) {
+
+			for (var i = 0; i < raws.length; i++) {
 				raw = raws[i];
 				if (callback && $type(callback)=='function') callback.run(raw);
 				this.callRaw(raw);
@@ -269,9 +326,7 @@ var APE_Core = new Class({
 				}
 			}
 		}
-		if (check && !this.watch_var_changed){
-			this.check();
-		}
+		if (check) this.check();
 	},
 
 	/***
@@ -472,7 +527,7 @@ var APE_Core = new Class({
 		if (this.options.channel) {
 			this.join(this.options.channel);
 		}
-		this.running = true;
+		this.status = 1;
 		this.fireEvent('init');
 		this.startPooler();
 	},
@@ -490,11 +545,12 @@ var APE_Core = new Class({
 	 * Opera have a bug, when request are sent trought user action (ex : a click), opera throw a security violation when trying to make a XHR.
 	 * The only way is to set a class var and watch when this var change
 	 */
-	watch_var: function(){
-		if (this.watch_var_changed) {
-			this.watch_var_changed = false;
-			this.watch_var_cnt[4] = true;
-			this.request.run(this.watch_var_cnt, this);
+	requestObserver: function(){
+		if (this.requestVar.updated) {
+			var args = this.requestVar.args.shift();
+			this.requestVar.updated = (this.requestVar.args.length>0) ? true : false;
+			args[4] = true; //Set no_watch arguments to true
+			this.request.run(args, this);
 		}
 	},
 
@@ -505,16 +561,17 @@ var APE_Core = new Class({
 		this.setSessid(null);
 		this.setPubid(null);
 		this.$events = {} //Clear events
-		this.stop_pooler();
-		this.xhr.cancel();
-		this.running = false;
+		this.stopPooler();
+		this.cancelRequest();
+		this.status = 0;
 		this.options.restore = false;
 	}
 });
 
-var identifier 	= window.frameElement.id,
-    Ape,
-    config 	= window.parent.APE_Config[identifier.substring(4, identifier.length)];
+var identifier 	= window.frameElement.id;
+var Ape;
+var config 	= window.parent.APE_Config[identifier.substring(4, identifier.length)];
+
 window.addEvent('domready', function(){
 	Ape = new APE_Core(config);
 });

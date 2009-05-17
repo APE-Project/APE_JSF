@@ -65,7 +65,7 @@ var APE_Shoutbox = new Class({
 	 * Intercepte le raw data et écrits le message dans la shoutbox
 	 */
 	rawData: function(raw, pipe){
-		this.write_message(raw.datas.msg, raw.datas.sender.properties.name);
+		this.writeMessage(raw.datas.msg, raw.datas.sender.properties.name);
 	},
 	
 	/***

@@ -50,8 +50,8 @@ APE_Client.prototype.load = function(config){
 	frame.setAttribute('src','http://'+config.frequency+'.'+config.server+'/?script&'+config.scripts.join('&')+'&ac');
 }
 if(Function.prototype.bind==null){
-	Function.prototype.bind = function(bind,args){
-		return this.create({bind: bind,arguments:args});
+	Function.prototype.bind = function(bind, args){
+		return this.create({'bind': bind, 'arguments': args});
 	}
 }
 if(Function.prototype.create==null){

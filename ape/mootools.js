@@ -3647,6 +3647,7 @@ var Request = new Class({
 
 	initialize: function(options){
 		this.xhr = new Browser.Request();
+		this.id  = $time();
 		this.setOptions(options);
 		this.options.isSuccess = this.options.isSuccess || this.isSuccess;
 		this.headers = new Hash(this.options.headers);

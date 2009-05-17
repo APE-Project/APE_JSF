@@ -49,9 +49,9 @@ var APE_Core = new Class({
 	},
 
 	callbackCheck: function(resp){
-		if (resp.raw!='ERR' && !this.running) { 
+		if (resp.raw!='ERR' && this.status == 0) { 
 			this.fireEvent('init');
-			this.running = true;
+			this.status = 1;
 			this.getSession('uniPipe',this.restoreUniPipe.bind(this));
 			this.startPooler();
 		}
