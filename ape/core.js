@@ -60,7 +60,7 @@ var APE_Core = new Class({
 			case 1:
 				this.transport = {
 					request: Request,
-					options: {'method':'post'}
+					options: {'method': 'post'}
 				}
 				break;
 			case 4:
@@ -185,6 +185,18 @@ var APE_Core = new Class({
 		$clear(this.timer);
 	},
 
+	parseParam: function(param) {
+		var	tmp = [];
+		if ($type(param) == 'object') {
+			for (var i in param) {
+				tmp.push(param[i]);
+			}
+			return tmp;
+		} else {
+			return $splat(param);
+		}
+	},
+
 	/***
 	 * Make a xmlhttrequest, once result received the parseResponse function is called 
 	 * @param 	string	Raw to send
@@ -208,19 +220,11 @@ var APE_Core = new Class({
 		if (!options.callback) options.callback = null;
 		param = param || [];
 
-		//Format params
 		var queryString = raw;
 		var time = $time();
-		var	tmp = [];
 
-		if ($type(param) == 'object') {
-			for (var i in param) {
-				tmp.push(param[i]);
-			}
-			param = tmp;
-		} else {
-			param = $splat(param);
-		}
+		//Format params
+		param = this.parseParam(param);
 		//Add sessid
 		if (sessid) queryString += '&' + this.getSessid();
 
@@ -426,7 +430,8 @@ var APE_Core = new Class({
 	* @param	Mixed string or array with options to send to ape server with connect cmd, if more than one, must be an array
 	*/
 	connect: function(options){
-		options = $splat(options);
+		options = this.parseParam(options);
+		console.log(options);
 		options.push(this.options.transport);
 		this.request('CONNECT', options, false);
 	},
