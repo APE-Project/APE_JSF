@@ -399,7 +399,8 @@ var APE_Core = new Class({
 	 * @return	object	The pipe object
 	 */
 	delPipe: function(pubid){
-		var pipe = this.pipes.erase(pubid);
+		var pipe = this.pipes.get(pubid);
+		this.pipes.erase(pubid);
 		this.fireEvent('pipeDelete', [pipe.type, pipe]);
 		return pipe;
 	},
