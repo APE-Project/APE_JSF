@@ -431,7 +431,6 @@ var APE_Core = new Class({
 	*/
 	connect: function(options){
 		options = this.parseParam(options);
-		console.log(options);
 		options.push(this.options.transport);
 		this.request('CONNECT', options, false);
 	},
