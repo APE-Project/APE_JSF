@@ -4,8 +4,12 @@ var APE_Core = new Class({
 
 	initialize: function(options){
 		if (this.getInstance(options.identifier).instance) options.restore = true;
+
 		this.parent(options);
-		this.addEvent('init',this.init);
+
+		//Init and save cookies
+		if (options.restore) this.init();
+
 		this.addEvent('pipeCreate',this.savePipeUni);
 		this.addEvent('pipeDelete',this.pipeDelete);
 		this.session = {
@@ -61,6 +65,7 @@ var APE_Core = new Class({
 		var cookie = this.initCookie();
 		if(!cookie){//No cookie defined start a new connection
 			this.parent(options);
+			this.addEvent('init',this.init);
 		}else{//Cookie or instance exist
 			this.restoring = true;
 			this.fireEvent('restoreStart');
@@ -74,8 +79,8 @@ var APE_Core = new Class({
 	 * @return 	Boolean	false if application identifier isn't found or an object with the instance and the cookie
 	 */
 	getInstance: function(identifier){
-		var	tmp = Cookie.read('APE_Cookie'),
-			identifier = identifier || this.options.identifier;
+		var	tmp = Cookie.read('APE_Cookie');
+		var	identifier = identifier || this.options.identifier;
 		if(tmp){
 			tmp = JSON.decode(tmp);
 			//Get the instance of ape in cookie
@@ -98,18 +103,18 @@ var APE_Core = new Class({
 	 */
 	initCookie: function(){
 		var tmp = this.getInstance();
-		if(tmp && tmp.instance){
+		if(tmp && tmp.instance){ //Cookie exist, application instance exist
 			this.setSessid(tmp.instance.sessid);
 			this.setPubid(tmp.instance.pubid);
 			tmp.cookie.frequency = tmp.cookie.frequency.toInt() + 1;
 			this.cookie = tmp.cookie;
 			return true;
-		} else if (tmp.cookie) {
+		} else if (tmp.cookie) { //Cookie exist, no application instance
 			this.createInstance(tmp.cookie);
 			tmp.cookie.frequency = tmp.cookie.frequency.toInt() + 1;
 			this.cookie = tmp.cookie;
 			return false;
-		} else {
+		} else { //No cookie
 			this.cookie = null;
 			return false;
 		}
@@ -139,7 +144,6 @@ var APE_Core = new Class({
 	},
 
 	saveCookie: function(){
-		//Save it
 		Cookie.write('APE_Cookie', JSON.encode(this.cookie), {domain:this.options.domain});
 	},
 

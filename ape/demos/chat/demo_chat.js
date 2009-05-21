@@ -20,7 +20,7 @@ var Ape_chat = new Class({
 		this.onCmd('send', this.cmdSend);
 		this.addEvent('restoreEnd',this.restoreEnd);
 		this.onRaw('data', this.rawData);
-		this.onError('004',this.reset);
+		this.onError('004', this.reset);
 		//If name is not set & it's not a session restore ask user for his nickname
 		if(!this.options.name && !this.core.options.restore){
 			this.promptName();
@@ -29,7 +29,7 @@ var Ape_chat = new Class({
 		}
 	},
 
-	promptName: function(){
+	promptName: function(error){
 		this.els.namePrompt = {};
 		this.els.namePrompt.div = new Element('form',{'class':'ape_name_prompt','text':'Choose a nickname : '}).inject(this.options.container)
 		this.els.namePrompt.div.addEvent('submit',function(ev){

@@ -20,11 +20,13 @@
 			'identifier':'chatdemo', //Identifier of the application 
 			'channel':'test', //Channel to join at startup
 			'complete':function(ape){ //Function executed once APE fully loaded
+				
 				new Ape_chat(ape,{'container':$('ape_master_container')});
 			},
 			'scripts': APE_config.scripts //Scripts to load for APE JSF
 		});
 	</script>
 		<div id="ape_master_container"></div>
+		<div id="debug"></div>
 	</body>
 </html>

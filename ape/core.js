@@ -42,8 +42,8 @@
 
 var APE_Core = new Class({
 
-	Implements: Options,
 	Extends: Events,
+	Implements: Options,
 
 	options:{
 		server: window.location.hostname,	//Ape server URL
@@ -79,6 +79,7 @@ var APE_Core = new Class({
 		this.status = 0; //0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request Failure  
 		this.failCounter = 0;
 		this.xhrFailObserver = [];
+		this.poolerObserver = null;
 
 		this.onRaw('login', this.rawLogin);
 		this.onRaw('err', this.rawErr);
@@ -93,7 +94,7 @@ var APE_Core = new Class({
 		 * Browser using webkit and presto let a loading bar (or cursor), even if page loaded 
 		 * This case happend, only if XHR is made while parent page is loading
 		 */
-		if (Browser.Engine.webkit || Browser.Engine.presto) {
+		if (this.transport == 1 && Browser.Engine.webkit || Browser.Engine.presto) {
 			var oldOnload = window.parent.onload,
 
 			fn = function(){
@@ -110,15 +111,6 @@ var APE_Core = new Class({
 				}
 			}
 		}
-
-		/*
-		this.addEvent('apeReconnect', function(){
-				console.log('apeReconnect');
-		});
-		this.addEvent('apeDisconnect', function(){
-				console.log('apeDisconnect');
-		});
-		*/
 
 		//Fix presto bug (see request method)
 		if (Browser.Engine.presto) {
@@ -145,28 +137,26 @@ var APE_Core = new Class({
 		this.pipes.each(function(pipe){
 			pipe.fireEvent('pipe:'+type, args, delay);
 		});
-		this.parent(type, args, delay);
+		return this.parent(type, args, delay);
 	},
 
 	onError: function(type, fn, internal) {
-		this.addEvent('err_' + type, fn, internal);
+		return this.addEvent('error_' + type, fn, internal);
 	},
 
 	onRaw: function(type, fn, internal) {
-		this.addEvent('raw_' + type, fn, internal); 
+		return this.addEvent('raw_' + type, fn, internal); 
 	},
 	
 	onCmd: function(type, fn, internal) {
-		this.addEvent('cmd_' + type, fn, internal);
+		return this.addEvent('cmd_' + type, fn, internal);
 	},
 	
 	/***
 	* Execute check request each X seconde
 	*/
 	pooler: function(){
-		//Check if another request might not running and don't need to be closed
-		//Note : pool time is decrease of 2s beacuse js periodical is not verry accurate
-		if ($time() - this.lastAction >= this.options.poolTime - 20000) {
+		if (this.poolerActive) {
 			this.check();
 		}
 	},
@@ -175,22 +165,21 @@ var APE_Core = new Class({
 	 * Start the pooler
 	 */
 	startPooler: function(){
-		this.timer = this.pooler.periodical(this.options.poolTime, this);//Creating pooler 
+		this.poolerActive = true;
 	},
 
 	/***
-	 * Stop the pooler (Witch send check raw)
+	 * Stop the pooler (Wich send check raw)
 	 */
 	stopPooler: function(){
-		$clear(this.timer);
+		$clear(this.poolerObserver);
+		this.poolerActive = false;
 	},
 
 	parseParam: function(param) {
 		var	tmp = [];
-		if ($type(param) == 'object') {
-			for (var i in param) {
-				tmp.push(param[i]);
-			}
+		if (typeof (param) == 'object') {
+			$each(param, function(e) { tmp.push(e) });
 			return tmp;
 		} else {
 			return $splat(param);
@@ -205,9 +194,9 @@ var APE_Core = new Class({
 	 * @param	Object	Options (event, async, callback )
 	 * @param	Boolean	Used only by opera
 	 */
-	request: function(raw, param, sessid, options, no_watch){
+	request: function(raw, param, sessid, options, noWatch){
 		//Opera dirty fix
-		if (Browser.Engine.presto && !no_watch) {
+		if (Browser.Engine.presto && !noWatch) {
 			this.requestVar.updated = true;
 			this.requestVar.args.push([raw, param, sessid, options]);
 			return;
@@ -233,8 +222,6 @@ var APE_Core = new Class({
 			queryString += '&' + param.join('&');
 		}
 
-		if (this.status == -1) this.cancelRequest();
-
 		//Show time
 		this.xhr = new this.transport.request($extend(this.transport.options,{	
 								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?',
@@ -242,7 +229,13 @@ var APE_Core = new Class({
 								'onFailure': this.xhrFail.bind(this, [arguments,-2])
 							}));
 		this.xhr.send(queryString + '&' + time);
+
+		//Set up an observer to detect request timeout
 		this.xhrFailObserver.push(this.xhrFail.delay(this.options.poolTime + 10000, this, [arguments, -1]));
+
+		$clear(this.poolerObserver);
+		this.poolerObserver = this.pooler.delay(this.options.poolTime, this);
+
 		this.lastAction = time;
 
 		if (!options.event) {
@@ -259,7 +252,7 @@ var APE_Core = new Class({
 	},
 
 	/***
-	 * Function called when a request failed
+	 * Function called when a request fail or timeout
 	 * @param	Array	Arguments passed to request
 	 * @param	Integer	Fail status
 	 */
@@ -269,10 +262,14 @@ var APE_Core = new Class({
 			this.stopPooler();
 			this.cancelRequest();
 			this.fireEvent('apeDisconnect');
-		} else if(this.failCounter<6) {
+		} else if(this.failCounter<6 && this.status == -2) {
 			this.failCounter++;
 		}
 
+		if (this.status == -1) {
+			this.cancelRequest();
+		}
+		
 		this.request.delay(this.failCounter*1000, this, args);
 	},
 
@@ -320,7 +317,7 @@ var APE_Core = new Class({
 				this.callRaw(raw);
 
 				//Last request is finished and it's not an error
-				if (this.xhr.xhr.readyState == 4) {
+				if (this.xhr && this.xhr.xhr.readyState == 4) {
 					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003') {
 						check = true;
 					}
@@ -493,14 +490,7 @@ var APE_Core = new Class({
 	setSession: function(key, value, options){
 		if (!this.restoring) {
 			if (!options) options = {};
-			//session var is tagged as "update" response
-			//if (!options.tag) options.tag = false;
 			var arr = ['set', key, escape(value)]
-			/* Not used anymore
-			if (options.tag){
-				arr.push(1);
-			}
-			*/
 			this.request('SESSION', arr, true, options);
 		}
 	},
@@ -542,7 +532,7 @@ var APE_Core = new Class({
 	* @param	object	raw
 	*/
 	rawErr: function(err){
-		this.fireEvent('err_' + err.datas.code, err);
+		this.fireEvent('error_' + err.datas.code, err);
 	},
 
 	/****
@@ -554,7 +544,7 @@ var APE_Core = new Class({
 		if (this.requestVar.updated) {
 			var args = this.requestVar.args.shift();
 			this.requestVar.updated = (this.requestVar.args.length>0) ? true : false;
-			args[4] = true; //Set no_watch arguments to true
+			args[4] = true; //Set noWatch arguments to true
 			this.request.run(args, this);
 		}
 	},
@@ -577,6 +567,7 @@ var identifier 	= window.frameElement.id;
 var Ape;
 var config 	= window.parent.APE_Config[identifier.substring(4, identifier.length)];
 
-window.addEvent('domready', function(){
+window.onload = function(){
 	Ape = new APE_Core(config);
-});
+}
+

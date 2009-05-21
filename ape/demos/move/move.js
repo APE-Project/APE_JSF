@@ -20,6 +20,7 @@ var APE_Move = new Class({
 		this.onError('004',this.reset);
 		if (this.options.name) this.core.start(this.options.name);
 	},
+	
 	deleteUser: function(user, pipe){
 		user.element.dispose();
 	},
@@ -49,7 +50,7 @@ var APE_Move = new Class({
 
 		//Add message
 		new Element('div',{
-					'html':this.parseMessage(message),
+					'text':this.parseMessage(message),
 					'class':'ape_message'
 				}).inject(cnt);
 		new Element('div',{'class':'msg_bot'}).inject(cnt);
