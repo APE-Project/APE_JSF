@@ -437,7 +437,7 @@ var APE_Core = new Class({
 	* @param	string	Channel name
 	*/
 	join: function(chan){
-		this.request('JOIN', [chan]);
+		this.request('JOIN', chan);
 	},
 
 	/***
