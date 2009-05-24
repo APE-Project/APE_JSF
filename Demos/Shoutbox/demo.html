@@ -9,16 +9,16 @@
 	<script type="text/javaScript" src="../config.js"></script>
 	<script type="text/javaScript" src="demo.js"></script>
 	<script type="text/javaScript">
-		var client = new APE_Client();
+		var client = new APE.Client();
 		client.load({
-			'domain':APE_config.domain,
-			'server':APE_config.server,
+			'domain':APE.Config.domain,
+			'server':APE.Config.server,
 			'identifier':'chatdemo',
 			'channel':'test',
 			'complete':function(ape){
-				var shoutbox = new APE_Shoutbox(ape, 'ape_master_container');
+				var shoutbox = new APE.Shoutbox(ape, 'ape_master_container');
 			},
-			'scripts': APE_config.scripts //Scripts to load for APE JSF
+			'scripts': APE.Config.scripts //Scripts to load for APE JSF
 		});
 	</script>
 		<div id="ape_master_container"></div>

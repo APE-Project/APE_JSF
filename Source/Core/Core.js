@@ -45,6 +45,8 @@ var APE_Core = new Class({
 	Extends: Events,
 	Implements: Options,
 
+	$originalEvents: {},
+
 	options:{
 		server: window.location.hostname, // Ape server URL
 		poolTime: 25000, // Max time for a request
@@ -135,20 +137,20 @@ var APE_Core = new Class({
 	fireEvent: function(type, args, delay){
 		//Fire the event on each pipe
 		this.pipes.each(function(pipe){
-			pipe.fireEvent('pipe:'+type, args, delay);
+			pipe.fireEvent('pipe:' + type, args, delay);
 		});
 		return this.parent(type, args, delay);
 	},
 
-	onError: function(type, fn, internal) {
+	onError: function(type, fn, internal){
 		return this.addEvent('error_' + type, fn, internal);
 	},
 
-	onRaw: function(type, fn, internal) {
+	onRaw: function(type, fn, internal){
 		return this.addEvent('raw_' + type, fn, internal); 
 	},
 	
-	onCmd: function(type, fn, internal) {
+	onCmd: function(type, fn, internal){
 		return this.addEvent('cmd_' + type, fn, internal);
 	},
 	
@@ -176,7 +178,7 @@ var APE_Core = new Class({
 		this.poolerActive = false;
 	},
 
-	parseParam: function(param) {
+	parseParam: function(param){
 		var	tmp = [];
 		if (typeof (param) == 'object') {
 			$each(param, function(e) { tmp.push(e); });
@@ -246,7 +248,7 @@ var APE_Core = new Class({
 	/***
 	 * Cancel current Request 
 	 */
-	cancelRequest: function() {
+	cancelRequest: function(){
 		this.xhr.cancel();
 		$clear(this.xhrFailObserver.shift());
 	},
@@ -266,9 +268,7 @@ var APE_Core = new Class({
 			this.failCounter++;
 		}
 
-		if (this.status == -1) {
-			this.cancelRequest();
-		}
+		if (this.status == -1) 	this.cancelRequest();
 		
 		this.request.delay(this.failCounter*1000, this, args);
 	},

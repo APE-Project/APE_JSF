@@ -1,5 +1,5 @@
-var APE_Move = new Class({
-	Implements: [APE_Client, Options],
+APE.Move = new Class({
+	Implements: [APE.Client, Options],
 
 	options: {
 		container: document.body

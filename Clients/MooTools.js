@@ -16,11 +16,20 @@ APE.Client = new Class({
 	},
 
 	addEvent: function(type, fn, internal){
-		return this.core.addEvent(type, fn.bind(this), internal); 
+		var newFn = fn.bind(this);
+		var ret = this.core.addEvent(type, newFn, internal);
+		this.core.$originalEvents[type] = this.core.$originalEvents[type] || [];
+		this.core.$originalEvents[type][fn] = newFn;
+		delete this.core.$originalEvents[type][fn];
+		return ret;
 	},
 
 	onRaw: function(type, fn, internal){
 		return this.addEvent('raw_' + type, fn, internal); 
+	},
+
+	removeEvent: function(type, fn) {
+		this.core.removeEvent(type, this.core.$originalEvents[type][fn]);
 	},
 
 	onCmd: function(type, fn, internal){

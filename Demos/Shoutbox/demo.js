@@ -1,6 +1,6 @@
-var APE_Shoutbox = new Class({
+APE.Shoutbox = new Class({
 	//This class must implement APE_Client to intercept events
-	Implements: APE_Client,
+	Implements: APE.Client,
 
 	//Constructor
 	initialize: function(core, container){

@@ -1,8 +1,10 @@
-APE.Config.baseUrl = 'http://acheron.local/ape-client/Source'; //APE JSF 
-APE.Config.domain = 'acheron.local'; //Your domain, must be the same than the domain in aped.conf of your server
-APE.Config.server = 'acheron.local'; //APE server URL
+APE.Config.baseUrl = 'http://yourdomain.com/APE_JSF/Source'; //APE JSF 
+APE.Config.domain = 'yourdomain.com'; //Your domain, must be the same than the domain in aped.conf of your server
+APE.Config.server = 'ape.yourdomain.com'; //APE server URL
 
 //Scripts to load for APE JSF
-['mootools-core', 'Core/Events', 'Pipe/Pipe', 'Pipe/PipeProxy', 'Pipe/PipeMulti', 'Pipe/PipeSingle', 'Core/Core', 'Core/Utility'].each(function(script){
-	APE.Config.scripts.push(APE.Config.baseUrl + '/' + script + '.js');
-});
+var scripts = ['mootools-core', 'Core/Events', 'Pipe/Pipe', 'Pipe/PipeProxy', 'Pipe/PipeMulti', 'Pipe/PipeSingle', 'Core/Core', 'Core/Utility'];
+for (var i = 0; i < scripts.length; i++) {
+	APE.Config.scripts.push(APE.Config.baseUrl + '/' + scripts[i] + '.js');
+}
+delete scripts;

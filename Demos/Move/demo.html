@@ -20,17 +20,17 @@
 			}
 			return temp;
 		}
-		var client = new APE_Client();
+		var client = new APE.Client();
 		client.load({
-			'domain':APE_config.domain,
-			'server':APE_config.server,
+			'domain':APE.Config.domain,
+			'server':APE.Config.server,
 			'identifier':'movedemo',
 			'channel':'move',
 			'complete':function(ape){
-				var Ape_c = new APE_Move(ape,{'container':$('ape_master_container')});
+				var Ape_c = new APE.Move(ape,{'container':$('ape_master_container')});
 				ape.start([rand_chars()]);
 			},
-			'scripts': APE_config.scripts //Scripts to load for APE JSF
+			'scripts': APE.Config.scripts //Scripts to load for APE JSF
 		});
 	</script>
 		<div id="ape_master_container"></div>

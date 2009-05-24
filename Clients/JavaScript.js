@@ -1,30 +1,37 @@
-var APE_Config = new Array();
-
-function APE_Client(core){
-	this.core = core;
+var APE = {
+	Config: {
+		identifier: 'ape',
+		init: true,
+		frequency: 0,
+		scripts: []
+	},
+	Client: function(core) {
+		this.core = core;
+	}
 }
 
-APE_Client.prototype.fireEvent = function(type, args, delay) {
+
+APE.Client.prototype.fireEvent = function(type, args, delay) {
 	this.core.fireEvent(type,args,delay);
 }
 
-APE_Client.prototype.addEvent = function(type, fn, internal) {
+APE.Client.prototype.addEvent = function(type, fn, internal) {
 	this.core.addEvent(type, fn, internal);
 }
 
-APE_Client.prototype.onRaw = function(type, fn, no_bind, internal) {
+APE.Client.prototype.onRaw = function(type, fn, no_bind, internal) {
 		this.addEvent('raw_' + type, fn, no_bind, internal); 
 }
 
-APE_Client.prototype.onCmd = function(type, fn, no_bind, internal) {
+APE.Client.prototype.onCmd = function(type, fn, no_bind, internal) {
 		this.addEvent('cmd_' + type, fn, no_bind, internal); 
 }
 
-APE_Client.prototype.onError = function(type, fn, no_bind, internal) {
+APE.Client.prototype.onError = function(type, fn, no_bind, internal) {
 		this.addEvent('error_' + type, fn, no_bind, internal); 
 }
 
-APE_Client.prototype.apeCookie = function (name, remove) {
+APE.Client.prototype.apeCookie = function (name, remove) {
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for(var i=0;i < ca.length;i++) {
@@ -37,7 +44,7 @@ APE_Client.prototype.apeCookie = function (name, remove) {
 	return null;
 }
 
-APE_Client.prototype.load = function(config){
+APE.Client.prototype.load = function(config){
 	this.config = config;
 	config.init = config.init || true;
 	var tmp = eval('('+unescape(this.apeCookie('APE_Cookie'))+')');
@@ -52,7 +59,7 @@ APE_Client.prototype.load = function(config){
 	frame.style.position = 'absolute';
 	frame.style.left = '-300px';
 	frame.style.top = '-300px';
-	APE_Config[config.identifier] = config;
+	APE.Config[config.identifier] = config;
 	document.body.appendChild(frame);
 	frame.setAttribute('src','http://'+config.frequency+'.'+config.server+'/?script&'+config.scripts.join('&')+'&ac');
 	//Firefox fix, see bug  #356558 
