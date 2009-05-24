@@ -1,5 +1,5 @@
 var APE_config = {
-	'baseUrl': 'http://acheron.local/ape-client/ape', //APE JSF 
+	'baseUrl': 'http://acheron.local/ape-client', //APE JSF 
 	'domain': 'acheron.local', //Your domain, must be the same than the domain in aped.conf of your server
 	'server': 'acheron.local' //APE server URL
 }
