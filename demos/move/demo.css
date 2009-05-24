@@ -5,7 +5,7 @@
 }
 #ape_master_container{
 	height:385px;
-	background:url('bg.png');
+	background:url(Images/bg.png);
 	border:8px solid #4c4c4c;
 }
 #sendbox_input{
@@ -27,9 +27,9 @@
 	position:absolute;
 }
 .demo_box_container .user{
-	background:url('round.png');
+	background:url(Images/round.png);
 	-background-image:none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod=crop src='/ACE_client_new/trunk/ape/plugins/move/round.png');
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod=crop src='Images/round.png');
 }
 .demo_box_container span{
 	color:white;
@@ -64,12 +64,12 @@
 	margin-top:-77px;
 }
 .msg_top{
-	background:url('./msg_top.png') no-repeat;
+	background:url(Images/msg_top.png) no-repeat;
 	padding-top:5px;
 	height:17px;
 }
 .ape_message{
-	background:url('./msg_mid.png') repeat-y;
+	background:url(Images/msg_mid.png) repeat-y;
 	padding-left:24px;
 	overflow:hidden;
 	font-size:16px;
@@ -78,7 +78,7 @@
 	color:#5f5f60;
 }
 .msg_bot{
-	background:url('./msg_bot.png') repeat-y;
+	background:url(Images/msg_bot.png) repeat-y;
 	height:9px;
 }
 .move_box{

@@ -14,7 +14,7 @@ body{
 	height:385px;
 	border:1px solid #bbbdbe;
     border-right:0px;
-	background:url('./demochat_top.png') repeat-x;
+	background:url(Images/demochat_top.png) repeat-x;
 }
 #ape_sendbox_container{
 	width:699px;
@@ -22,7 +22,7 @@ body{
 #ape_sendbox{
 	width:100%;
 	height:38px;
-	background:url('./sendboxbg.png') no-repeat;
+	background:url(Images/sendboxbg.png) no-repeat;
 }
 #tabbox_container{
 	width:525px;
@@ -44,12 +44,12 @@ body{
 	width:72px;
 	padding-top:5px;
 	height:38px;
-	background:url('./sendbutton.png') no-repeat;
+	background:url(Images/sendbutton.png) no-repeat;
 	float:right;
 	display:block;
 }
 .ape_users_list{
-	background:url('./users_bg.png') repeat-x right #656f7c;
+	background:url(Images/users_bg.png) repeat-x right #656f7c;
 	margin-left:4px;
 	width:165px;
 	height:380px;
@@ -59,13 +59,13 @@ body{
 .users_right{
 	float:right;
 	width:170px;
-	background:url('./users_left.png') repeat-y top left;
+	background:url(Images/users_left.png) repeat-y top left;
 	height:385px;
 }
 .ape_users_list .ape_user{
 	width:133px;
 	line-height:25px;
-	background:url('./userback_users.png') no-repeat;
+	background:url(Images/userback_users.png) no-repeat;
 	height:25px;
 	padding-left:15px;
 	font-weight:bold;
@@ -81,7 +81,7 @@ body{
 	display:none;
 }
 .ape_pipe{
-	background:url('./buffer_bg.png') repeat-x #eef1f7;
+	background:url(Images/buffer_bg.png) repeat-x #eef1f7;
 	width:100%;
 	height:385px;
 }
@@ -92,12 +92,12 @@ body{
 	width:528px;
 }
 .msg_top{
-	background:url('./msg_top.png') no-repeat;
+	background:url(Images/msg_top.png) no-repeat;
 	padding-top:5px;
 }
 .ape_message{
 	padding-left:18px;
-	background:url('./msg_mid.png') 0 5px repeat-y;
+	background:url(Images/msg_mid.png) 0 5px repeat-y;
 	color:#646465;
 	overflow:hidden;
 }
@@ -112,7 +112,7 @@ body{
 }
 .msg_bot{
 	height:8px;
-	background:url('./msg_bot.png');
+	background:url(Images/msg_bot.png);
 }
 .ape_message_container{
 	white-space:normal;

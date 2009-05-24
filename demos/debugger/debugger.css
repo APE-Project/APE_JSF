@@ -18,21 +18,21 @@
 	list-style-type:none;
 }
 #ape_debug_list li.out{
-	background-image:url('./out.png');
+	background-image:url(Images/out.png);
 }
 #ape_debug_list li.in{
-	background-image:url('./in.png');
+	background-image:url(Images/in.png);
 }
 #ape_debug_list span.type_Info{
-	background-image:url('./info.png');
+	background-image:url(Images/info.png);
 }
 #ape_debug_list span.type_Error,
 #ape_debug_list span.type_Raw.Error{
-	background-image:url('./error.png');
+	background-image:url(Images/error.png);
 }
 #ape_debug_list span.type_Request,
 #ape_debug_list span.type_Raw{
-	background-image:url('./request.png');
+	background-image:url(Images/request.png);
 }
 #ape_debug_list li.out,
 #ape_debug_list li.in,
@@ -75,7 +75,7 @@
 	left:0px;
 	width:100%;
 	height:400px;
-/*	background:url('./bg_alpha.png'); */
+/*	background:url(Images/bg_alpha.png); */
 	background:#292929;
 	color:#FFFFFF;
 	font-size:13px;

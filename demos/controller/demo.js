@@ -15,7 +15,7 @@ var APE_Controller = new Class({
  
 		this.onRaw('mailnotif', this.raw_data);
 
-		this.core.start({0:'tata',1:'tatie'});
+		this.core.start();
 	},
  
 	raw_data: function(raw, pipe){
