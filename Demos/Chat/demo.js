@@ -1,15 +1,16 @@
-var Ape_chat = new Class({
+APE.Chat = new Class({
 
-	Implements: [APE_Client, Options],
+	Implements: [APE.Client, Options],
 
 	options:{
-		container: document.body,
-		logs_limit:10
+		container: null,
+		logs_limit: 10
 	},
 
 	initialize: function(core,options){
 		this.core = core;
 		this.setOptions(options);
+		this.options.container = $(this.options.container) || document.body;
 		this.els = {};
 		this.currentPipe = null;
 		this.logging = true;
@@ -33,11 +34,11 @@ var Ape_chat = new Class({
 		this.els.namePrompt = {};
 		this.els.namePrompt.div = new Element('form',{'class':'ape_name_prompt','text':'Choose a nickname : '}).inject(this.options.container)
 		this.els.namePrompt.div.addEvent('submit',function(ev){
-									ev.stop();
-									this.options.name = this.els.namePrompt.input.get('value');
-									this.els.namePrompt.div.dispose();
-									this.start()
-								}.bindWithEvent(this));
+			ev.stop();
+			this.options.name = this.els.namePrompt.input.get('value');
+			this.els.namePrompt.div.dispose();
+			this.start()
+		}.bindWithEvent(this));
 		this.els.namePrompt.input = new Element('input',{'class':'text'}).inject(this.els.namePrompt.div);
 		new Element('input',{'class':'submit','type':'submit','value':'GO!'}).inject(this.els.namePrompt.div)
 	},

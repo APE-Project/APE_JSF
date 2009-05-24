@@ -565,7 +565,7 @@ var APE_Core = new Class({
 
 var identifier 	= window.frameElement.id;
 var Ape;
-var config 	= window.parent.APE_Config[identifier.substring(4, identifier.length)];
+var config 	= window.parent.APE.Config[identifier.substring(4, identifier.length)];
 
 window.onload = function(){
 	Ape = new APE_Core(config);

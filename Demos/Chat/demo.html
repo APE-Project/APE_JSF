@@ -9,21 +9,18 @@
 	<script type="text/javaScript" src="../config.js"></script>
 	<script type="text/javaScript" src="demo.js"></script>
 	<script type="text/javaScript">
-		//Initialize APE_Client
-		var client = new APE_Client();
-		//Add session.js to APE JSF to handle multitab and page refresh
-		APE_config.scripts.push(APE_config.baseUrl+'/session.js');
-		//Initialize connection to APE Server
+		// Add Session.js to APE JSF to handle multitab and page refresh
+		APE.Config.scripts.push(APE.Config.baseUrl+'/Core/Session.js');
+		
+		// Initialize APE_Client
+		var client = new APE.Client();
+		// Connect to the APE Server
 		client.load({
-			'domain':APE_config.domain,
-			'server':APE_config.server,
-			'identifier':'chatdemo', //Identifier of the application 
-			'channel':'test', //Channel to join at startup
-			'complete':function(ape){ //Function executed once APE fully loaded
-				
-				new Ape_chat(ape,{'container':$('ape_master_container')});
-			},
-			'scripts': APE_config.scripts //Scripts to load for APE JSF
+			identifier: 'chatdemo', // Identifier of the application 
+			channel: 'test', // Channel to join at startup
+			complete: function(ape){ // Function executed once APE is fully loaded
+				new APE.Chat(ape, {container: $('ape_master_container')});
+			}
 		});
 	</script>
 		<div id="ape_master_container"></div>
