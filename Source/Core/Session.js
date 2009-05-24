@@ -14,7 +14,7 @@ var APE_Core = new Class({
 		this.addEvent('pipeDelete',this.pipeDelete);
 		this.session = {
 			uniPipe: new $H
-		}
+		};
 	},
 	
 	saveSessionPipe:function(){
@@ -80,7 +80,7 @@ var APE_Core = new Class({
 	 */
 	getInstance: function(identifier){
 		var	tmp = Cookie.read('APE_Cookie');
-		var	identifier = identifier || this.options.identifier;
+		identifier = identifier || this.options.identifier;
 		if(tmp){
 			tmp = JSON.decode(tmp);
 			//Get the instance of ape in cookie
@@ -125,7 +125,7 @@ var APE_Core = new Class({
 	 * @param	object	APE_Cookie
 	 */
 	createInstance: function(cookie) {
-		cookie.instance.push({'identifier': this.options.identifier, 'pubid': this.getPubid(), 'sessid': this.getSessid()})
+		cookie.instance.push({'identifier': this.options.identifier, 'pubid': this.getPubid(), 'sessid': this.getSessid()});
 	},
 
 	/***

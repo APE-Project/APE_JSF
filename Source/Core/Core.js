@@ -46,11 +46,11 @@ var APE_Core = new Class({
 	Implements: Options,
 
 	options:{
-		server: window.location.hostname,	//Ape server URL
-		poolTime: 25000, 			//Max time for a request
-		identifier: 'ape',			//Identifier is used by cookie to differenciate ape instance
-		transport: 1,				//Trasport 1: long pooling, 2: pooling (didn't work yet), 3: forever iframe, 4: jsonp (didn't work yet), 5: websocket (didn't work yet)
-		frequency: 0				//Ffrequency identifier
+		server: window.location.hostname, // Ape server URL
+		poolTime: 25000, // Max time for a request
+		identifier: 'ape', // Identifier is used by cookie to differentiate ape instance
+		transport: 1, // Transport 1: long pooling, 2: pooling (doesn't work yet), 3: forever iframe, 4: jsonp (didn't work yet), 5: websocket (didn't work yet)
+		frequency: 0 // Frequency identifier
 	},
 
 	initialize: function(options){
@@ -61,13 +61,13 @@ var APE_Core = new Class({
 				this.transport = {
 					request: Request,
 					options: {'method': 'post'}
-				}
+				};
 				break;
 			case 4:
 				this.transport = {
 					request: Request.JSONP,
 					options: {}
-				}
+				};
 				break;
 		}
 
@@ -108,7 +108,7 @@ var APE_Core = new Class({
 				window.parent.onload = function(){
 					oldOnload(); 
 					fn();
-				}
+				};
 			}
 		}
 
@@ -117,7 +117,7 @@ var APE_Core = new Class({
 			this.requestVar = {
 				'updated': false,
 				'args' : []
-			}
+			};
 			this.requestObserver.periodical(10, this);
 		}
 		//Set core var for APE_Client instance
@@ -179,7 +179,7 @@ var APE_Core = new Class({
 	parseParam: function(param) {
 		var	tmp = [];
 		if (typeof (param) == 'object') {
-			$each(param, function(e) { tmp.push(e) });
+			$each(param, function(e) { tmp.push(e); });
 			return tmp;
 		} else {
 			return $splat(param);
@@ -294,10 +294,10 @@ var APE_Core = new Class({
 		}
 		if (raws == 'CLOSE' && this.xhr.xhr.readyState == 4){
 			if (callback) callback.run(raws);
-			this.check() 
+			this.check();
 			return;
 		}
-		if (raws == 'QUIT') { 
+		if (raws == 'QUIT') {
 			this.quit();
 			return;
 		}
@@ -306,7 +306,7 @@ var APE_Core = new Class({
 			var	raw;
 			raws = JSON.decode(raws,true);
 
-			if (!raws){//Something went wrong, json decode failed
+			if (!raws){ // Something went wrong, json decode failed
 				this.check(); 
 				return;
 			}
@@ -490,7 +490,7 @@ var APE_Core = new Class({
 	setSession: function(key, value, options){
 		if (!this.restoring) {
 			if (!options) options = {};
-			var arr = ['set', key, escape(value)]
+			var arr = ['set', key, escape(value)];
 			this.request('SESSION', arr, true, options);
 		}
 	},
@@ -555,7 +555,7 @@ var APE_Core = new Class({
 	clearSession:function(){
 		this.setSessid(null);
 		this.setPubid(null);
-		this.$events = {} //Clear events
+		this.$events = {}; // Clear events
 		this.stopPooler();
 		this.cancelRequest();
 		this.status = 0;
@@ -569,5 +569,4 @@ var config 	= window.parent.APE_Config[identifier.substring(4, identifier.length
 
 window.onload = function(){
 	Ape = new APE_Core(config);
-}
-
+};
