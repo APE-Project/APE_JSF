@@ -3,8 +3,7 @@ APE.Config.domain = 'yourdomain.com'; //Your domain, must be the same than the d
 APE.Config.server = 'ape.yourdomain.com'; //APE server URL
 
 //Scripts to load for APE JSF
-var scripts = ['mootools-core', 'Core/Events', 'Pipe/Pipe', 'Pipe/PipeProxy', 'Pipe/PipeMulti', 'Pipe/PipeSingle', 'Core/Core', 'Core/Utility'];
-for (var i = 0; i < scripts.length; i++) {
-	APE.Config.scripts.push(APE.Config.baseUrl + '/' + scripts[i] + '.js');
-}
-delete scripts;
+(function(){
+	for (var i = 0; i < arguments.length; i++)
+		APE.Config.scripts.push(APE.Config.baseUrl + '/' + arguments[i] + '.js');
+})('mootools-core', 'Core/Events', 'Pipe/Pipe', 'Pipe/PipeProxy', 'Pipe/PipeMulti', 'Pipe/PipeSingle', 'Core/Core', 'Core/Utility');
