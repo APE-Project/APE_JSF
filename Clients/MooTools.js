@@ -11,16 +11,21 @@ var APE = {
 
 APE.Client = new Class({
 	
+	eventProxy: [],
+
 	fireEvent: function(type, args, delay){
 		return this.core.fireEvent(type, args, delay);
 	},
 
 	addEvent: function(type, fn, internal){
-		var newFn = fn.bind(this);
-		var ret = this.core.addEvent(type, newFn, internal);
-		this.core.$originalEvents[type] = this.core.$originalEvents[type] || [];
-		this.core.$originalEvents[type][fn] = newFn;
-		delete this.core.$originalEvents[type][fn];
+		var newFn = fn.bind(this), ret = this;
+		if(!$defined(this.core)) this.eventProxy.push([type, fn, internal]);
+		else {
+			ret = this.core.addEvent(type, newFn, internal);
+			this.core.$originalEvents[type] = this.core.$originalEvents[type] || [];
+			this.core.$originalEvents[type][fn] = newFn;
+			delete this.core.$originalEvents[type][fn];
+		}
 		return ret;
 	},
 
@@ -48,6 +53,9 @@ APE.Client = new Class({
 		//Init function called by core to init core variable
 		config.init = function(core){
 			this.core = core;
+			this.eventProxy.each(function(evt){
+				this.addEvent.apply(this, evt);
+			}, this);
 		}.bind(this);
 		
 		document.domain = config.domain;
