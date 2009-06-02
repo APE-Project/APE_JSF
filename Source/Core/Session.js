@@ -57,7 +57,8 @@ var APE_Core = new Class({
 			this.fireEvent('init');
 			this.status = 1;
 			this.getSession('uniPipe',this.restoreUniPipe.bind(this));
-			this.startPooler();
+		} else {//Check failed, stop the pooler
+			this.stopPooler();
 		}
 	},
 
@@ -69,6 +70,7 @@ var APE_Core = new Class({
 		}else{//Cookie or instance exist
 			this.restoring = true;
 			this.fireEvent('restoreStart');
+			this.startPooler();
 			this.check(this.callbackCheck.bind(this));//Send a check raw (this ask ape for an updated session)
 		}
 	},
