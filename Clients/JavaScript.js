@@ -16,19 +16,24 @@ APE.Client.prototype.fireEvent = function(type, args, delay) {
 }
 
 APE.Client.prototype.addEvent = function(type, fn, internal) {
-	this.core.addEvent(type, fn, internal);
+	var newFn = fn.bind(this);
+	var ret = this.core.addEvent(type, newFn, internal);
+	this.core.$originalEvents[type] = this.core.$originalEvents[type] || [];
+	this.core.$originalEvents[type][fn] = newFn;
+	delete this.core.$originalEvents[type][fn];
+	return ret;
 }
 
-APE.Client.prototype.onRaw = function(type, fn, no_bind, internal) {
-		this.addEvent('raw_' + type, fn, no_bind, internal); 
+APE.Client.prototype.onRaw = function(type, fn, internal) {
+		this.addEvent('raw_' + type, fn, internal); 
 }
 
-APE.Client.prototype.onCmd = function(type, fn, no_bind, internal) {
-		this.addEvent('cmd_' + type, fn, no_bind, internal); 
+APE.Client.prototype.onCmd = function(type, fn, internal) {
+		this.addEvent('cmd_' + type, fn, internal); 
 }
 
-APE.Client.prototype.onError = function(type, fn, no_bind, internal) {
-		this.addEvent('error_' + type, fn, no_bind, internal); 
+APE.Client.prototype.onError = function(type, fn, internal) {
+		this.addEvent('error_' + type, fn, internal); 
 }
 
 APE.Client.prototype.apeCookie = function (name, remove) {
