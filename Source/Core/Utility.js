@@ -32,37 +32,36 @@ var B64 = new Hash({
 			s.push(B64.$tab.charAt(t&0x3f));
 		}
 		// deal with trailers, based on patch from Peter Wood.
-		switch(rm){
-			case 2:{
-				       t = ba.charCodeAt(i++)<<16|ba.charCodeAt(i++)<<8;
-				       s.push(B64.$tab.charAt((t>>>18)&0x3f));
-				       s.push(B64.$tab.charAt((t>>>12)&0x3f));
-				       s.push(B64.$tab.charAt((t>>>6)&0x3f));
-				       s.push(B64.$p);
-				       break;
-			       }
-			case 1:{
-				       t = ba.charCodeAt(i++)<<16;
-				       s.push(B64.$tab.charAt((t>>>18)&0x3f));
-				       s.push(B64.$tab.charAt((t>>>12)&0x3f));
-				       s.push(B64.$p);
-				       s.push(B64.$p);
-				       break;
-			       }
+		switch (rm){
+			case 2:
+				t = ba.charCodeAt(i++)<<16|ba.charCodeAt(i++)<<8;
+				s.push(B64.$tab.charAt((t>>>18)&0x3f));
+				s.push(B64.$tab.charAt((t>>>12)&0x3f));
+				s.push(B64.$tab.charAt((t>>>6)&0x3f));
+				s.push(B64.$p);
+			break;
+			case 1:
+				t = ba.charCodeAt(i++)<<16;
+				s.push(B64.$tab.charAt((t>>>18)&0x3f));
+				s.push(B64.$tab.charAt((t>>>12)&0x3f));
+				s.push(B64.$p);
+				s.push(B64.$p);
+			break;
 		}
-		return s.join('');  // string
+
+		return s.join(''); // string
 	},
 
 	decode: function(str){
 		var s = str.split(''), out = [];
 		var l = s.length;
 		var tl = 0;
-		while(s[--l]==B64.$p){ ++tl; }   // strip off trailing padding
-		for (var i=0; i<l;){
-			var t=B64.$tab.indexOf(s[i++])<<18;
-			if(i<=l){ t|=B64.$tab.indexOf(s[i++])<<12; };
-			if(i<=l){ t|=B64.$tab.indexOf(s[i++])<<6; };
-			if(i<=l){ t|=B64.$tab.indexOf(s[i++]); };
+		while(s[--l] == B64.$p){ ++tl; } // strip off trailing padding
+		for (var i = 0; i < l;){
+			var t = B64.$tab.indexOf(s[i++])<<18;
+			if(i <= l) t|=B64.$tab.indexOf(s[i++])<<12;
+			if(i <= l) t|=B64.$tab.indexOf(s[i++])<<6;
+			if(i <= l) t|=B64.$tab.indexOf(s[i++]);
 			out.push(String.fromCharCode((t>>>16)&0xff));
 			out.push(String.fromCharCode((t>>>8)&0xff));
 			out.push(String.fromCharCode(t&0xff));

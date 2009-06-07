@@ -1,6 +1,6 @@
-var APE_PipeProxy = new Class({
+APE.PipeProxy = new Class({
 
-	Extends: APE_Pipe,	
+	Extends: APE.Pipe,
 
 	initialize: function(core, options){
 		this.core = core || window.Ape;

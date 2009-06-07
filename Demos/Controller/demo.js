@@ -1,30 +1,32 @@
 APE.Controller = new Class({
 	
-	Implements: [APE.Client, Options],
+	Extends: APE.Client,
 	
-	options:{
-		container: null,
-		logs_limit: 10
+	Implements: Options,
+	
+	options: {
+		container: null
 	},
 	
-	
-	initialize: function(core, options){
-		this.core = core; 
- 		
+	initialize: function(options){
 		this.setOptions(options);
-		this.options.container = $(this.options.container) || document.body;
-		this.els = {};
- 		
-		this.onRaw('mailnotif', this.raw_data);
+		
+		this.container = $(this.options.container) || document.body;
+	},
+	
+	start: function(core){
+		this.core = core;
+		
+		this.onRaw('action', this.onAction);
 		
 		this.core.start();
 	},
 	
-	raw_data: function(raw, pipe){
+	onAction: function(raw, pipe){
 		new Element('div', {
-			'class': 'css_class',
-			'html': decodeURIComponent(raw.datas.value)
-		}).inject(this.options.container);
+			'class': 'message',
+			html: decodeURIComponent(raw.datas.value)
+		}).inject(this.container);
 	}
 	
 });

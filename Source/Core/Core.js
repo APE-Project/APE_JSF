@@ -40,7 +40,8 @@
  *                `\_______/^\______/
  */
 
-var APE_Core = new Class({
+var APE = {};
+APE.Core = new Class({
 
 	Extends: Events,
 	Implements: Options,
@@ -48,29 +49,28 @@ var APE_Core = new Class({
 	$originalEvents: {},
 
 	options:{
-		server: window.location.hostname, // Ape server URL
-		poolTime: 25000, // Max time for a request
+		server: window.location.hostname, // APE server URL
+		pollTime: 25000, // Max time for a request
 		identifier: 'ape', // Identifier is used by cookie to differentiate ape instance
-		transport: 1, // Transport 1: long pooling, 2: pooling (doesn't work yet), 3: forever iframe, 4: jsonp (didn't work yet), 5: websocket (didn't work yet)
+		transport: 1, // Transport 1: long polling, 2: polling (doesn't work yet), 3: forever iframe, 4: jsonp (doesn't work yet), 5: websocket (doesn't work yet)
 		frequency: 0 // Frequency identifier
 	},
 
 	initialize: function(options){
 		this.setOptions(options);
 
-		switch (this.options.transport) {
-			case 1:
-				this.transport = {
-					request: Request,
-					options: {'method': 'post'}
-				};
-				break;
+		switch (this.options.transport){
 			case 4:
 				this.transport = {
 					request: Request.JSONP,
 					options: {}
 				};
-				break;
+			break;
+			default:
+				this.transport = {
+					request: Request,
+					options: {'method': 'post'}
+				};
 		}
 
 		this.pipes = new $H; 
@@ -78,10 +78,10 @@ var APE_Core = new Class({
 		this.pubid = null;
 		this.xhr = null;
 		this.timer = null;
-		this.status = 0; //0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request Failure  
+		this.status = 0; // 0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request failure
 		this.failCounter = 0;
 		this.xhrFailObserver = [];
-		this.poolerObserver = null;
+		this.pollerObserver = null;
 
 		this.onRaw('login', this.rawLogin);
 		this.onRaw('err', this.rawErr);
@@ -96,35 +96,35 @@ var APE_Core = new Class({
 		 * Browser using webkit and presto let a loading bar (or cursor), even if page loaded 
 		 * This case happend, only if XHR is made while parent page is loading
 		 */
-		if (this.transport == 1 && Browser.Engine.webkit || Browser.Engine.presto) {
-			var oldOnload = window.parent.onload,
+		if (this.transport == 1 && (Browser.Engine.webkit || Browser.Engine.presto)){
+			var onload = window.parent.onload,
 
 			fn = function(){
 				this.stopWindow = true;
 			}.bind(this);
 
 			//Add function to load event
-			if (typeof window.parent.onload != 'function') {
+			if (typeof window.parent.onload != 'function'){
 				window.parent.onload = fn;
 			} else {
 				window.parent.onload = function(){
-					oldOnload(); 
+					onload();
 					fn();
 				};
 			}
 		}
 
 		//Fix presto bug (see request method)
-		if (Browser.Engine.presto) {
+		if (Browser.Engine.presto){
 			this.requestVar = {
-				'updated': false,
-				'args' : []
+				updated: false,
+				args: []
 			};
 			this.requestObserver.periodical(10, this);
 		}
-		//Set core var for APE_Client instance
+		//Set core var for APE.Client instance
 		if (options.init) options.init.apply(null, [this]);
-		//Execute complete function of APE_Client instance
+		//Execute complete function of APE.Client instance
 		if (options.complete) options.complete.apply(null, [this]);
 	},
 
@@ -139,6 +139,7 @@ var APE_Core = new Class({
 		this.pipes.each(function(pipe){
 			pipe.fireEvent('pipe:' + type, args, delay);
 		});
+		
 		return this.parent(type, args, delay);
 	},
 
@@ -157,41 +158,33 @@ var APE_Core = new Class({
 	/***
 	* Execute check request each X seconde
 	*/
-	pooler: function(){
-		if (this.poolerActive) {
-			this.check();
-		}
+	poller: function(){
+		if (this.pollerActive) this.check();
 	},
 
 	/***
-	 * Start the pooler
+	 * Start the poller
 	 */
-	startPooler: function(){
-		this.poolerActive = true;
+	startPoller: function(){
+		this.pollerActive = true;
 	},
 
 	/***
-	 * Stop the pooler (Wich send check raw)
+	 * Stop the poller (Wich send check raw)
 	 */
-	stopPooler: function(){
-		$clear(this.poolerObserver);
-		this.poolerActive = false;
+	stopPoller: function(){
+		$clear(this.pollerObserver);
+		this.pollerActive = false;
 	},
 
 	parseParam: function(param){
-		var	tmp = [];
-		if (typeof (param) == 'object') {
-			$each(param, function(e) { tmp.push(e); });
-			return tmp;
-		} else {
-			return $splat(param);
-		}
+		return ($type(param) == 'object') ? Hash.getValues(param) : $splat(param);
 	},
 
 	/***
 	 * Make a xmlhttrequest, once result received the parseResponse function is called 
-	 * @param 	string	Raw to send
-	 * @param	boolean	If true sessid is added to request
+	 * @param 	String	Raw to send
+	 * @param	Boolean	If true sessid is added to request
 	 * @param	Mixed	Can be array,object or string, if more than one, must an array 
 	 * @param	Object	Options (event, async, callback )
 	 * @param	Boolean	Used only by opera
@@ -206,43 +199,39 @@ var APE_Core = new Class({
 
 		//Set options
 		if (!$type(sessid)) sessid = true;
-		if (!options) options = {};
-		if (!options.event) options.event = true;
-		if (!options.callback) options.callback = null;
 		param = param || [];
+		options = $extend({
+			event: true,
+			callback: null
+		}, options);
 
 		var queryString = raw;
 		var time = $time();
 
-		//Format params
 		param = this.parseParam(param);
-		//Add sessid
+
 		if (sessid) queryString += '&' + this.getSessid();
 
 		//Create query string
-		if (param.length > 0) {
+		if (param.length > 0)
 			queryString += '&' + param.join('&');
-		}
 
 		//Show time
-		this.xhr = new this.transport.request($extend(this.transport.options,{	
-								'url': 'http://' + this.options.frequency + '.' + this.options.server + '/?',
-								'onComplete': this.parseResponse.bindWithEvent(this,options.callback),
-								'onFailure': this.xhrFail.bind(this, [arguments,-2])
-							}));
-		this.xhr.send(queryString + '&' + time);
+		this.xhr = new this.transport.request($extend(this.transport.options, {
+			url: 'http://' + this.options.frequency + '.' + this.options.server + '/?',
+			onComplete: this.parseResponse.bindWithEvent(this,options.callback),
+			onFailure: this.xhrFail.bind(this, [arguments,-2])
+		})).send(queryString + '&' + time);
 
 		//Set up an observer to detect request timeout
-		this.xhrFailObserver.push(this.xhrFail.delay(this.options.poolTime + 10000, this, [arguments, -1]));
+		this.xhrFailObserver.push(this.xhrFail.delay(this.options.pollTime + 10000, this, [arguments, -1]));
 
-		$clear(this.poolerObserver);
-		this.poolerObserver = this.pooler.delay(this.options.poolTime, this);
+		$clear(this.pollerObserver);
+		this.pollerObserver = this.poller.delay(this.options.pollTime, this);
 
 		this.lastAction = time;
 
-		if (!options.event) {
-			this.fireEvent('cmd_' + raw.toLowerCase(), param);
-		}
+		if (!options.event) this.fireEvent('cmd_' + raw.toLowerCase(), param);
 	},
 
 	/***
@@ -259,12 +248,12 @@ var APE_Core = new Class({
 	 * @param	Integer	Fail status
 	 */
 	xhrFail: function(args, failStatus) {
-		if (this.status > 0) {
+		if (this.status > 0){
 			this.status = failStatus;
-			this.stopPooler();
+			this.stopPoller();
 			this.cancelRequest();
 			this.fireEvent('apeDisconnect');
-		} else if(this.failCounter<6 && this.status == -2) {
+		}else if(this.failCounter < 6 && this.status == -2){
 			this.failCounter++;
 		}
 
@@ -278,49 +267,49 @@ var APE_Core = new Class({
 	* @param	Array	An array of raw 
 	*/
 	parseResponse: function(raws, callback){
-		if (raws) {
+		if (raws){
 			$clear(this.xhrFailObserver.shift());
 			if (this.status < 0 ) {
 				this.failCounter = 0;
 				this.status = 1;
-				this.startPooler();
+				this.startPoller();
 				this.fireEvent('apeReconnect');
 			}
 		}
 		//This is fix for Webkit and Presto, see initialize method for more information
-		if (this.stopWindow) { 
+		if (this.stopWindow){ 
 			window.parent.stop();
-			this.stopWindow=false;
+			this.stopWindow = false;
 		}
+
 		if (raws == 'CLOSE' && this.xhr.xhr.readyState == 4){
 			if (callback) callback.run(raws);
 			this.check();
 			return;
 		}
-		if (raws == 'QUIT') {
+		if (raws == 'QUIT'){
 			this.quit();
 			return;
 		}
+
 		var check = false;
-		if (raws && raws!='CLOSE') {
-			var	raw;
-			raws = JSON.decode(raws,true);
+		if (raws && raws!='CLOSE'){
+			raws = JSON.decode(raws, true);
 
 			if (!raws){ // Something went wrong, json decode failed
 				this.check(); 
 				return;
 			}
 
-			for (var i = 0; i < raws.length; i++) {
-				raw = raws[i];
+			for (var i = 0; i < raws.length; i++){
+				var raw = raws[i];
 				if (callback && $type(callback)=='function') callback.run(raw);
 				this.callRaw(raw);
 
 				//Last request is finished and it's not an error
 				if (this.xhr && this.xhr.xhr.readyState == 4) {
-					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003') {
+					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003')
 						check = true;
-					}
 				} else {
 					//Invalidate check if something went wrong with other raw or a new request have been launched
 					check = false;
@@ -337,13 +326,14 @@ var APE_Core = new Class({
 	callRaw: function(raw){
 		var args;
 		if (raw.datas.pipe) {
-			var pipe_id = raw.datas.pipe.pubid,
+			var pipeId = raw.datas.pipe.pubid,
 				pipe;
-			if (!this.pipes.has(pipe_id)) {
+
+			if (!this.pipes.has(pipeId))
 				pipe = this.newPipe(raw.datas.pipe.casttype, raw.datas);
-			} else {
-				pipe = this.pipes.get(pipe_id);
-			}
+			else
+				pipe = this.pipes.get(pipeId);
+
 			args = [raw, pipe];
 		} else {
 			args = raw;
@@ -357,24 +347,16 @@ var APE_Core = new Class({
 	 * @param	Object	Options used to instanciate pipe
 	 * @return	Object	pipe
 	 */
-	newPipe: function(type, options) {
-		switch (type) {
-			case 'uni':
-				return new APE_PipeSingle(this,options);
-			break;
-			case 'proxy':
-				return new APE_PipeProxy(this,options);
-			break;
-			case 'multi':
-				return new APE_PipeMulti(this,options);
-			break;
-		}
+	newPipe: function(type, options){
+		if(type == 'uni') return new APE.PipeSingle(this, options);
+		if(type == 'proxy') return new APE.PipeProxy(this, options);
+		if(type == 'multi') return new APE.PipeMulti(this, options);
 	},
 
 	/***
 	 * This allow ape to be compatible with TCPSocket
 	 */
-	TCPSocket: APE_PipeProxy,
+	TCPSocket: APE.PipeProxy,
 
 	/***
 	 * Add a pipe to the core pipes hash
@@ -419,7 +401,7 @@ var APE_Core = new Class({
 	* @param	function	Callback (see request)
 	*/
 	check: function(callback){
-		this.request('CHECK', null, true, {'callback': callback});
+		this.request('CHECK', null, true, {callback: callback});
 	},
 
 	/****
@@ -488,11 +470,10 @@ var APE_Core = new Class({
 	 * @param	string	value
 	 */
 	setSession: function(key, value, options){
-		if (!this.restoring) {
-			if (!options) options = {};
-			var arr = ['set', key, escape(value)];
-			this.request('SESSION', arr, true, options);
-		}
+		if (this.restoring) return;
+		
+		var arr = ['set', key, escape(value)];
+		this.request('SESSION', arr, true, options || {});
 	},
 
 	/***
@@ -500,7 +481,7 @@ var APE_Core = new Class({
 	 * @param	string	key
 	 */
 	getSession: function(key,callback){
-		this.request('SESSION', ['get', key],true,{'callback':callback});
+		this.request('SESSION', ['get', key], true, {callback: callback});
 	},
 	
 	/***
@@ -514,17 +495,17 @@ var APE_Core = new Class({
 
 	/***
 	* Handle login raw
-	* If autojoin is defined join the specified channel, then start the pooler and finnaly create cookie session
+	* If autojoin is defined join the specified channel, then start the poller and finnaly create cookie session
 	* @param Object received raw
 	*/
 	rawLogin: function(param){
 		this.setSessid(param.datas.sessid);
-		if (this.options.channel) {
+		if (this.options.channel)
 			this.join(this.options.channel);
-		}
+		
 		this.status = 1;
 		this.fireEvent('init');
-		this.startPooler();
+		this.startPoller();
 	},
 
 	/***
@@ -555,18 +536,18 @@ var APE_Core = new Class({
 	clearSession:function(){
 		this.setSessid(null);
 		this.setPubid(null);
-		this.$events = {}; // Clear events
-		this.stopPooler();
+		this.stopPoller();
 		this.cancelRequest();
 		this.status = 0;
 		this.options.restore = false;
 	}
 });
 
-var identifier 	= window.frameElement.id;
 var Ape;
-var config 	= window.parent.APE.Config[identifier.substring(4, identifier.length)];
 
-window.onload = function(){
-	Ape = new APE_Core(config);
-};
+window.addEvent('domready', function(){
+	var identifier = window.frameElement.id,
+		config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
+	
+	Ape = new APE.Core(config);
+});
