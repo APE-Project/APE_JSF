@@ -1,4 +1,4 @@
-var APE_Events = new Class({
+APE.Events = new Class({
 	
 	Extends: Events,
 	

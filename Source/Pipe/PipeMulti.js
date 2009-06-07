@@ -1,6 +1,6 @@
-var APE_PipeMulti = new Class({
+APE.PipeMulti = new Class({
 
-	Extends: APE_Pipe,
+	Extends: APE.Pipe,
 
 	initialize: function(core, options){
 		this.parent(core, options);

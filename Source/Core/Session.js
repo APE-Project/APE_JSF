@@ -1,6 +1,6 @@
-var APE_Core = new Class({
+APE.Core = new Class({
 
-	Extends: APE_Core,
+	Extends: APE.Core,
 
 	initialize: function(options){
 		if (this.getInstance(options.identifier).instance) options.restore = true;
