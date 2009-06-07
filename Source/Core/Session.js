@@ -86,13 +86,12 @@ APE.Core = new Class({
 		if(tmp){
 			tmp = JSON.decode(tmp);
 			//Get the instance of ape in cookie
-			for(var i = 0; i < tmp.instance.length; i++){
-				if(tmp.instance[i].identifier == identifier){
-					return {'instance': tmp.instance[i], 'cookie': tmp};
-				}
-			}
+			for(var i = 0; i < tmp.instance.length; i++)
+				if(tmp.instance[i].identifier == identifier)
+					return {instance: tmp.instance[i], cookie: tmp};
+			
 			//No instance found, just return the cookie
-			return {'cookie':tmp};
+			return {cookie: tmp};
 		}
 		//no instance found, no cookie found 
 		return false;
@@ -127,7 +126,11 @@ APE.Core = new Class({
 	 * @param	object	APE_Cookie
 	 */
 	createInstance: function(cookie) {
-		cookie.instance.push({'identifier': this.options.identifier, 'pubid': this.getPubid(), 'sessid': this.getSessid()});
+		cookie.instance.push({
+			identifier: this.options.identifier,
+			pubid: this.getPubid(),
+			sessid: this.getSessid()
+		});
 	},
 
 	/***
@@ -136,7 +139,7 @@ APE.Core = new Class({
 	createCookie: function(){
 		if(!this.cookie){
 			//No Cookie or no ape instance in cookie, lets create the cookie
-			tmp = {
+			var tmp = {
 				frequency: 1,
 				instance: []
 			};
