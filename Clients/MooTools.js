@@ -45,7 +45,7 @@ APE.Client = new Class({
 		
 		config = $merge({}, APE.Config, config);
 
-		//Init function called by core to init core variable
+		// Init function called by core to init core variable
 		config.init = function(core){
 			this.core = core;
 		}.bind(this);
@@ -65,7 +65,8 @@ APE.Client = new Class({
 			}
 		}).inject(document.body);
 		iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?script&' + config.scripts.join('&') + '&' + $time());
-		//Firefox fix, see bug  #356558 
+		
+		// Firefox fix, see bug  #356558 
 		// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 		iframe.contentWindow.location.href = iframe.get('src');
 		

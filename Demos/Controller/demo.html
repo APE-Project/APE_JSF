@@ -1,32 +1,63 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en">
-<head>	
- 
-</head>
-<body>
+<head>
+	<title>APE Controller Test</title>
+	<style type="text/css">
+		body {
+			margin: 10px;
+			padding: 0;
+			
+			font-family: Tahoma;
+			font-size: 12px;
+		}
+		
+		div#apeControllerDemo {
+			margin: 10px 0;
+			padding: 10px;
+			
+			border: 1px solid #e2e2e2;
+			background: #f2f2f2;
+		}
+		
+		div#apeControllerDemo div.message {
+			padding: 5px 0;
+			border-bottom: 1px solid #bbb;
+		}
+		
+		div#apeControllerDemo div.message:last-child {
+			border-bottom: 0;
+		}
+	</style>
+	
 	<script type="text/javaScript" src="../../Clients/mootools-core.js"></script>
 	<script type="text/javaScript" src="../../Clients/MooTools.js"></script>
 	<script type="text/javaScript" src="../config.js"></script>
 	<script type="text/javaScript" src="demo.js"></script>
 	<script type="text/javaScript">
-		var client = new APE.Client();
-		client.load({
-			identifier: 'mailnotif',
-			channel: 'testchannel',
-			complete: function(ape){
-				var ape_c = new APE.Controller(ape, {container: $('ape_master_container')});
-			},
+		window.addEvent('domready', function(){
+			var client = new APE.Controller({
+				container: $('apeControllerDemo')
+			});
+
+			client.load({
+				identifier: 'action',
+				channel: 'testchannel',
+				complete: client.start.bind(client)
+			});
 		});
 	</script>
-		To try this demo, you need : 
+</head>
+<body>
+<div>
+		In order to try this demo, you need: 
 		<ul>
-			<li>mod controller on APE server enabled</li>
-			<li>mod chat on APE server disabled</li>
-			<li>Set your APE server adresse in the controller/test.php</li>
+			<li>mod_controller on the APE server enabled</li>
+			<li>mod_chat on the APE server disabled</li>
+			<li>Set your APE server address in the controller/test.php</li>
 		</ul>
-		Then load this page and go to <a href="./test.php" target="_blank">controller/test.php</a> and you will see a message appear here.
-		<br/>
-		<br/>
-		<div id="ape_master_container" style="border:1px solid #000;padding:10px;background:#CCC;"></div>
-	</body>
+		Load this page and go to <a href="./test.php" target="_blank">test.php</a> and you will see a message appear in the element down below:
+		
+		<div id="apeControllerDemo"></div>
+</div>
+</body>
 </html>
