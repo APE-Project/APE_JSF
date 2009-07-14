@@ -53,11 +53,15 @@ APE.Client.prototype.load = function(config){
 	this.config = config;
 	config.init = config.init || true;
 	var tmp = eval('('+unescape(this.apeCookie('APE_Cookie'))+')');
-	config.frequency = config.frequency || 0;
+	config.frequency = config.frequency || 0;
 	config.init = function(core){
 		this.core = core;
 	}.bind(this);
+
+	if(tmp) config.frequency = parseInt(tmp.frequency);
+
 	document.domain = config.domain;
+
 	var frame = document.createElement('iframe');
 	frame.setAttribute('id','ape_' + config.identifier);
 	frame.style.display = 'none';
