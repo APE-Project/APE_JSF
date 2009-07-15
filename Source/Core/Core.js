@@ -96,7 +96,7 @@ var APE_Core = new Class({
 		 * Browser using webkit and presto let a loading bar (or cursor), even if page loaded 
 		 * This case happend, only if XHR is made while parent page is loading
 		 */
-		if (this.transport == 1 && Browser.Engine.webkit || Browser.Engine.presto) {
+		if (this.options.transport == 1 && Browser.Engine.webkit || Browser.Engine.presto) {
 			var oldOnload = window.parent.onload,
 
 			fn = function(){
@@ -115,6 +115,7 @@ var APE_Core = new Class({
 		}
 
 		//Fix presto bug (see request method)
+
 		if (Browser.Engine.presto) {
 			this.requestVar = {
 				'updated': false,
