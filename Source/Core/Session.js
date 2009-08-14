@@ -57,7 +57,7 @@ var APE_Core = new Class({
 			this.fireEvent('init');
 			this.status = 1;
 			this.getSession('uniPipe',this.restoreUniPipe.bind(this));
-		} else {//Check failed, stop the pooler
+		} else if (this.status == 0) {//Check failed, stop the pooler
 			this.stopPooler();
 		}
 	},
