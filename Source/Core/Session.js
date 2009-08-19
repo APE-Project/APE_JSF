@@ -52,13 +52,13 @@ APE.Core = new Class({
 		this.saveCookie();//Save cookie
 	},
 
-	callbackCheck: function(resp){
+	restoreCallback: function(resp){
 		if (resp.raw!='ERR' && this.status == 0) { 
 			this.fireEvent('init');
 			this.status = 1;
 			this.getSession('uniPipe',this.restoreUniPipe.bind(this));
-		} else {//Check failed, stop the pooler
-			this.stopPooler();
+		} else if (this.status == 0) {
+			this.stopPoller();
 		}
 	},
 
@@ -70,8 +70,8 @@ APE.Core = new Class({
 		}else{//Cookie or instance exist
 			this.restoring = true;
 			this.fireEvent('restoreStart');
-			this.startPooler();
-			this.check(this.callbackCheck.bind(this));//Send a check raw (this ask ape for an updated session)
+			this.startPoller();
+			this.check(this.restoreCallback.bind(this));//Send a check raw (this ask ape for an updated session)
 		}
 	},
 
@@ -83,18 +83,33 @@ APE.Core = new Class({
 	getInstance: function(identifier){
 		var	tmp = Cookie.read('APE_Cookie');
 		identifier = identifier || this.options.identifier;
-		if(tmp){
-			tmp = JSON.decode(tmp);
-			//Get the instance of ape in cookie
-			for(var i = 0; i < tmp.instance.length; i++)
-				if(tmp.instance[i].identifier == identifier)
-					return {instance: tmp.instance[i], cookie: tmp};
-			
-			//No instance found, just return the cookie
-			return {cookie: tmp};
+		if (!tmp) return false;
+
+		tmp = JSON.decode(tmp);
+		
+		//Cookie is corrupted
+		if (!tmp) return false;
+		//Get the instance of ape in cookie
+		for(var i = 0; i < tmp.instance.length; i++){
+			if(tmp.instance[i] && tmp.instance[i].identifier == identifier){
+				return {instance: tmp.instance[i], cookie: tmp};
+			}
 		}
-		//no instance found, no cookie found 
-		return false;
+		
+		//No instance found, just return the cookie
+		return {cookie: tmp};
+	},
+	
+	removeInstance: function(identifier){
+		if (!this.cookie) return;
+
+		for(var i = 0; i < this.cookie.instance.length; i++){
+			if(this.cookie.instance[i].identifier == identifier){
+				console.log('instance found for remove');
+				this.cookie.instance.splice(i,1);
+				return;
+			}
+		}
 	},
 
 	/***
@@ -154,7 +169,8 @@ APE.Core = new Class({
 
 	clearSession: function(){
 		this.parent();
-		this.removeCookie();
+		this.removeInstance(this.options.identifier);
+		this.saveCookie();
 	},
 
 	removeCookie: function(){

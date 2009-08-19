@@ -3,37 +3,36 @@
 <head>	
 	<link rel="stylesheet" type="text/css" href="../debugger/debugger.css" media="screen" title="Normal" />
 	<link rel="stylesheet" type="text/css" href="demo.css" media="screen" title="Normal" />
-</head>
-	<body>
 	<script type="text/javaScript" src="../../Clients/mootools-core.js"></script>
 	<script type="text/javaScript" src="../../Clients/MooTools.js"></script>
 	<script type="text/javaScript" src="../config.js"></script>
 	<script type="text/javaScript" src="move.js"></script>
-	<script type="text/javaScript">
-		//Create random string used as user nickname
-		function rand_chars(){
-			 var keylist="abcdefghijklmnopqrstuvwxyz123456789"
-			 var temp=''
-			 var plength=5;
-			 for (i=0;i<plength;i++){
-				 temp+=keylist.charAt(Math.floor(Math.random()*keylist.length))
-			}
-			return temp;
-		}
-		var client = new APE.Client();
-		client.load({
-			'domain':APE.Config.domain,
-			'server':APE.Config.server,
-			'identifier':'movedemo',
-			'channel':'move',
-			'complete':function(ape){
-				var Ape_c = new APE.Move(ape,{'container':$('ape_master_container')});
-				ape.start([rand_chars()]);
-			},
-			'scripts': APE.Config.scripts //Scripts to load for APE JSF
-		});
-	</script>
+</head>
+	<body>
 		<div id="ape_master_container"></div>
-		<div id="debug"></div>
+		<script type="text/javaScript">
+			//Create random string used as user nickname
+			function rand_chars(){
+				 var keylist="abcdefghijklmnopqrstuvwxyz123456789"
+				 var temp=''
+				 var plength=5;
+				 for (i=0;i<plength;i++){
+					 temp+=keylist.charAt(Math.floor(Math.random()*keylist.length))
+				}
+				return temp;
+			}
+
+			APE.Config.transport = 3;
+
+			var client = new APE.Move({
+				'container':$('ape_master_container'),
+				'name':rand_chars()
+			});
+
+			client.load({
+				'identifier':'movedemo',
+				'channel':'move'
+			});
+		</script>
 	</body>
 </html>

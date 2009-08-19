@@ -1,33 +1,32 @@
 APE.Chat = new Class({
 
-	Implements: [APE.Client, Options],
+	Extends: APE.Client, 
+	
+	Implements: Options,
 
 	options:{
 		container: null,
-		logs_limit: 10
+		logs_limit: 10,
+		container: document.body
 	},
 
-	initialize: function(core,options){
-		this.core = core;
+	initialize: function(options){
 		this.setOptions(options);
-		this.options.container = $(this.options.container) || document.body;
+
 		this.els = {};
 		this.currentPipe = null;
 		this.logging = true;
+
+		this.onRaw('data', this.rawData);
+		this.onCmd('send', this.cmdSend);
+		this.onError('004', this.reset);
+
+		this.addEvent('load', this.start);
 		this.addEvent('init', this.createChat);
 		this.addEvent('pipeCreate', this.createPipe);
 		this.addEvent('userJoin', this.createUser);
 		this.addEvent('userLeft', this.deleteUser);
-		this.onCmd('send', this.cmdSend);
 		this.addEvent('restoreEnd',this.restoreEnd);
-		this.onRaw('data', this.rawData);
-		this.onError('004', this.reset);
-		//If name is not set & it's not a session restore ask user for his nickname
-		if(!this.options.name && !this.core.options.restore){
-			this.promptName();
-		}else{
-			this.start();
-		}
 	},
 
 	promptName: function(error){
@@ -44,7 +43,12 @@ APE.Chat = new Class({
 	},
 
 	start: function(){
-		this.core.start(this.options.name);
+		//If name is not set & it's not a session restore ask user for his nickname
+		if(!this.options.name && !this.core.options.restore){
+			this.promptName();
+		}else{
+			this.core.start(this.options.name);
+		}
 	},
 
 	setPipeName: function(pipe, options){
@@ -65,16 +69,16 @@ APE.Chat = new Class({
 
 	setCurrentPipe: function(pubid,save){
 		save = !save;
-		if(this.currentPipe){
+		if (this.currentPipe){
 			this.currentPipe.els.tab.addClass('unactive');
 			this.currentPipe.els.container.addClass('ape_none');
 		}
-		this.currentPipe = this.core.pipes.get(pubid);
+		this.currentPipe = this.core.getPipe(pubid);
 		this.currentPipe.els.tab.removeClass('new_message');
 		this.currentPipe.els.tab.removeClass('unactive');
 		this.currentPipe.els.container.removeClass('ape_none');
 		this.scrollMsg(this.currentPipe);
-		if(save) this.core.setSession('currentPipe',this.currentPipe.getPubid());
+		if (save) this.core.setSession('currentPipe',this.currentPipe.getPubid());
 		return this.currentPipe;
 	},
 
@@ -117,16 +121,11 @@ APE.Chat = new Class({
 			'text':this.parseMessage(message),
 			'class':'ape_message'
 		}).inject(cnt);
-		//Scroll message box
+
 		this.scrollMsg(pipe);
-		//Add message to logs
-		/*
-		if(pipe.logs.length>=this.options.logs_limit){
-			pipe.logs.shift();
-		}
-		pipe.logs.push({'message':message,'sender':sender});
-		*/
+
 		pipe.lastMsg = {sender:sender,el:cnt};
+
 		//notify 
 		if(this.getCurrentPipe().getPubid()!=pipe.getPubid()){
 			this.notify(pipe);
@@ -159,7 +158,6 @@ APE.Chat = new Class({
 
 	createPipe: function(type, pipe, options){
 		if(type=='uni') this.setPipeName(pipe, options);
-
 		var tmp;
 
 		//Define some pipe variables to handle logging and pipe elements
@@ -201,15 +199,6 @@ APE.Chat = new Class({
 
 		//Hide other pipe and show this one
 		this.setCurrentPipe(pipe.getPubid());
-		/* Do not work anymore
-		//If logs, lets create it
-		if(options.logs && options.logs.length>0){
-			var logs = options.logs;
-			for(var i = 0; i<logs.length; i++){
-				this.writeMessage(pipe,logs[i].message,logs[i].sender);
-			}
-		}
-		*/
 	},
 
 	createChat: function(){
@@ -247,7 +236,7 @@ APE.Chat = new Class({
 
 	restoreEnd: function(){
 		this.core.getSession('currentPipe',function(resp){
-			if(resp.raw=='SESSIONS') this.setCurrentPipe(resp.datas.sessions.currentPipe);
+			if(resp.raw=='SESSIONS' && resp.datas.sessions.currentPipe) this.setCurrentPipe(resp.datas.sessions.currentPipe);
 		}.bind(this));
 	},
 

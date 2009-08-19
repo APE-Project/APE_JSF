@@ -10,16 +10,14 @@ APE.Controller = new Class({
 	
 	initialize: function(options){
 		this.setOptions(options);
-		
 		this.container = $(this.options.container) || document.body;
+
+		this.onRaw('action', this.onAction);
+		this.addEvent('load',this.start);
 	},
 	
 	start: function(core){
-		this.core = core;
-		
-		this.onRaw('action', this.onAction);
-		
-		this.core.start();
+		this.core.start('test');
 	},
 	
 	onAction: function(raw, pipe){

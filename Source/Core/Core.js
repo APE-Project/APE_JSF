@@ -1,3 +1,20 @@
+if (!window.console) {
+	window.console = {
+		log:function(){
+			var div = window.parent.document.createElement('div');
+			window.parent.document.body.appendChild(div);
+			var txt = '';
+			for (var i = 0; i < arguments.length; i++) {
+				txt = txt + arguments[i];
+			}
+			div.innerHTML = txt;
+			window.parent.document.body.appendChild(window.parent.document.createElement('hr'));
+		}, 
+		info:function(){
+			console.log.run(arguments);
+		}
+	};
+}
 /*
   Copyright (C) 2008-2009 Weelya <contact@weelya.com> 
   This file is part of APE Client.
@@ -17,8 +34,8 @@
   
 */
 
-/***							    ________________________________________________________
- *                 __------__      /													    \
+/***				    ________________________________________________________
+ *                 __------__      /				   	  		    \
  *               /~          ~\   | APE, the Ajax Push Engine made with heart (and MooTools) |
  *              |    //^\\//^\|   |    http://www.weelya.net - http://www.ape-project.org    |
  *            /~~\  ||  o| |o|:~\  \ _______________________________________________________/
@@ -39,8 +56,9 @@
  *           -^-\  \       |        )
  *                `\_______/^\______/
  */
-
-var APE = {};
+var APE = {
+	Request: {}
+};
 APE.Core = new Class({
 
 	Extends: Events,
@@ -49,38 +67,25 @@ APE.Core = new Class({
 	$originalEvents: {},
 
 	options:{
-		server: window.location.hostname, // APE server URL
+		server: '', // APE server URL
 		pollTime: 25000, // Max time for a request
 		identifier: 'ape', // Identifier is used by cookie to differentiate ape instance
-		transport: 1, // Transport 1: long polling, 2: polling (doesn't work yet), 3: forever iframe, 4: jsonp (doesn't work yet), 5: websocket (doesn't work yet)
+		transport: 0, // Transport 0: long polling, 1 : XHRStreaming, 2: JSONP, 3 SSE / JSONP, 4 : SSE / XHR
 		frequency: 0 // Frequency identifier
 	},
 
 	initialize: function(options){
+		window.Ape = this;
 		this.setOptions(options);
 
-		switch (this.options.transport){
-			case 4:
-				this.transport = {
-					request: Request.JSONP,
-					options: {}
-				};
-			break;
-			default:
-				this.transport = {
-					request: Request,
-					options: {'method': 'post'}
-				};
-		}
+		this.selectTransport();
 
 		this.pipes = new $H; 
 		this.sessid = null;
 		this.pubid = null;
-		this.xhr = null;
 		this.timer = null;
 		this.status = 0; // 0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request failure
 		this.failCounter = 0;
-		this.xhrFailObserver = [];
 		this.pollerObserver = null;
 
 		this.onRaw('login', this.rawLogin);
@@ -90,30 +95,6 @@ APE.Core = new Class({
 		this.onError('003', this.clearSession);
 		this.onError('004', this.clearSession);
 
-		this.fireEvent('loaded', this);
-		
-		/*
-		 * Browser using webkit and presto let a loading bar (or cursor), even if page loaded 
-		 * This case happend, only if XHR is made while parent page is loading
-		 */
-		if (this.transport == 1 && (Browser.Engine.webkit || Browser.Engine.presto)){
-			var onload = window.parent.onload,
-
-			fn = function(){
-				this.stopWindow = true;
-			}.bind(this);
-
-			//Add function to load event
-			if (typeof window.parent.onload != 'function'){
-				window.parent.onload = fn;
-			} else {
-				window.parent.onload = function(){
-					onload();
-					fn();
-				};
-			}
-		}
-
 		//Fix presto bug (see request method)
 		if (Browser.Engine.presto){
 			this.requestVar = {
@@ -122,43 +103,43 @@ APE.Core = new Class({
 			};
 			this.requestObserver.periodical(10, this);
 		}
+
 		//Set core var for APE.Client instance
 		if (options.init) options.init.apply(null, [this]);
+
 		//Execute complete function of APE.Client instance
 		if (options.complete) options.complete.apply(null, [this]);
+
+		this.fireEvent('load', this);
 	},
 
-	/***
-	 * Register an event
-	 * @param	String	Type (Event name)
-	 * @param	Args	Array or single object, arguments to pass to the function. If more than one argument, must be an array.
-	 * @param	Int	Delay (in ms) to wait to execute the event.
-	 */
-	fireEvent: function(type, args, delay){
-		//Fire the event on each pipe
-		this.pipes.each(function(pipe){
-			pipe.fireEvent('pipe:' + type, args, delay);
-		});
-		
-		return this.parent(type, args, delay);
+	selectTransport: function() {
+		var transports = [APE.Request.longPolling, APE.Request.XHRStreaming, APE.Request.JSONP];
+		var transport = this.options.transport;
+		var support;
+
+		while (support != true) {
+			support = transports[transport].browserSupport();//Test if browser support transport	
+			console.log(support);
+
+			if (support) this.transport = new transports[transport](this);
+			else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
+		}
 	},
 
-	onError: function(type, fn, internal){
+	onError: function(type, fn, internal) {
 		return this.addEvent('error_' + type, fn, internal);
 	},
 
-	onRaw: function(type, fn, internal){
-		return this.addEvent('raw_' + type, fn, internal); 
+	onRaw: function(type, fn, internal) {
+		return this.addEvent('raw_' + type.toLowerCase(), fn, internal); 
 	},
 	
-	onCmd: function(type, fn, internal){
-		return this.addEvent('cmd_' + type, fn, internal);
-	},
-	
-	/***
-	* Execute check request each X seconde
-	*/
-	poller: function(){
+	onCmd: function(type, fn, internal) {
+		return this.addEvent('cmd_' + type.toLowerCase(), fn, internal);
+	},	
+
+	poller: function() {
 		if (this.pollerActive) this.check();
 	},
 
@@ -166,6 +147,7 @@ APE.Core = new Class({
 	 * Start the poller
 	 */
 	startPoller: function(){
+		console.log('start poller');
 		this.pollerActive = true;
 	},
 
@@ -173,6 +155,7 @@ APE.Core = new Class({
 	 * Stop the poller (Wich send check raw)
 	 */
 	stopPoller: function(){
+		console.log('stop poller');
 		$clear(this.pollerObserver);
 		this.pollerActive = false;
 	},
@@ -206,40 +189,26 @@ APE.Core = new Class({
 		}, options);
 
 		var queryString = raw;
-		var time = $time();
 
 		param = this.parseParam(param);
 
 		if (sessid) queryString += '&' + this.getSessid();
 
 		//Create query string
-		if (param.length > 0)
-			queryString += '&' + param.join('&');
+		if (param.length > 0) queryString += '&' + param.join('&');
 
-		//Show time
-		this.xhr = new this.transport.request($extend(this.transport.options, {
-			url: 'http://' + this.options.frequency + '.' + this.options.server + '/?',
-			onComplete: this.parseResponse.bindWithEvent(this,options.callback),
-			onFailure: this.xhrFail.bind(this, [arguments,-2])
-		})).send(queryString + '&' + time);
+		//Show time ;-)
+		var request = this.transport.send(queryString, options, arguments);
 
-		//Set up an observer to detect request timeout
-		this.xhrFailObserver.push(this.xhrFail.delay(this.options.pollTime + 10000, this, [arguments, -1]));
 
 		$clear(this.pollerObserver);
 		this.pollerObserver = this.poller.delay(this.options.pollTime, this);
 
-		this.lastAction = time;
-
-		if (!options.event) this.fireEvent('cmd_' + raw.toLowerCase(), param);
+		if (options.event) this.fireEvent('cmd_' + raw.toLowerCase(), param);
 	},
 
-	/***
-	 * Cancel current Request 
-	 */
 	cancelRequest: function(){
-		this.xhr.cancel();
-		$clear(this.xhrFailObserver.shift());
+		this.transport.cancel();
 	},
 
 	/***
@@ -247,19 +216,33 @@ APE.Core = new Class({
 	 * @param	Array	Arguments passed to request
 	 * @param	Integer	Fail status
 	 */
-	xhrFail: function(args, failStatus) {
-		if (this.status > 0){
+	requestFail: function(args, failStatus, request) {
+		console.log('Request fail');
+		var reSendData = false;
+
+		if (!request.request || !request.request.dataSent) reSendData = false;
+
+		if (this.status > 0) {//APE is connected but request failed
 			this.status = failStatus;
-			this.stopPoller();
 			this.cancelRequest();
+			this.stopPoller();
 			this.fireEvent('apeDisconnect');
-		}else if(this.failCounter < 6 && this.status == -2){
+		} else if (this.failCounter < 6 && this.status == -2) {//APE is disconnected, and it's by timeout
 			this.failCounter++;
 		}
+		//Cancel last request
+		this.cancelRequest();
 
-		if (this.status == -1) 	this.cancelRequest();
-		
-		this.request.delay(this.failCounter*1000, this, args);
+		var delay = (this.failCounter*1000);
+		if (reSendData) {
+			console.log('re sending data');
+			this.request.delay(delay, this, args);
+		} else {
+			this.check.delay(delay, this);
+		}
+		(function() {
+			if (this.status < 0) this.check();
+		}.delay(delay+300, this))
 	},
 
 	/**
@@ -267,8 +250,8 @@ APE.Core = new Class({
 	* @param	Array	An array of raw 
 	*/
 	parseResponse: function(raws, callback){
+	  	console.info('receiving', raws);
 		if (raws){
-			$clear(this.xhrFailObserver.shift());
 			if (this.status < 0 ) {
 				this.failCounter = 0;
 				this.status = 1;
@@ -276,28 +259,30 @@ APE.Core = new Class({
 				this.fireEvent('apeReconnect');
 			}
 		}
+
 		//This is fix for Webkit and Presto, see initialize method for more information
-		if (this.stopWindow){ 
-			window.parent.stop();
+		/*
+		if (this.stopWindow) { 
+			console.log('STOP!');
 			this.stopWindow = false;
 		}
+		*/
 
-		if (raws == 'CLOSE' && this.xhr.xhr.readyState == 4){
-			if (callback) callback.run(raws);
+		if (raws == 'CLOSE' && !this.transport.running()){
+			if (callback && $type(callback)=='function') callback.run(raws);
 			this.check();
 			return;
 		}
 		if (raws == 'QUIT'){
 			this.quit();
-			return;
+			return; 
 		}
 
 		var check = false;
-		if (raws && raws!='CLOSE'){
+		if (raws && raws!='CLOSE') {
 			raws = JSON.decode(raws, true);
-
 			if (!raws){ // Something went wrong, json decode failed
-				this.check(); 
+				this.check();
 				return;
 			}
 
@@ -307,9 +292,10 @@ APE.Core = new Class({
 				this.callRaw(raw);
 
 				//Last request is finished and it's not an error
-				if (this.xhr && this.xhr.xhr.readyState == 4) {
-					if (raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003')
+				if (!this.transport.running()) {
+					if (!raw.datas.code || (raw.datas.code!='005' && raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003')) {
 						check = true;
+					}
 				} else {
 					//Invalidate check if something went wrong with other raw or a new request have been launched
 					check = false;
@@ -329,12 +315,13 @@ APE.Core = new Class({
 			var pipeId = raw.datas.pipe.pubid,
 				pipe;
 
-			if (!this.pipes.has(pipeId))
+			if (!this.pipes.has(pipeId)) {
 				pipe = this.newPipe(raw.datas.pipe.casttype, raw.datas);
-			else
+			} else {
 				pipe = this.pipes.get(pipeId);
-
+			}
 			args = [raw, pipe];
+			pipe.fireEvent('pipe:raw_' + raw.raw.toLowerCase(), args);
 		} else {
 			args = raw;
 		}
@@ -352,11 +339,6 @@ APE.Core = new Class({
 		if(type == 'proxy') return new APE.PipeProxy(this, options);
 		if(type == 'multi') return new APE.PipeMulti(this, options);
 	},
-
-	/***
-	 * This allow ape to be compatible with TCPSocket
-	 */
-	TCPSocket: APE.PipeProxy,
 
 	/***
 	 * Add a pipe to the core pipes hash
@@ -389,19 +371,19 @@ APE.Core = new Class({
 	},
 
 	/***
-	 * Lauche the connect request
-	 * @param	Mixed	Can be array,object or string, if more than one, must be a string	
-	 */
-	start: function(options){
-		this.connect(options); 
-	},
-
-	/***
 	* Check if there are new message for the user
 	* @param	function	Callback (see request)
 	*/
 	check: function(callback){
 		this.request('CHECK', null, true, {callback: callback});
+	},
+
+	/***
+	 * Lauche the connect request
+	 * @param	Mixed	Can be array,object or string, if more than one, must be a string	
+	 */
+	start: function(options){
+		this.connect(options); 
 	},
 
 	/****
@@ -418,8 +400,8 @@ APE.Core = new Class({
 	* Join a channel
 	* @param	string	Channel name
 	*/
-	join: function(chan){
-		this.request('JOIN', chan);
+	join: function(channel){
+		this.request('JOIN', channel, true);
 	},
 
 	/***
@@ -500,12 +482,12 @@ APE.Core = new Class({
 	*/
 	rawLogin: function(param){
 		this.setSessid(param.datas.sessid);
-		if (this.options.channel)
-			this.join(this.options.channel);
+
+		if (this.options.channel) this.join(this.options.channel);
 		
 		this.status = 1;
-		this.fireEvent('init');
 		this.startPoller();
+		this.fireEvent('init');
 	},
 
 	/***
@@ -525,7 +507,7 @@ APE.Core = new Class({
 		if (this.requestVar.updated) {
 			var args = this.requestVar.args.shift();
 			this.requestVar.updated = (this.requestVar.args.length>0) ? true : false;
-			args[4] = true; //Set noWatch arguments to true
+			args[4] = true; //Set noWatch argument to true
 			this.request.run(args, this);
 		}
 	},
@@ -536,6 +518,8 @@ APE.Core = new Class({
 	clearSession:function(){
 		this.setSessid(null);
 		this.setPubid(null);
+		this.$events = {}; //Clear events
+		this.fireEvent('clearSession');
 		this.stopPoller();
 		this.cancelRequest();
 		this.status = 0;
@@ -543,11 +527,11 @@ APE.Core = new Class({
 	}
 });
 
-var Ape;
+var Ape;  
 
-window.addEvent('domready', function(){
+window.onload = function(){
 	var identifier = window.frameElement.id,
-		config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
-	
-	Ape = new APE.Core(config);
-});
+	config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
+
+	new APE.Core(config);
+};

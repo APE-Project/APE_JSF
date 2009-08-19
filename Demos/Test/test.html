@@ -5,22 +5,35 @@
 	<script type="text/javaScript" src="../../Clients/mootools-core.js"></script>
 	<script type="text/javaScript" src="../../Clients/MooTools.js"></script>
 	<script type="text/javaScript" src="../config.js"></script>
-	<script type="text/javaScript" src="demo.js"></script>
 </head>
 <body>
-	<div id="ape_master_container"></div>
 	<script type="text/javaScript">
-		// Add Session.js to APE JSF to handle multitab and page refresh
-		APE.Config.scripts.push(APE.Config.baseUrl+'/Core/Session.js');
-		APE.Config.transport = 0;
+		//Create random string used as user nickname
+		function rand_chars(){
+			 var keylist="abcdefghijklmnopqrstuvwxyz123456789"
+			 var temp=''
+			 var plength=5;
+			 for (i=0;i<plength;i++){
+				 temp+=keylist.charAt(Math.floor(Math.random()*keylist.length))
+			}
+			return temp;
+		}
+		APE.Config.transport = 3;
 
-		// Initialize APE_Client
-		var chat = new APE.Chat({'container':$('ape_master_container')});
+		// Add Session.js to APE JSF to handle multitab and page refresh
+
+		var client = new APE.Client();
 
 		// Connect to the APE Server
-		chat.load({
-			identifier: 'chatdemo', // Identifier of the application 
-			channel: 'test' // Channel to join at startup
+		client.load({
+			identifier: 'testdemo' // Identifier of the application 
+		});
+
+		client.addEvent('load', function() {
+			client.core.start(rand_chars());
+		});
+		client.addEvent('init', function() {
+				console.log('connected to ape');
 		});
 	</script>
 	</body>

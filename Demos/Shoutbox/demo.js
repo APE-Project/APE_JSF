@@ -1,17 +1,20 @@
 APE.Shoutbox = new Class({
+
 	//This class must implement APE_Client to intercept events
-	Implements: APE.Client,
+	Extends: APE.Client,
 
 	//Constructor
-	initialize: function(core, container){
-		//To work APE_Client need your class to set a core variable with a reference to APE_Core
-		this.core = core; 
+	initialize: function(container){
 
 		this.els = {};
+
+		//Start the shoutbox once ape is loaded
+		this.addEvent('load', this.start);
+
 		//Shoutbox container
 		this.els.container = $(container);
 
-		//Catch pipeCreate events (when a new pipe is created);
+		//Catch pipeCreate events when you join a channel
 		this.addEvent('pipeCreate',this.createShoutbox);
 
 		//Catch message sending
@@ -19,7 +22,9 @@ APE.Shoutbox = new Class({
 
 		//Catch message reception
 		this.onRaw('data',this.rawData);
+	},
 
+	start: function() {
 		//Ask the user for his nickname 
 		if(!this.core.options.restore){
 			var nickname = prompt('Your nickname')
@@ -29,6 +34,7 @@ APE.Shoutbox = new Class({
 		//Call start method from core to start connection to APE server
 		this.core.start(nickname);
 	},
+
 	/***
 	 * Create the shoutbox
 	 */

@@ -20,6 +20,14 @@ APE.PipeProxy = new Class({
 		this.fireEvent('pipeCreate', [this.type, this, options]);
 	},
 
+	reset: function() {
+		//close connection
+	},
+
+	close: function() {
+		//close connection
+	},
+
 	open: function(hostname, port){
 		//Adding a callback to request response to create a new pipe if this.pipe haven't been init
 		this.request('PROXY_CONNECT', [hostname, port], true, this.pipe ? null : {'callback': this.callback.bind(this)});
@@ -51,4 +59,14 @@ APE.PipeProxy = new Class({
 	callback: function(raw){
 		if(raw.raw=='PROXY') this.init(raw.datas);
 	}
+});
+
+APE.Core = new Class({
+
+	Extends: APE.Core,
+
+	/***
+	 * This allow ape to be compatible with TCPSocket
+	 */
+	TCPSocket: APE.PipeProxy
 });

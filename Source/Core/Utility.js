@@ -71,7 +71,6 @@ var B64 = new Hash({
 		return out.join(''); //  string
 	}
 });
-
 //Override setInterval to be done outside the frame (there is some issue inside the frame with FF3 and WebKit)
 if (!Browser.Engine.trident && !Browser.Engine.presto && !(Browser.Engine.gecko && Browser.Engine.version<=18)){
 	setInterval = function(fn,time) {

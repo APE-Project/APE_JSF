@@ -5,9 +5,14 @@ var APE = {
 		init: true,
 		frequency: 0,
 		scripts: []
-	}
+	},
+	windowLoaded: false
 	
 };
+
+window.addEvent('load',  function() {
+	APE.windowLoaded = true;
+});
 
 APE.Client = new Class({
 	
@@ -53,12 +58,11 @@ APE.Client = new Class({
 		// Init function called by core to init core variable
 		config.init = function(core){
 			this.core = core;
-			this.eventProxy.each(function(evt){
-				this.addEvent.apply(this, evt);
-			}, this);
+			for(var i = 0; i < this.eventProxy.length; i++){
+				this.addEvent.apply(this, this.eventProxy[i]);
+			}
 		}.bind(this);
 		
-		document.domain = config.domain;
 		
 		if(tmp) config.frequency = tmp.frequency.toInt();
 		
@@ -72,11 +76,25 @@ APE.Client = new Class({
 				top: -300
 			}
 		}).inject(document.body);
-		iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?script&' + config.scripts.join('&') + '&' + $time());
-		
-		// Firefox fix, see bug  #356558 
-		// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
-		iframe.contentWindow.location.href = iframe.get('src');
+
+		if (config.transport == 2) {//Special case for JSONP
+			//I know this is dirty, but it's the only way to avoid status bar loading with JSONP
+			//If the content of the iframe is created in DOM, the status bar will always load...
+			iframe.contentDocument.open();
+			var theHtml = '<html><head></head>';
+			for (var i = 0; i < config.scripts.length; i++) {
+				theHtml += '<script src="' + config.scripts[i] + '"></script>';
+			}
+			theHtml += '<body></body></html>';
+			iframe.contentDocument.write(theHtml);
+			iframe.contentDocument.close();
+		} else { 
+			document.domain = config.domain;
+			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?script&' + config.scripts.join('&') + '&' + $time());
+			// Firefox fix, see bug  #356558 
+			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
+			iframe.contentWindow.location.href = iframe.get('src');
+		}	
 		
 		return this;
 	}
