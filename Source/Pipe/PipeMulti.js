@@ -28,11 +28,11 @@ APE.PipeMulti = new Class({
 	},
 
 	rawJoin: function(raw, pipe) {
-		this.addUser(raw.datas.user.pubid, raw.datas.user);
+		this.addUser(raw.data.user.pubid, raw.data.user);
 	},
 
 	rawLeft: function(raw, pipe) {
-		this.delUser(raw.datas.user.pubid);
+		this.delUser(raw.data.user.pubid);
 	},
 
 	addUser: function(pubid, user) {

@@ -302,7 +302,6 @@ APE.Core = new Class({
 		if (raw.data.pipe) {
 			var pipeId = raw.data.pipe.pubid,
 				pipe;
-
 			if (!this.pipes.has(pipeId)) {
 				pipe = this.newPipe(raw.data.pipe.casttype, raw.data);
 			} else {
