@@ -63,7 +63,9 @@ APE.Request = new Class({
 		} else {
 			o.cmd = cmd;
 			params ? o.params = params : null;
-			if (sessid || !typeof(sessid)) o.sessid = this.ape.getSessid();
+			if (sessid || sessid !== false) {
+			o.sessid = this.ape.getSessid();
+			}
 			a.push(o);
 
 			var ev = 'cmd_' + cmd.toLowerCase();

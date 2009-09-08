@@ -393,7 +393,7 @@ APE.Core = new Class({
 	* @param	string	Channel name
 	*/
 	join: function(channel){
-		this.request.send('JOIN', {"channel":channel});
+		this.request.send('JOIN', {"channels":channel});
 	},
 
 	/***

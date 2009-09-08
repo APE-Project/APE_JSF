@@ -8,20 +8,25 @@ APE.Pipe  = new Class({
 
 		this.request = {};
 
-		for (var p in this.ape.request) {
-			console.log(p);
-		}
 
 		this.request = {
 			send: function() {
 				var args = this.parsePipeCmd.apply(this, arguments);
 				this.ape.request.send.apply(this.ape.request, args);
 			}.bind(this),
+			cycledStack: {
+				add: function() {
+					var args = this.parsePipeCmd.apply(this, arguments);
+					this.ape.request.cycledStack.add.apply(this.ape.request, args);
+				},
+				send: this.ape.request.send.apply(this.ape.request, arguments)
+			},
 			stack :  {
 				add: function() {
 					var args = this.parsePipeCmd.apply(this, arguments);
-					this.ape.request.send.apply(this.ape.request, args);
-				}
+					this.ape.request.stack.add.apply(this.ape.request, args);
+				},
+				send: this.ape.request.stack.send
 			}
 		};
 

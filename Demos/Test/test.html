@@ -40,8 +40,7 @@ var mp;
 		client.addEvent('init', function() {
 			console.log('connected to ape');
 			client.core.request.cycledStack.add('SESSION', {"action":"set","values":{'test':'banzai'}});
-			client.core.request.cycledStack.add('JOIN', {"channels":"toto"});
-			client.core.request.cycledStack.add('JOIN', {"channels":"tata"});
+			client.core.join('titi');
 //			client.core.request.stack.add('SESSION', {"action":"set","values":{'test':'banzai'}});
 //			client.core.request.stack.add('JOIN', {"channels":"toto"});
 //			client.core.request.stack.add('JOIN', {"channels":"tata"});
