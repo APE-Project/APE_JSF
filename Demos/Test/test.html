@@ -42,6 +42,7 @@ client.addEvent('userJoin', function() {
 });
 client.addEvent('pipeCreate', function(type, pipe, args) {
 		if (pipe.pipe.properties.name == 'titi') {
+
 			pipe.addEvent('userJoin', function() {
 				console.log('joined');
 			});
