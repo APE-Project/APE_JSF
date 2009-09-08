@@ -18,7 +18,6 @@
 			}
 			return temp;
 		}
-		APE.Config.transport = 3;
 
 		// Add Session.js to APE JSF to handle multitab and page refresh
 
@@ -30,11 +29,29 @@
 		});
 
 		client.addEvent('load', function() {
-			client.core.start(rand_chars());
+			client.core.start();
+		});
+var mp;
+		client.addEvent('pipeCreate', function(type, pipe, options) {
+				mp = pipe;
+				console.log('here');
+				mp.request.send('TEST', {'test':'test'});
 		});
 		client.addEvent('init', function() {
-				console.log('connected to ape');
+			console.log('connected to ape');
+			client.core.request.cycledStack.add('SESSION', {"action":"set","values":{'test':'banzai'}});
+			client.core.request.cycledStack.add('JOIN', {"channels":"toto"});
+			client.core.request.cycledStack.add('JOIN', {"channels":"tata"});
+//			client.core.request.stack.add('SESSION', {"action":"set","values":{'test':'banzai'}});
+//			client.core.request.stack.add('JOIN', {"channels":"toto"});
+//			client.core.request.stack.add('JOIN', {"channels":"tata"});
+
+			(function(){
+//			 	client.core.request.stack.send();
+			 }).delay(2500);
 		});
+
+
 	</script>
 	</body>
 </html>

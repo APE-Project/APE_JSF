@@ -1459,7 +1459,6 @@ var Request = new Class({
 
 	onStateChange: function(){
 		if (this.xhr.readyState != 4 || !this.running) return;
-		console.log('complete', this.id);
 		this.running = false;
 		this.status = 0;
 		$try(function(){

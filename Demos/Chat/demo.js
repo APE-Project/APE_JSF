@@ -23,7 +23,7 @@ APE.Chat = new Class({
 
 		this.addEvent('load', this.start);
 		this.addEvent('init', this.createChat);
-		this.addEvent('pipeCreate', this.createPipe);
+		this.addEvent('pipeCreate', this.createipe);
 		this.addEvent('userJoin', this.createUser);
 		this.addEvent('userLeft', this.deleteUser);
 		this.addEvent('restoreEnd',this.restoreEnd);

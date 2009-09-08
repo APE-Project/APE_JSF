@@ -90,7 +90,7 @@ APE.Client = new Class({
 			iframe.contentDocument.close();
 		} else { 
 			document.domain = config.domain;
-			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?script&' + config.scripts.join('&') + '&' + $time());
+			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');
 			// Firefox fix, see bug  #356558 
 			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 			iframe.contentWindow.location.href = iframe.get('src');

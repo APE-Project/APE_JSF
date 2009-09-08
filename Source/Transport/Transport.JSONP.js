@@ -29,7 +29,7 @@ APE.Transport.JSONP = new Class({
 			this.callback = options.callback;
 
 			var request = document.createElement('script');
-			request.src = 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/?' + queryString + '&' + $time();
+			request.src = 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/?' + queryString;
 			document.head.appendChild(request);
 			this.requests.push(request);
 			//Detect timeout

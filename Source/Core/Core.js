@@ -34,8 +34,8 @@ if (!window.console) {
   
 */
 
-/***				    ________________________________________________________
- *                 __------__      /				   	  		    \
+/***							    ________________________________________________________
+ *                 __------__      /										   	  		    \
  *               /~          ~\   | APE, the Ajax Push Engine made with heart (and MooTools) |
  *              |    //^\\//^\|   |    http://www.weelya.net - http://www.ape-project.org    |
  *            /~~\  ||  o| |o|:~\  \ _______________________________________________________/
@@ -57,7 +57,8 @@ if (!window.console) {
  *                `\_______/^\______/
  */
 var APE = {
-	Request: {}
+	Request: {},
+	Transport: {}
 };
 APE.Core = new Class({
 
@@ -71,7 +72,8 @@ APE.Core = new Class({
 		pollTime: 25000, // Max time for a request
 		identifier: 'ape', // Identifier is used by cookie to differentiate ape instance
 		transport: 0, // Transport 0: long polling, 1 : XHRStreaming, 2: JSONP, 3 SSE / JSONP, 4 : SSE / XHR
-		frequency: 0 // Frequency identifier
+		frequency: 0, // Frequency identifier
+		cycledStackTime: 350 //Time before send request of cycledStack
 	},
 
 	initialize: function(options){
@@ -79,6 +81,7 @@ APE.Core = new Class({
 		this.setOptions(options);
 
 		this.selectTransport();
+		this.request = new APE.Request(this);
 
 		this.pipes = new $H; 
 		this.sessid = null;
@@ -95,15 +98,6 @@ APE.Core = new Class({
 		this.onError('003', this.clearSession);
 		this.onError('004', this.clearSession);
 
-		//Fix presto bug (see request method)
-		if (Browser.Engine.presto){
-			this.requestVar = {
-				updated: false,
-				args: []
-			};
-			this.requestObserver.periodical(10, this);
-		}
-
 		//Set core var for APE.Client instance
 		if (options.init) options.init.apply(null, [this]);
 
@@ -114,13 +108,12 @@ APE.Core = new Class({
 	},
 
 	selectTransport: function() {
-		var transports = [APE.Request.longPolling, APE.Request.XHRStreaming, APE.Request.JSONP];
+		var transports = [APE.Transport.longPolling, APE.Transport.XHRStreaming, APE.Transport.JSONP];
 		var transport = this.options.transport;
 		var support;
 
 		while (support != true) {
 			support = transports[transport].browserSupport();//Test if browser support transport	
-			console.log(support);
 
 			if (support) this.transport = new transports[transport](this);
 			else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
@@ -163,7 +156,6 @@ APE.Core = new Class({
 	parseParam: function(param){
 		return ($type(param) == 'object') ? Hash.getValues(param) : $splat(param);
 	},
-
 	/***
 	 * Make a xmlhttrequest, once result received the parseResponse function is called 
 	 * @param 	String	Raw to send
@@ -172,7 +164,8 @@ APE.Core = new Class({
 	 * @param	Object	Options (event, async, callback )
 	 * @param	Boolean	Used only by opera
 	 */
-	request: function(raw, param, sessid, options, noWatch){
+	send: function(raw, param, sessid, options, noWatch){
+			  /*
 		//Opera dirty fix
 		if (Browser.Engine.presto && !noWatch) {
 			this.requestVar.updated = true;
@@ -200,11 +193,11 @@ APE.Core = new Class({
 		//Show time ;-)
 		var request = this.transport.send(queryString, options, arguments);
 
-
 		$clear(this.pollerObserver);
 		this.pollerObserver = this.poller.delay(this.options.pollTime, this);
 
 		if (options.event) this.fireEvent('cmd_' + raw.toLowerCase(), param);
+		*/
 	},
 
 	cancelRequest: function(){
@@ -260,14 +253,6 @@ APE.Core = new Class({
 			}
 		}
 
-		//This is fix for Webkit and Presto, see initialize method for more information
-		/*
-		if (this.stopWindow) { 
-			console.log('STOP!');
-			this.stopWindow = false;
-		}
-		*/
-
 		if (raws == 'CLOSE' && !this.transport.running()){
 			if (callback && $type(callback)=='function') callback.run(raws);
 			this.check();
@@ -279,6 +264,9 @@ APE.Core = new Class({
 		}
 
 		var check = false;
+
+		if (!raws) check = true;//Raw received is empty, force check
+
 		if (raws && raws!='CLOSE') {
 			raws = JSON.decode(raws, true);
 			if (!raws){ // Something went wrong, json decode failed
@@ -293,7 +281,7 @@ APE.Core = new Class({
 
 				//Last request is finished and it's not an error
 				if (!this.transport.running()) {
-					if (!raw.datas.code || (raw.datas.code!='005' && raw.datas.code!= '001' && raw.datas.code != '004' && raw.datas.code != '003')) {
+					if (!raw.data.code || (raw.data.code!='005' && raw.data.code!= '001' && raw.data.code != '004' && raw.data.code != '003')) {
 						check = true;
 					}
 				} else {
@@ -311,12 +299,12 @@ APE.Core = new Class({
 	 */
 	callRaw: function(raw){
 		var args;
-		if (raw.datas.pipe) {
-			var pipeId = raw.datas.pipe.pubid,
+		if (raw.data.pipe) {
+			var pipeId = raw.data.pipe.pubid,
 				pipe;
 
 			if (!this.pipes.has(pipeId)) {
-				pipe = this.newPipe(raw.datas.pipe.casttype, raw.datas);
+				pipe = this.newPipe(raw.data.pipe.casttype, raw.data);
 			} else {
 				pipe = this.pipes.get(pipeId);
 			}
@@ -335,6 +323,11 @@ APE.Core = new Class({
 	 * @return	Object	pipe
 	 */
 	newPipe: function(type, options){
+		if (options.pipe.pubid) {
+			var pipe = this.getPipe(options.pipe.pubid)
+			if (pipe) return pipe;
+		} 
+
 		if(type == 'uni') return new APE.PipeSingle(this, options);
 		if(type == 'proxy') return new APE.PipeProxy(this, options);
 		if(type == 'multi') return new APE.PipeMulti(this, options);
@@ -375,7 +368,8 @@ APE.Core = new Class({
 	* @param	function	Callback (see request)
 	*/
 	check: function(callback){
-		this.request('CHECK', null, true, {callback: callback});
+		this.request.setOptions({'callback': callback});
+		this.request.send('CHECK', null, true);
 	},
 
 	/***
@@ -391,9 +385,7 @@ APE.Core = new Class({
 	* @param	Mixed string or array with options to send to ape server with connect cmd, if more than one, must be an array
 	*/
 	connect: function(options){
-		options = this.parseParam(options);
-		options.push(this.options.transport);
-		this.request('CONNECT', options, false);
+		this.request.send('CONNECT', $merge(options, {"transport":this.options.transport}), false);
 	},
 
 	/***
@@ -401,7 +393,7 @@ APE.Core = new Class({
 	* @param	string	Channel name
 	*/
 	join: function(channel){
-		this.request('JOIN', channel, true);
+		this.request.send('JOIN', {"channel":channel});
 	},
 
 	/***
@@ -409,7 +401,7 @@ APE.Core = new Class({
 	 * @param	string	Pipe pubid
 	 */
 	left: function(pubid){
-		this.request('LEFT', this.pipes.get(pubid).name);
+		this.request.send('LEFT', {"pipe":this.pipes.get(pubid).name});
 		this.delPipe(pubid);
 	},
 
@@ -417,7 +409,7 @@ APE.Core = new Class({
 	* Do necesary stuff to quit ape 
 	*/
 	quit: function(){
-		this.request('QUIT');
+		this.request.send('QUIT');
 		this.clearSession();
 	},
 
@@ -448,22 +440,24 @@ APE.Core = new Class({
 	/***
 	 * Store a session variable on APE
 	 * Note : setSession can't be used while APE is currently restoring
-	 * @param	string	key
+	 * @val 	object 	object with key/value pair
 	 * @param	string	value
 	 */
-	setSession: function(key, value, options){
+	setSession: function(obj, options, req){
 		if (this.restoring) return;
-		
-		var arr = ['set', key, escape(value)];
-		this.request('SESSION', arr, true, options || {});
+		if (options) this.request.setOptions(options);
+
+		this.request.send('SESSION', {'action': 'set', 'values': obj}, true, options || {});
 	},
 
 	/***
 	 * Receive a session variable from ape
 	 * @param	string	key
 	 */
-	getSession: function(key,callback){
-		this.request('SESSION', ['get', key], true, {callback: callback});
+	getSession: function(key, options, req){
+		if (options) this.request.setOptions(options);
+
+		this.request.send('SESSION', {'actions':'get', 'values': ((typeof key == 'Array') ? key : [key])}, true, options || {});
 	},
 	
 	/***
@@ -471,8 +465,8 @@ APE.Core = new Class({
 	 * @param	object	raw
 	 */
 	rawIdent: function(raw){
-		this.user = raw.datas.user;
-		this.setPubid(raw.datas.user.pubid);
+		this.user = raw.data.user;
+		this.setPubid(raw.data.user.pubid);
 	},
 
 	/***
@@ -481,7 +475,7 @@ APE.Core = new Class({
 	* @param Object received raw
 	*/
 	rawLogin: function(param){
-		this.setSessid(param.datas.sessid);
+		this.setSessid(param.data.sessid);
 
 		if (this.options.channel) this.join(this.options.channel);
 		
@@ -495,21 +489,7 @@ APE.Core = new Class({
 	* @param	object	raw
 	*/
 	rawErr: function(err){
-		this.fireEvent('error_' + err.datas.code, err);
-	},
-
-	/****
-	 * This method is only used by opera.
-	 * Opera have a bug, when request are sent trought user action (ex : a click), opera throw a security violation when trying to make a XHR.
-	 * The only way is to set a class var and watch when this var change
-	 */
-	requestObserver: function(){
-		if (this.requestVar.updated) {
-			var args = this.requestVar.args.shift();
-			this.requestVar.updated = (this.requestVar.args.length>0) ? true : false;
-			args[4] = true; //Set noWatch argument to true
-			this.request.run(args, this);
-		}
+		this.fireEvent('error_' + err.data.code, err);
 	},
 
 	/***

@@ -3,6 +3,7 @@ APE.Request = new Class({
 		this.ape = ape;
 		this.stack = new APE.Request.Stack(ape);
 		this.cycledStack = new APE.Request.CycledStack(ape);
+		this.options = {};
 		//Fix presto bug (see request method)
 		if (Browser.Engine.presto){
 			this.requestVar = {
@@ -12,8 +13,9 @@ APE.Request = new Class({
 			this.requestObserver.periodical(10, this);
 		}
 	},
+
 	setOptions: function(options) {
-		this.options = options;
+		$merge(this.options, options);
 	},
 
 	send: function(cmd, params, sessid, noWatch) {
@@ -24,16 +26,17 @@ APE.Request = new Class({
 			return;
 		}
 
-		this.options = $extend({
+		this.options = $merge({
 			event: true,
 			callback: null
 		}, this.options);
 
 		this.ape.transport.send(this.parseCmd(cmd, params, sessid), this.options, noWatch);
 
+		$clear(this.ape.pollerObserver);
 		this.ape.pollerObserver = this.ape.poller.delay(this.ape.options.pollTime, this.ape);
 
-		this.options = null;
+		this.options = {};//Reset options
 	},
 
 	parseCmd: function(cmd, params, sessid) {
@@ -48,15 +51,28 @@ APE.Request = new Class({
 				tmp.params ? o.params = tmp.params : null;
 				if (sessid !== false) o.sessid = this.ape.getSessid();
 				a.push(o);
-				if (this.options.event) this.ape.fireEvent('cmd_' + tmp.cmd.toLowerCase(), params);
-				o = {};
+
+				var ev = 'cmd_' + tmp.cmd.toLowerCase();
+
+				if (this.options.event) {
+					//Request is on a pipe, fire the event on the core & on the pipe
+					if (params && params.pipe) this.ape.getPipe(params.pipe).fireEvent(ev, params);
+					this.ape.fireEvent(ev, params);
+				}
 			}
 		} else {
 			o.cmd = cmd;
 			params ? o.params = params : null;
 			if (sessid || !typeof(sessid)) o.sessid = this.ape.getSessid();
 			a.push(o);
-			if (this.options.event) this.ape.fireEvent('cmd_' + cmd.toLowerCase(), params);
+
+			var ev = 'cmd_' + cmd.toLowerCase();
+
+			if (this.options.event) {
+				//Request is on a pipe, fire the event on the core & on the pipe
+				if (params && params.pipe) this.ape.getPipe(params.pipe).fireEvent(ev, params);
+				this.ape.fireEvent(ev, params);
+			}
 		}
 		return JSON.encode(a);
 	},

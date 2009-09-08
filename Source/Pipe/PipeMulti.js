@@ -2,7 +2,7 @@ APE.PipeMulti = new Class({
 
 	Extends: APE.Pipe,
 
-	initialize: function(core, options){
+	initialize: function(core, options) {
 		this.parent(core, options);
 
 		this.type = 'multi';
@@ -27,29 +27,33 @@ APE.PipeMulti = new Class({
 		}
 	},
 
-	rawJoin: function(raw, pipe){
+	rawJoin: function(raw, pipe) {
 		this.addUser(raw.datas.user.pubid, raw.datas.user);
 	},
 
-	rawLeft: function(raw, pipe){
+	rawLeft: function(raw, pipe) {
 		this.delUser(raw.datas.user.pubid);
 	},
 
-	addUser: function(pubid, user){
+	addUser: function(pubid, user) {
 		this.users.set(pubid, user);
 		var u = this.users.get(pubid);
 		this.fireEvent('userJoin', [u, this]);
 		return u;
 	},
 
-	delUser: function(pubid){
+	delUser: function(pubid) {
 		var u = this.users.get(pubid);
 		this.users.erase(pubid);
 		this.fireEvent('userLeft', [u, this]);
 		return u;
 	},
 
-	getUser: function(pubid){
+	getUser: function(pubid) {
 		return this.users.get(pubid);
+	},
+	
+	getUserPipe: function(pubid) {
+		return this.ape.newPipe('uni', this.users.get(pubid));
 	}
 });
