@@ -23,7 +23,7 @@ APE.Chat = new Class({
 
 		this.addEvent('load', this.start);
 		this.addEvent('init', this.createChat);
-		this.addEvent('pipeCreate', this.createipe);
+		this.addEvent('pipeCreate', this.createPipe);
 		this.addEvent('userJoin', this.createUser);
 		this.addEvent('userLeft', this.deleteUser);
 		this.addEvent('restoreEnd',this.restoreEnd);
@@ -47,19 +47,21 @@ APE.Chat = new Class({
 		if(!this.options.name && !this.core.options.restore){
 			this.promptName();
 		}else{
-			this.core.start(this.options.name);
+			this.core.start({'name':this.options.name});
 		}
 	},
 
-	setPipeName: function(pipe, options){
-		if(options.name){
+	setPipeName: function(pipe, options) {
+		if (options.name) {
 			pipe.name = options.name;
 			return;
 		}
-		if(options.sender){
-			pipe.name = options.sender.properties.name;
-		}else{
-			pipe.name = options.pipe.properties.name;
+		if (options.sender) {
+			//pipe.name = options.sender.properties.name;
+			pipe.name = options.pipe.pubid;
+		} else {
+			//pipe.name = options.pipe.properties.name;
+			pipe.name = options.pipe.pubid;
 		}
 	},
 
@@ -78,16 +80,16 @@ APE.Chat = new Class({
 		this.currentPipe.els.tab.removeClass('unactive');
 		this.currentPipe.els.container.removeClass('ape_none');
 		this.scrollMsg(this.currentPipe);
-		if (save) this.core.setSession('currentPipe',this.currentPipe.getPubid());
+		if (save) this.core.setSession({'currentPipe':this.currentPipe.getPubid()});
 		return this.currentPipe;
 	},
 
-	cmdSend: function(pipe, sessid, pubid, message){
-		this.writeMessage(pipe,message,this.core.user);
+	cmdSend: function(pipe, data){
+		this.writeMessage(pipe, data.msg, this.core.user);
 	},
 
 	rawData: function(raw, pipe){
-		this.writeMessage(pipe,raw.datas.msg,raw.datas.sender);
+		this.writeMessage(pipe, raw.data.msg, raw.data.sender);
 	},
 
 	parseMessage: function(message){
@@ -105,14 +107,14 @@ APE.Chat = new Class({
 
 	writeMessage: function(pipe, message, sender){
 		//Append message to last message
-		if(pipe.lastMsg && pipe.lastMsg.sender.properties.name == sender.properties.name){
+		if(pipe.lastMsg && pipe.lastMsg.sender.pubid == sender.pubid){
 			var cnt = pipe.lastMsg.el;
 		}else{//Create new one
 			//Create message container
 			var msg = new Element('div',{'class':'ape_message_container'});
 			var cnt = new Element('div',{'class':'msg_top'}).inject(msg);
-			if(sender){
-			       new Element('div',{'class':'ape_user','text':sender.properties.name}).inject(msg,'top');
+			if (sender) {
+			       new Element('div',{'class':'ape_user','text':sender.pubid}).inject(msg,'top');
 			}
 			new Element('div',{'class':'msg_bot'}).inject(msg);
 			msg.inject(pipe.els.message);
@@ -137,7 +139,7 @@ APE.Chat = new Class({
 				'class':'ape_user'
 			}).inject(pipe.els.users);
 		new Element('a',{
-				'text':user.properties.name,
+				'text':user.pubid,
 				'href':'javascript:void(0)',
 				'events': {
 				'click':
@@ -216,7 +218,7 @@ APE.Chat = new Class({
 											ev.stop();
 											var val = this.els.sendbox.get('value');
 											if(val!=''){
-												this.getCurrentPipe().send(val);
+												this.getCurrentPipe().request.send('SEND',{'msg':val});
 												this.els.sendbox.set('value','');
 											}
 										}.bindWithEvent(this)
@@ -235,9 +237,11 @@ APE.Chat = new Class({
 	},
 
 	restoreEnd: function(){
-		this.core.getSession('currentPipe',function(resp){
-			if(resp.raw=='SESSIONS' && resp.datas.sessions.currentPipe) this.setCurrentPipe(resp.datas.sessions.currentPipe);
-		}.bind(this));
+		this.core.request.setOptions({'callback':function(resp){
+			if(resp.raw=='SESSIONS' && resp.data.sessions.currentPipe) this.setCurrentPipe(resp.data.sessions.currentPipe);
+		}.bind(this)});
+
+		this.core.getSession('currentPipe');
 	},
 
 	reset: function(){

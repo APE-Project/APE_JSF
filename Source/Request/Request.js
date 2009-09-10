@@ -4,6 +4,8 @@ APE.Request = new Class({
 		this.stack = new APE.Request.Stack(ape);
 		this.cycledStack = new APE.Request.CycledStack(ape);
 		this.options = {};
+		this.chl = 0;
+
 		//Fix presto bug (see request method)
 		if (Browser.Engine.presto){
 			this.requestVar = {
@@ -15,7 +17,7 @@ APE.Request = new Class({
 	},
 
 	setOptions: function(options) {
-		$merge(this.options, options);
+		this.options = $merge(options, this.options);
 	},
 
 	send: function(cmd, params, sessid, noWatch) {
@@ -47,7 +49,10 @@ APE.Request = new Class({
 			var tmp;
 			for (var i = 0; i < cmd.length; i++) {
 				tmp = cmd[i];
+
 				o.cmd = tmp.cmd;
+				o.chl = this.chl++;
+
 				tmp.params ? o.params = tmp.params : null;
 				if (sessid !== false) o.sessid = this.ape.getSessid();
 				a.push(o);
@@ -56,12 +61,18 @@ APE.Request = new Class({
 
 				if (this.options.event) {
 					//Request is on a pipe, fire the event on the core & on the pipe
-					if (params && params.pipe) this.ape.getPipe(params.pipe).fireEvent(ev, params);
+					if (params && params.pipe) {
+						var pipe = this.ape.getPipe(params.pipe);
+						params = [pipe, params];
+						pipe.fireEvent(ev, params);
+					}
 					this.ape.fireEvent(ev, params);
 				}
 			}
 		} else {
 			o.cmd = cmd;
+			o.chl = this.chl++;
+
 			params ? o.params = params : null;
 			if (sessid || sessid !== false) o.sessid = this.ape.getSessid();
 			a.push(o);
@@ -69,7 +80,11 @@ APE.Request = new Class({
 
 			if (this.options.event) {
 				//Request is on a pipe, fire the event on the core & on the pipe
-				if (params && params.pipe) this.ape.getPipe(params.pipe).fireEvent(ev, params);
+				if (params && params.pipe) { 
+					var pipe = this.ape.getPipe(params.pipe);
+					params = [pipe, params];
+					pipe.fireEvent(ev, params);
+				}
 				this.ape.fireEvent(ev, params);
 			}
 		}

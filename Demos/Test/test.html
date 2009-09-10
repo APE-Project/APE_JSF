@@ -34,21 +34,8 @@
 var mp;
 		client.addEvent('pipeCreate', function(type, pipe, options) {
 				mp = pipe;
-				console.log('here');
 				mp.request.send('TEST', {'test':'test'});
 		});
-client.addEvent('userJoin', function() {
-		console.log(arguments);
-});
-client.addEvent('pipeCreate', function(type, pipe, args) {
-		if (pipe.pipe.properties.name == 'titi') {
-
-			pipe.addEvent('userJoin', function() {
-				console.log('joined');
-			});
-		}
-
-});
 		client.addEvent('init', function() {
 			console.log('connected to ape');
 			client.core.request.cycledStack.add('SESSION', {"action":"set","values":{'test':'banzai'}});

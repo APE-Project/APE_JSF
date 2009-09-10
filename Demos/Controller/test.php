@@ -6,9 +6,10 @@ $messages = array(
 	'<span style="color: #080">Hey, how are you doing?</span>',
 );
 
-$APEserver = 'http://0.ape.local';
+$APEserver = 'http://push2.ape-project.dev.weelya.net';
 $APEPassword = 'testpwd';
-
-file_get_contents($APEserver.'/?control&'.$APEPassword.'&testchannel&POSTMSG&action&'.rawurlencode($messages[array_rand($messages)]).'&anticache');
+$s = $APEserver.'/?'.rawurlencode('[{"cmd":"control","params":{"password":"'.$APEPassword.'","channel":"testchannel","raw":"POSTMSG","value":"'.rawurlencode($messages[array_rand($messages)]).'"}}]');
+$res = file_get_contents($s);
+var_dump($res);
 
 echo 'Message sent!';

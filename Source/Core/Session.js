@@ -18,7 +18,7 @@ APE.Core = new Class({
 	},
 	
 	saveSessionPipe:function(){
-		this.setSession('uniPipe',JSON.encode(this.session.uniPipe.getValues()));
+		this.setSession({'uniPipe': escape(JSON.encode(this.session.uniPipe.getValues()))});
 	},
 
 	savePipeUni: function(type, pipe, options) {
@@ -35,15 +35,15 @@ APE.Core = new Class({
 
 	restoreUniPipe: function(resp){
 		if(resp.raw=='SESSIONS'){
-			var pipes = JSON.decode(unescape(resp.datas.sessions.uniPipe));
+			var pipes = JSON.decode(unescape(resp.data.sessions.uniPipe));
 			if (pipes) {
 				for (var i = 0; i < pipes.length; i++){
 					this.newPipe('uni',pipes[i]);
 				}
 			}
+			this.fireEvent('restoreEnd');
+			this.restoring = false;
 		}
-		this.fireEvent('restoreEnd');
-		this.restoring = false;
 	},
 
 	init: function(){
@@ -56,7 +56,8 @@ APE.Core = new Class({
 		if (resp.raw!='ERR' && this.status == 0) { 
 			this.fireEvent('init');
 			this.status = 1;
-			this.getSession('uniPipe',this.restoreUniPipe.bind(this));
+			this.request.setOptions({'callback': this.restoreUniPipe.bind(this)});
+			this.getSession('uniPipe');
 		} else if (this.status == 0) {
 			this.stopPoller();
 		}
@@ -71,7 +72,8 @@ APE.Core = new Class({
 			this.restoring = true;
 			this.fireEvent('restoreStart');
 			this.startPoller();
-			this.check(this.restoreCallback.bind(this));//Send a check raw (this ask ape for an updated session)
+			this.request.setOptions({'callback': this.restoreCallback.bind(this)});
+			this.check();//Send a check raw (this ask ape for an updated session)
 		}
 	},
 

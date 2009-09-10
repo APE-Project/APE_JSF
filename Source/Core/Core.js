@@ -56,14 +56,9 @@ if (!window.console) {
  *           -^-\  \       |        )
  *                `\_______/^\______/
  */
-var APE = {
-	Request: {},
-	Transport: {}
-};
 APE.Core = new Class({
 
-	Extends: Events,
-	Implements: Options,
+	Implements: [APE.Events, Options],
 
 	$originalEvents: {},
 
@@ -119,7 +114,7 @@ APE.Core = new Class({
 			else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
 		}
 	},
-
+/*
 	onError: function(type, fn, internal) {
 		return this.addEvent('error_' + type, fn, internal);
 	},
@@ -131,7 +126,7 @@ APE.Core = new Class({
 	onCmd: function(type, fn, internal) {
 		return this.addEvent('cmd_' + type.toLowerCase(), fn, internal);
 	},	
-
+*/
 	poller: function() {
 		if (this.pollerActive) this.check();
 	},
@@ -253,7 +248,7 @@ APE.Core = new Class({
 			}
 		}
 
-		if (raws == 'CLOSE' && !this.transport.running()){
+		if (raws == 'CLOSE' && !this.transport.running()) {
 			if (callback && $type(callback)=='function') callback.run(raws);
 			this.check();
 			return;
@@ -276,7 +271,10 @@ APE.Core = new Class({
 
 			for (var i = 0; i < raws.length; i++){
 				var raw = raws[i];
-				if (callback && $type(callback)=='function') callback.run(raw);
+				if (callback && $type(callback)=='function') {
+
+					callback.run(raw);
+				}
 				this.callRaw(raw);
 
 				//Last request is finished and it's not an error
@@ -364,10 +362,8 @@ APE.Core = new Class({
 
 	/***
 	* Check if there are new message for the user
-	* @param	function	Callback (see request)
 	*/
-	check: function(callback){
-		this.request.setOptions({'callback': callback});
+	check: function(){
 		this.request.send('CHECK', null, true);
 	},
 
@@ -381,7 +377,7 @@ APE.Core = new Class({
 
 	/****
 	* Send connect request to server
-	* @param	Mixed string or array with options to send to ape server with connect cmd, if more than one, must be an array
+	* @param	object with options to send to APE server with connect cmd, if more than one, must be an array
 	*/
 	connect: function(options){
 		this.request.send('CONNECT', $merge(options, {"transport":this.options.transport}), false);
@@ -442,21 +438,19 @@ APE.Core = new Class({
 	 * @val 	object 	object with key/value pair
 	 * @param	string	value
 	 */
-	setSession: function(obj, options, req){
+	setSession: function(obj, options) {
 		if (this.restoring) return;
 		if (options) this.request.setOptions(options);
 
-		this.request.send('SESSION', {'action': 'set', 'values': obj}, true, options || {});
+		this.request.send('SESSION', {'action': 'set', 'values': obj}, true);
 	},
 
 	/***
 	 * Receive a session variable from ape
 	 * @param	string	key
 	 */
-	getSession: function(key, options, req){
-		if (options) this.request.setOptions(options);
-
-		this.request.send('SESSION', {'actions':'get', 'values': ((typeof key == 'Array') ? key : [key])}, true, options || {});
+	getSession: function(key){
+		this.request.send('SESSION', {'action':'get', 'values': ((typeof key == 'Array') ? key : [key])}, true);
 	},
 	
 	/***

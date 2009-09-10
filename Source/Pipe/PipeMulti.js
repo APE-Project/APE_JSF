@@ -15,15 +15,15 @@ APE.PipeMulti = new Class({
 			var users = options.users;
 		}
 
-		this.fireEvent('pipeCreate', [this.type, this, options]);
+		this.ape.fireEvent('pipeCreate', [this.type, this, options]);
 
 		if (options.users) {
 			var l = users.length;
 			for (var i=0; i < l; i++) {
 				this.addUser(users[i].pubid, users[i]);
 			}
-			this.onRaw('pipe:left', this.rawLeft);
-			this.onRaw('pipe:join', this.rawJoin);
+			this.onRaw('left', this.rawLeft);
+			this.onRaw('join', this.rawJoin);
 		}
 	},
 
@@ -38,14 +38,14 @@ APE.PipeMulti = new Class({
 	addUser: function(pubid, user) {
 		this.users.set(pubid, user);
 		var u = this.users.get(pubid);
-		this.fireEvent('userJoin', [u, this]);
+		this.fireGlobalEvent('userJoin', [u, this]);
 		return u;
 	},
 
 	delUser: function(pubid) {
 		var u = this.users.get(pubid);
 		this.users.erase(pubid);
-		this.fireEvent('userLeft', [u, this]);
+		this.fireGlobalEvent('userLeft', [u, this]);
 		return u;
 	},
 

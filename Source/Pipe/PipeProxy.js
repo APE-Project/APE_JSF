@@ -16,8 +16,8 @@ APE.PipeProxy = new Class({
 
 		this.core.addPipe(this.getPubid(), this);
 
-		this.onRaw('pipe:proxy_event', this.rawProxyEvent );
-		this.fireEvent('pipeCreate', [this.type, this, options]);
+		this.onRaw('proxy_event', this.rawProxyEvent );
+		this.ape.fireEvent('pipeCreate', [this.type, this, options]);
 	},
 
 	reset: function() {
@@ -42,15 +42,15 @@ APE.PipeProxy = new Class({
 		switch (resp.datas.event) {
 			case 'READ':
 				var data = B64.decode(resp.datas.data);
-				this.fireEvent('proxyRead', data);
+				this.fireGlobalEvent('proxyRead', data)
 				if (this.onread) this.onread(data);
 				break;
 			case 'CONNECT':
-				this.fireEvent('proxyConnect');
+				this.fireGlobalEvent('proxyConnect');
 				if (this.onopen) this.onopen();
 				break;
 			case 'CLOSE':
-				this.fireEvent('proxyClose');
+				this.fireGlobalEvent('proxyClose');
 				if (this.onclose) this.onclose();
 				break;
 		}

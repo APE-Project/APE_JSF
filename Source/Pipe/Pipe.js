@@ -61,7 +61,7 @@ APE.Pipe  = new Class({
 	},
 
 	send: function(data){
-		this.request.send('SEND', {'msg': escape(data), 'pipe': this.pipe.pubid});
+		this.request.send('SEND', {'msg': escape(data)});
 	},
 
 	/*function(raw, param, sessid, options){
@@ -78,6 +78,12 @@ APE.Pipe  = new Class({
 
 	getPubid: function(){
 		return this.pipe.pubid;
-	}
+	},
+
+	fireGlobalEvent: function(type, fn, internal) {
+		this.fireEvent(type, fn, internal);
+		this.ape.fireEvent(type, fn, internal);
+	},
+	fireInTheHall: this.fireGlobalEvent
 
 });
