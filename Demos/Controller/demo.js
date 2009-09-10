@@ -12,7 +12,7 @@ APE.Controller = new Class({
 		this.setOptions(options);
 		this.container = $(this.options.container) || document.body;
 
-		this.onRaw('action', this.onAction);
+		this.onRaw('postmsg', this.onMsg);
 		this.addEvent('load',this.start);
 	},
 	
@@ -20,10 +20,10 @@ APE.Controller = new Class({
 		this.core.start('test');
 	},
 	
-	onAction: function(raw, pipe){
+	onMsg: function(raw){
 		new Element('div', {
 			'class': 'message',
-			html: decodeURIComponent(raw.datas.value)
+			html: decodeURIComponent(raw.data.value)
 		}).inject(this.container);
 	}
 	
