@@ -56,7 +56,6 @@ APE.Pipe  = new Class({
 				if (!args[1]) args[1] = {};
 				args[1].pipe = this.pipe.pubid;
 			}
-			console.log('parse params', args);
 			return args;
 	},
 

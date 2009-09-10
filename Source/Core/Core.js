@@ -238,7 +238,6 @@ APE.Core = new Class({
 	* @param	Array	An array of raw 
 	*/
 	parseResponse: function(raws, callback){
-	  	console.info('receiving', raws);
 		if (raws){
 			if (this.status < 0 ) {
 				this.failCounter = 0;
@@ -306,7 +305,7 @@ APE.Core = new Class({
 				pipe = this.pipes.get(pipeId);
 			}
 			args = [raw, pipe];
-			pipe.fireEvent('pipe:raw_' + raw.raw.toLowerCase(), args);
+			pipe.fireEvent('raw_' + raw.raw.toLowerCase(), args);
 		} else {
 			args = raw;
 		}
