@@ -41,11 +41,11 @@ APE.Move = new Class({
 	},
 
 	rawData: function(raw,pipe){
-		this.writeMessage(pipe,raw.datas.msg,raw.datas.sender);
+		this.writeMessage(pipe,raw.data.msg,raw.data.sender);
 	},
 
 	rawPositions: function(raw, pipe){
-		this.movePoint(raw.datas.sender,raw.datas.sender.properties.x,raw.datas.sender.properties.y);
+		this.movePoint(raw.data.sender,raw.data.sender.properties.x,raw.data.sender.properties.y);
 	},
 
 	parseMessage: function(message){
@@ -117,17 +117,19 @@ APE.Move = new Class({
 	userColor: function(nickname){
 		var color = new Array(0,0,0);
 		var i=0;
+		/*TODO
 		while(i<3 && i<nickname.length){
 			//Transformation du code ascii du caractère en code couleur
 			color[i] = Math.abs(Math.round(((nickname.charCodeAt(i)-97)/26)*200+10));			
 			i++;
 		}
+		*/
 		return color.join(',');
 	},
 
 	sendpos: function(x,y){
 		var pos = this.posToRelative(x,y);
-		this.core.request('SETPOS',[this.pipe.getPubid(),pos.x,pos.y]);
+		this.pipe.request.send('SETPOS', {'x':pos.x.toInt(), 'y':pos.y.toInt()});
 		this.movePoint(this.core.user,pos.x,pos.y);	
 	},
 
