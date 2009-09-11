@@ -9,9 +9,8 @@ var APE = {
 	Client: function(core) {
 			if(core) this.core = core;	
 	}
-	windowLoaded: false;
 }
-
+/*
 (function() {
 	var onload = window.onload;
 	var fn = function() {
@@ -26,6 +25,7 @@ var APE = {
 		};
 	}
 });
+*/
 
 APE.Client.prototype.eventProxy = [];
 APE.Client.prototype.fireEvent = function(type, args, delay) {
