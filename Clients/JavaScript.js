@@ -114,7 +114,7 @@ APE.Client.prototype.load = function(config){
 		iframe.contentDocument.write(theHtml);
 		iframe.contentDocument.close();
 	} else {
-		iframe.setAttribute('src','http://'+config.frequency+'.'+config.server+'/?script&'+config.scripts.join('&')+'&ac');
+		iframe.setAttribute('src','http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');
 		//Firefox fix, see bug  #356558 
 		// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 		iframe.contentWindow.location.href = iframe.getAttribute('src');
