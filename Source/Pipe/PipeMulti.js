@@ -53,7 +53,8 @@ APE.PipeMulti = new Class({
 		return this.users.get(pubid);
 	},
 	
-	getUserPipe: function(pubid) {
-		return this.ape.newPipe('uni', this.users.get(pubid));
+	getUserPipe: function(user) {
+		if (typeof user == 'string') user = this.users.get(users.pubid);
+		return this.ape.newPipe('uni', {'pipe':user});
 	}
 });

@@ -24,7 +24,7 @@ APE.Request = new Class({
 		//Opera dirty fix
 		if (Browser.Engine.presto && !noWatch) {
 			this.requestVar.updated = true;
-			this.requestVar.args.push([cmd, param, sessid, options]);
+			this.requestVar.args.push([cmd, params, sessid]);
 			return;
 		}
 
@@ -82,8 +82,10 @@ APE.Request = new Class({
 				//Request is on a pipe, fire the event on the core & on the pipe
 				if (params && params.pipe) { 
 					var pipe = this.ape.getPipe(params.pipe);
-					params = [pipe, params];
-					pipe.fireEvent(ev, params);
+					if (pipe) {
+						params = [pipe, params];
+						pipe.fireEvent(ev, params);
+					}
 				}
 				this.ape.fireEvent(ev, params);
 			}
@@ -100,7 +102,7 @@ APE.Request = new Class({
 		if (this.requestVar.updated) {
 			var args = this.requestVar.args.shift();
 			this.requestVar.updated = (this.requestVar.args.length>0) ? true : false;
-			args[4] = true; //Set noWatch argument to true
+			args[3] = true; //Set noWatch argument to true
 			this.send.run(args, this);
 		}
 	}

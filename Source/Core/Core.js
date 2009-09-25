@@ -114,19 +114,6 @@ APE.Core = new Class({
 			else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
 		}
 	},
-/*
-	onError: function(type, fn, internal) {
-		return this.addEvent('error_' + type, fn, internal);
-	},
-
-	onRaw: function(type, fn, internal) {
-		return this.addEvent('raw_' + type.toLowerCase(), fn, internal); 
-	},
-	
-	onCmd: function(type, fn, internal) {
-		return this.addEvent('cmd_' + type.toLowerCase(), fn, internal);
-	},	
-*/
 	poller: function() {
 		if (this.pollerActive) this.check();
 	},
@@ -325,8 +312,8 @@ APE.Core = new Class({
 		} 
 
 		if(type == 'uni') return new APE.PipeSingle(this, options);
-		if(type == 'proxy') return new APE.PipeProxy(this, options);
 		if(type == 'multi') return new APE.PipeMulti(this, options);
+		if(type == 'proxy') return new APE.PipeProxy(this, options);
 	},
 
 	/***
@@ -345,6 +332,10 @@ APE.Core = new Class({
 	 */
 	getPipe: function(pubid){
 		return this.pipes.get(pubid);
+	},
+
+	getUserPipe: function(user) {
+		return this.ape.newPipe('uni', {'pipe':user});
 	},
 
 	/***
@@ -395,7 +386,7 @@ APE.Core = new Class({
 	 * @param	string	Pipe pubid
 	 */
 	left: function(pubid){
-		this.request.send('LEFT', {"pipe":this.pipes.get(pubid).name});
+		this.request.send('LEFT', {"channel":this.pipes.get(pubid).name});
 		this.delPipe(pubid);
 	},
 
@@ -473,6 +464,7 @@ APE.Core = new Class({
 		
 		this.status = 1;
 		this.startPoller();
+		this.fireEvent('ready');
 		this.fireEvent('init');
 	},
 
@@ -504,6 +496,8 @@ var Ape;
 window.onload = function(){
 	var identifier = window.frameElement.id,
 	config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
-
-	new APE.Core(config);
+	//Delay of 1ms allow browser to do not show a loading message
+	(function() {
+		new APE.Core(config);
+	}).delay(1);
 };

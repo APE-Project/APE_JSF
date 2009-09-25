@@ -1,18 +1,11 @@
 var APE = {
-	
 	Config: {
 		identifier: 'ape',
 		init: true,
 		frequency: 0,
 		scripts: []
-	},
-	windowLoaded: false
-	
+	}
 };
-
-window.addEvent('load',  function() {
-	APE.windowLoaded = true;
-});
 
 APE.Client = new Class({
 	

@@ -3,6 +3,7 @@ APE.Pipe  = new Class({
 	Implements: APE.Events,
 
 	initialize: function(ape, options){
+	console.log(options);
 		this.pipe = options.pipe;
 		this.ape = ape;
 
@@ -31,17 +32,6 @@ APE.Pipe  = new Class({
 		};
 
 		this.ape.addPipe(this.pipe.pubid, this);
-
-
-/*
-		this.request.cycledStack.add = function() {
-			this.ape.request.cycledStack.add.pass(this.parsePipeCmd.pass(arguments, this), this);
-		}.bind(this);
-
-		this.request.stack.add = function() {
-			this.ape.request.stack.add.pass(this.parsePipeCmd.pass(arguments, this), this);
-		}.bind(this);
-*/
 	},
 
 	parsePipeCmd: function() {
@@ -63,18 +53,6 @@ APE.Pipe  = new Class({
 		this.request.send('SEND', {'msg': escape(data)});
 	},
 
-	/*function(raw, param, sessid, options){
-		var tmp = {event: false}, 
-			eventParam = param;
-
-		this.ape.request(raw, param, sessid, options ? $extend(tmp, options) : tmp);
-		if (!$type(sessid) || sessid) {
-			// I know it would be better to use param.unshift but when i did it opera get some trouble (try it yourself if you want to know what happens)
-			eventParam = [this.ape.getSessid()].combine(param);
-		}
-		this.fireEvent('cmd_' + raw.toLowerCase(), [this].combine(eventParam));
-	},*/
-
 	getPubid: function(){
 		return this.pipe.pubid;
 	},
@@ -83,6 +61,7 @@ APE.Pipe  = new Class({
 		this.fireEvent(type, fn, internal);
 		this.ape.fireEvent(type, fn, internal);
 	},
+
 	fireInTheHall: this.fireGlobalEvent
 
 });

@@ -10,23 +10,6 @@ var APE = {
 			if(core) this.core = core;	
 	}
 }
-/*
-(function() {
-	var onload = window.onload;
-	var fn = function() {
-		APE.windowLoaded = true;
-	}
-	if (typeof window.onload != 'function'){
-		window.onload = fn;
-	} else {
-		window.onload = function(){
-			onload();
-			fn();
-		};
-	}
-});
-*/
-
 APE.Client.prototype.eventProxy = [];
 APE.Client.prototype.fireEvent = function(type, args, delay) {
 	this.core.fireEvent(type,args,delay);
@@ -72,8 +55,9 @@ APE.Client.prototype.apeCookie = function (name, remove) {
 
 APE.Client.prototype.load = function(config){
 
-	this.config = config;
+	config = config || {};
 
+	config.transport = config.transport || APE.Config.transport || 0;
 	config.frequency = config.frequency || 0;
 	config.domain = config.domain || APE.Config.domain || document.domain;
 	config.scripts = config.scripts || APE.Config.scripts;
@@ -102,7 +86,7 @@ APE.Client.prototype.load = function(config){
 
 	document.body.appendChild(iframe);
 
-	if (config.transport == 3) {
+	if (config.transport == 2) {
 		//I know this is dirty, but it's the only way to avoid status bar loading with JSONP
 		//If the content of the iframe is created in DOM, the status bar will always load...
 		iframe.contentDocument.open();

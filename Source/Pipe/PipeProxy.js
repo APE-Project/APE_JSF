@@ -30,7 +30,7 @@ APE.PipeProxy = new Class({
 
 	open: function(hostname, port){
 		//Adding a callback to request response to create a new pipe if this.pipe haven't been init
-		this.request('PROXY_CONNECT', [hostname, port], true, this.pipe ? null : {'callback': this.callback.bind(this)});
+		this.request.send('PROXY_CONNECT', [hostname, port], true, this.pipe ? null : {'callback': this.callback.bind(this)});
 	},
 
 	send: function(data){
