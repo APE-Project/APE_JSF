@@ -40,7 +40,11 @@ APE.Client.prototype.onError = function(type, fn, internal) {
 		this.addEvent('error_' + type, fn, internal); 
 }
 
-APE.Client.prototype.apeCookie = function (name, remove) {
+APE.Client.prototype.writeCookie = function (name, value) {
+	document.cookie = name + "=" + value + "" + "; path=/";
+}
+
+APE.Client.prototype.readCookie = function (name, remove) {
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for(var i=0;i < ca.length;i++) {
@@ -73,7 +77,8 @@ APE.Client.prototype.load = function(config){
 	document.domain = config.domain;
 
 	//Get APE cookie
-	var tmp = eval('('+unescape(this.apeCookie('APE_Cookie'))+')');
+	var cookie = unescape(this.readCookie('APE_Cookie'));
+	var tmp = eval('('++')');
 
 	var iframe = document.createElement('iframe');
 	iframe.setAttribute('id','ape_' + config.identifier);

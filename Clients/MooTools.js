@@ -57,7 +57,11 @@ APE.Client = new Class({
 		}.bind(this);
 		
 		
-		if(tmp) config.frequency = tmp.frequency.toInt();
+		if(tmp) {
+			config.frequency = tmp.frequency.toInt();
+			tmp.frequency = config.frequency++;
+			Cookie.write('APE_Cookie', JSON.encode(tmp));
+		}
 		
 		APE.Config[config.identifier] = config;
 		var iframe = new Element('iframe', {

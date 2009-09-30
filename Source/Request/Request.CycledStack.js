@@ -15,7 +15,7 @@ APE.Request.CycledStack = new Class({
 	setCycleTime: function(time, now) {
 		if (now) {
 			this.send();
-			$cleart(this.timer);
+			$clear(this.timer);
 			this.timer = this.send.periodical(time, this);
 			this.reajustTime = false;
 		}
