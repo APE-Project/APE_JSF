@@ -28,7 +28,7 @@ APE.Request.CycledStack = new Class({
 			this.ape.request.send(this.stack);
 			this.stack = [];
 			if (this.reajustTime) {
-				this.setCycleTime(this.reajustTime, true);
+				this.setTime(this.reajustTime, true);
 			}
 		}
 	}
