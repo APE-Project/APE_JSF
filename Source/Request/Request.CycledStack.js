@@ -12,7 +12,7 @@ APE.Request.CycledStack = new Class({
 		this.stack.push({'cmd':cmd, 'params':params, 'sessid':sessid});
 	},
 
-	setCycleTime: function(time, now) {
+	setTime: function(time, now) {
 		if (now) {
 			this.send();
 			$clear(this.timer);
