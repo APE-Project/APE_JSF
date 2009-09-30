@@ -8,7 +8,7 @@ APE.Config.server = 'ape.yourdomain.com'; //APE server URL
 */
 APE.Config.baseUrl = 'http://ape-git.dev.weelya.net/APE_JSF/Source'; //APE JSF 
 APE.Config.domain = 'dev.weelya.net'; //Your domain, must be the same than the domain in aped.conf of your server
-APE.Config.server = 'ape.ape-project.dev.weelya.net'; //APE server URL
+APE.Config.server = 'ape.ape-project.dev.weelya.net:6970'; //APE server URL
 
 //Scripts to load for APE JSF
 (function(){

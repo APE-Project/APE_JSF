@@ -78,7 +78,19 @@ APE.Client.prototype.load = function(config){
 
 	//Get APE cookie
 	var cookie = unescape(this.readCookie('APE_Cookie'));
-	var tmp = eval('('++')');
+	var tmp = eval('(' + cookie + ')');
+
+	if (tmp) {
+		config.frequency = tmp.frequency;
+	} else {
+		cookie = "{'frequency':0}";
+	}
+
+	var reg = new RegExp("'frequency':([ 0-9]+)", "g")
+	config.frequency++;
+	cookie = cookie.replace(reg, "'frequency': " + config.frequency + "");
+	this.writeCookie('APE_Cookie', cookie);
+
 
 	var iframe = document.createElement('iframe');
 	iframe.setAttribute('id','ape_' + config.identifier);
