@@ -12,19 +12,19 @@ APE.Pipe  = new Class({
 		this.request = {
 			send: function() {
 				var args = this.parsePipeCmd.apply(this, arguments);
-				this.ape.request.send.apply(this.ape.request, args);
+				this.ape.request.send.apply(this.ape.transport, args);
 			}.bind(this),
 			cycledStack: {
 				add: function() {
 					var args = this.parsePipeCmd.apply(this, arguments);
-					this.ape.request.cycledStack.add.apply(this.ape.request, args);
+					this.ape.request.cycledStack.add.apply(this.ape.transport, args);
 				}.bind(this),
 				send: this.ape.request.send
 			},
 			stack :  {
 				add: function() {
 					var args = this.parsePipeCmd.apply(this, arguments);
-					this.ape.request.stack.add.apply(this.ape.request, args);
+					this.ape.request.stack.add.apply(this.ape.transport, args);
 				}.bind(this),
 				send: this.ape.request.stack.send
 			}
