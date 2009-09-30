@@ -3,7 +3,6 @@ APE.Pipe  = new Class({
 	Implements: APE.Events,
 
 	initialize: function(ape, options){
-	console.log(options);
 		this.pipe = options.pipe;
 		this.ape = ape;
 
@@ -19,14 +18,14 @@ APE.Pipe  = new Class({
 				add: function() {
 					var args = this.parsePipeCmd.apply(this, arguments);
 					this.ape.request.cycledStack.add.apply(this.ape.request, args);
-				},
+				}.bind(this),
 				send: this.ape.request.send
 			},
 			stack :  {
 				add: function() {
 					var args = this.parsePipeCmd.apply(this, arguments);
 					this.ape.request.stack.add.apply(this.ape.request, args);
-				},
+				}.bind(this),
 				send: this.ape.request.stack.send
 			}
 		};
