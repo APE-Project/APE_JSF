@@ -16,7 +16,7 @@ APE.Transport.longPolling = new Class({
 
 	send: function(queryString, options, args) {
 		var request = new Request({
-			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/?',
+			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/'+this.ape.options.transport+'/?',
 			headers:{'User-Agent':null, 'Accept':null, 'Keep-Alive':null,'Connection':null},
 			onFailure: this.ape.requestFail.bind(this.ape, [args, -2, this]),
 			onComplete: function(resp) {

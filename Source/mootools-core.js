@@ -1496,7 +1496,6 @@ var Request = new Class({
 	},
 
 	onFailure: function(){
-		console.log('request failure');
 		this.fireEvent('complete').fireEvent('failure', this.xhr);
 	},
 

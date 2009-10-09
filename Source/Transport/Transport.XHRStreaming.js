@@ -20,7 +20,6 @@ Request.XHRStreaming = new Class({
 		this.read += length;
 		text = text.substr(this.lastTextLength);
 		this.lastTextLength = length;
-	console.log(text);
 		this.onProgress(this.processScripts(text), xml);
 	}
 });
@@ -58,7 +57,7 @@ APE.Transport.XHRStreaming = new Class({
 				if (options.callback) this.streamInfo.callback = options.callback;
 			} else { //Simple XHR request
 				var request = new Request({
-					url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/?',
+					url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
 					onFailure: this.ape.requestFail.bind(this.ape, [args, -2, this]),
 					onComplete: function(resp) {
 						$clear(this.requestFailObserver.shift());
@@ -82,11 +81,10 @@ APE.Transport.XHRStreaming = new Class({
 		this.streamInfo.forceClose = false;
 
 		var request = new Request.XHRStreaming({
-			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/?',
+			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
 			onProgress: this.readFragment.bindWithEvent(this),
 			onFailure: this.ape.requestFail.bind(this.ape, [args, -2, this]),
 			onComplete: function(resp) {
-				console.log('complete');
 				$clear(this.streamInfo.timeoutObserver);
 				if (this.ape.status > 0) {
 					if (this.streamInfo.cleanClose) {

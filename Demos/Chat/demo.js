@@ -146,10 +146,7 @@ APE.Chat = new Class({
 				'events': {
 				'click':
 					function(ev,user){
-							if(!this.core.getPipe(user.pubid)){
-								user.pipe = {pubid:user.pubid,properties:user.properties};
-								var pipe = this.core.newPipe('uni', user);
-							}
+							this.core.getPipe(user.pubid)
 							this.setCurrentPipe(user.pubid);
 						}.bindWithEvent(this,[user])
 				}
@@ -246,7 +243,7 @@ APE.Chat = new Class({
 	},
 
 	reset: function(){
-		if (this.ape.status != 0) {
+		if (this.core.status != 0) {
 			this.core.clearSession();
 			if(this.els.pipeContainer){
 				this.els.pipeContainer.dispose();

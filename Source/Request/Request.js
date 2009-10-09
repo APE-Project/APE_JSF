@@ -5,6 +5,7 @@ APE.Request = new Class({
 		this.cycledStack = new APE.Request.CycledStack(ape);
 		this.options = {};
 		this.chl = 1;
+		this.callbackChl = new $H;
 
 		//Fix presto bug (see request method)
 		if (Browser.Engine.presto){
@@ -20,11 +21,11 @@ APE.Request = new Class({
 		this.options = $merge(options, this.options);
 	},
 
-	send: function(cmd, params, sessid, noWatch) {
+	send: function(cmd, params, sessid, options, noWatch) {
 		//Opera dirty fix
 		if (Browser.Engine.presto && !noWatch) {
 			this.requestVar.updated = true;
-			this.requestVar.args.push([cmd, params, sessid]);
+			this.requestVar.args.push([cmd, params, sessid, options]);
 			return;
 		}
 
@@ -33,7 +34,7 @@ APE.Request = new Class({
 			callback: null
 		}, this.options);
 
-		var ret = this.ape.transport.send(this.parseCmd(cmd, params, sessid), this.options, noWatch);
+		var ret = this.ape.transport.send(this.parseCmd(cmd, params, sessid, options), this.options, noWatch);
 
 		$clear(this.ape.pollerObserver);
 		this.ape.pollerObserver = this.ape.poller.delay(this.ape.options.pollTime, this.ape);
@@ -43,7 +44,7 @@ APE.Request = new Class({
 		return ret;
 	},
 
-	parseCmd: function(cmd, params, sessid) {
+	parseCmd: function(cmd, params, sessid, options) {
 		var queryString = '';
 		var a = [];
 		var o = {};
@@ -57,11 +58,11 @@ APE.Request = new Class({
 				o.chl = this.chl++;
 
 				tmp.params ? o.params = tmp.params : null;
-				if (sessid !== false) o.sessid = this.ape.getSessid();
+				if (!$defined(sessid) || sessid !== false) o.sessid = this.ape.getSessid();
 				a.push(o);
 
 				var ev = 'cmd_' + tmp.cmd.toLowerCase();
-
+				if (tmp.options && tmp.options.callback) this.callbackChl.set(o.chl, tmp.options.callback);
 				if (this.options.event) {
 					//Request is on a pipe, fire the event on the core & on the pipe
 					if (params && params.pipe) {
@@ -77,7 +78,7 @@ APE.Request = new Class({
 			o.chl = this.chl++;
 
 			params ? o.params = params : null;
-			if (sessid || sessid !== false) o.sessid = this.ape.getSessid();
+			if (!$defined(sessid) || sessid !== false) o.sessid = this.ape.getSessid();
 			a.push(o);
 			var ev = 'cmd_' + cmd.toLowerCase();
 

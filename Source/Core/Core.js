@@ -95,12 +95,14 @@ APE.Core = new Class({
 		while (support != true) {
 			support = transports[transport].browserSupport();//Test if browser support transport	
 
-			if (support) this.transport = new transports[transport](this);
+			if (support) {
+				this.options.transport = transport;
+				this.transport = new transports[transport](this);
+			}
 			else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
 		}
 	},
 	poller: function() {
-		console.log(this.pollerActive);
 		if (this.pollerActive) this.check();
 	},
 
@@ -147,9 +149,9 @@ APE.Core = new Class({
 		} else {
 			this.check.delay(delay, this);
 		}
-		(function() {
-			if (this.status < 0) this.check();
-		}.delay(delay+300, this))
+		/*(function() {
+			if (this.status == 0) this.check();
+		}.delay(delay+300, this))*/
 	},
 
 	/***
@@ -176,6 +178,7 @@ APE.Core = new Class({
 		}
 
 		var check = false;
+		var chlCallback;//Callback on challenge
 
 		if (raws && raws!='CLOSE') {
 			raws = JSON.decode(raws, true);//TODO replace me by eval for performance purpose
@@ -189,8 +192,14 @@ APE.Core = new Class({
 				if (callback && $type(callback)=='function') {
 					callback.run(raw);
 				}
+				if (raw.data.chl) {
+					chlCallback = this.request.callbackChl.get(raw.data.chl);
+					if (chlCallback) {
+						chlCallback.run(raw);
+						this.request.callbackChl.erase(raw.data.chl);
+					}
+				}
 				this.callRaw(raw);
-
 				//Last request is finished and it's not an error
 				if (!this.transport.running()) {
 					if (!raw.data.code || (raw.data.code!='005' && raw.data.code!= '001' && raw.data.code != '004' && raw.data.code != '003')) {
@@ -219,8 +228,10 @@ APE.Core = new Class({
 				//Update pipe properties
 				pipe.properties = raw.data.pipe.properties;
 			}
-			args = [raw, pipe];
-			pipe.fireEvent('raw_' + raw.raw.toLowerCase(), args);
+			if (pipe) {
+				args = [raw, pipe];
+				pipe.fireEvent('raw_' + raw.raw.toLowerCase(), args);
+			}
 		} else {
 			args = raw;
 		}
@@ -228,7 +239,7 @@ APE.Core = new Class({
 	},
 	
 	newPipe: function(type, options){
-		if (options.pipe.pubid) {
+		if (options && options.pipe.pubid) {
 			var pipe = this.pipes.get(options.pipe.pubid)
 			if (pipe) return pipe;
 		} 
@@ -268,16 +279,16 @@ APE.Core = new Class({
 		this.request.send('CHECK', null, true);
 	},
 
-	start: function(options){
-		this.connect(options); 
+	start: function(options, sendStack){
+		this.connect(options, sendStack); 
 	},
 
-	connect: function(options){
+	connect: function(options, sendStack){
 		this.request.stack.add('CONNECT', $merge(options, {"transport":this.options.transport}), false, false);
 		if (this.options.channel) { 
 			this.request.stack.add('JOIN', {"channels": this.options.channel}, false);
 		}
-		this.request.stack.send();
+		if (sendStack !== false) this.request.stack.send();
 	},
 
 	join: function(channel){

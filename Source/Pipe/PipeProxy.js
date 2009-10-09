@@ -4,6 +4,9 @@ APE.PipeProxy = new Class({
 
 	initialize: function(core, options){
 		this.core = core || window.Ape;
+		this.ape = this.core;
+
+		this.initRequestMethod();
 		this.type = 'proxy';
 
 		if (options) {
@@ -29,27 +32,31 @@ APE.PipeProxy = new Class({
 	},
 
 	open: function(hostname, port){
+		if (this.core.status == 0) this.core.start(null, false);
 		//Adding a callback to request response to create a new pipe if this.pipe haven't been init
-		this.request.send('PROXY_CONNECT', [hostname, port], true, this.pipe ? null : {'callback': this.callback.bind(this)});
+		this.request.stack.add('PROXY_CONNECT', {'host':hostname, 'port':port}, true, this.pipe ? null : {'callback':this.callback.bind(this)});
+		this.request.stack.send();
 	},
 
 	send: function(data){
-	      this.request('PROXY_WRITE', [this.getPubid(), B64.encode(data)]);
+			 console.log(data);
+	      this.request.send('SEND', {'msg':B64.encode(data)});
 	},
 
 	rawProxyEvent: function(resp, pipe){
-		if(!this.pipe) this.init(resp.datas);
-		switch (resp.datas.event) {
-			case 'READ':
-				var data = B64.decode(resp.datas.data);
+		if(!this.pipe) this.init(resp.data);
+		switch (resp.data.event) {
+			case 'read':
+				var data = B64.decode(resp.data.data);
+				console.log(data);
 				this.fireGlobalEvent('proxyRead', data)
 				if (this.onread) this.onread(data);
 				break;
-			case 'CONNECT':
+			case 'connect':
 				this.fireGlobalEvent('proxyConnect');
 				if (this.onopen) this.onopen();
 				break;
-			case 'CLOSE':
+			case 'close':
 				this.fireGlobalEvent('proxyClose');
 				if (this.onclose) this.onclose();
 				break;
@@ -57,7 +64,7 @@ APE.PipeProxy = new Class({
 	},
 
 	callback: function(raw){
-		if(raw.raw=='PROXY') this.init(raw.datas);
+		this.init(raw.data);
 	}
 });
 

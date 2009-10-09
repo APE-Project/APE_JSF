@@ -7,10 +7,14 @@ APE.Pipe  = new Class({
 		this.properties = options.pipe.properties;
 
 		this.ape = ape;
+		
+		this.initRequestMethod();
 
+		this.ape.addPipe(this.pipe.pubid, this);
+	},
+
+	initRequestMethod: function() {
 		this.request = {};
-
-
 		this.request = {
 			send: function() {
 				var args = this.parsePipeCmd.apply(this, arguments);
@@ -28,11 +32,9 @@ APE.Pipe  = new Class({
 					var args = this.parsePipeCmd.apply(this, arguments);
 					this.ape.request.stack.add.apply(this.ape.request.stack, args);
 				}.bind(this),
-				send: this.ape.request.stack.send
+				send: this.ape.request.stack.send.bind(this.ape.request.stack)
 			}
-		};
-
-		this.ape.addPipe(this.pipe.pubid, this);
+		}
 	},
 
 	parsePipeCmd: function() {
@@ -40,12 +42,12 @@ APE.Pipe  = new Class({
 				var args = arguments;
 				for (var i = 0; i < args[0].length; i++) {
 					if (!args[0][i].params) args[0][i].params = {};
-					args[0][i].pipe = this.pipe.pubid;
+					if (this.pipe) args[0][i].pipe = this.pipe.pubid;
 				}
 			} else {
 				var args = arguments;
 				if (!args[1]) args[1] = {};
-				args[1].pipe = this.pipe.pubid;
+				if (this.pipe) args[1].pipe = this.pipe.pubid;
 			}
 			return args;
 	},

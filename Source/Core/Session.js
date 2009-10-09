@@ -11,35 +11,27 @@ APE.Core = new Class({
 		//Init and save cookies
 		if (options.restore) this.init();
 
-		this.addEvent('uniPipeCreate',this.savePipeUni);
-		this.addEvent('uniPipeDelete',this.pipeDelete);
-		this.session = {
-			uniPipe: new $H
-		};
+		this.addEvent('uniPipeCreate',this.saveSessionPipe);
+		this.addEvent('uniPipeDelete',this.saveSessionPipe);
 	},
 	
 	saveSessionPipe:function(){
-		this.setSession({'uniPipe': escape(JSON.encode(this.session.uniPipe.getValues()))});
-	},
+		var uniPipe = [];
+		this.pipes.each(function(pipe) {
+				if (pipe.type == 'uni') {
+					uniPipe.push({'casttype':pipe.type, 'pubid':pipe.pipe.pubid, 'properties':pipe.properties});
+				}
+		});
+		if (uniPipe.length > 0) this.setSession({'uniPipe': escape(JSON.encode(uniPipe))});
 
-	savePipeUni: function(type, pipe, options) {
-		if(type=='uni'){
-			this.session.uniPipe.set(pipe.getPubid(), options);
-			this.saveSessionPipe();
-		}
-	},
-
-	pipeDelete: function(type, pipe) {
-		this.session.uniPipe.erase(pipe.getPubid());
-		this.saveSessionPipe();
 	},
 
 	restoreUniPipe: function(resp){
-		if(resp.raw=='SESSIONS'){
+		if(resp.raw == 'SESSIONS'){
 			var pipes = JSON.decode(unescape(resp.data.sessions.uniPipe));
 			if (pipes) {
 				for (var i = 0; i < pipes.length; i++){
-					this.newPipe('uni',pipes[i]);
+					this.newPipe('uni',{'pipe': pipes[i]});
 				}
 			}
 			this.fireEvent('restoreEnd');

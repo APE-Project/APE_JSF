@@ -82,12 +82,11 @@ APE.Client.prototype.load = function(config){
 	var tmp = eval('(' + cookie + ')');
 
 	if (tmp) {
-		config.frequency = tmp.frequency;
+		config.frequency = tmp.frequency+1;
 	} else {
 		cookie = "{'frequency':0}";
 	}
 
-	tmp.frequency = config.frequency + 1;
 
 	var reg = new RegExp("'frequency':([ 0-9]+)", "g")
 	cookie = cookie.replace(reg, "'frequency': " + config.frequency + "");

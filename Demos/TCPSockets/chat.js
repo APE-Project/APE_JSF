@@ -3,7 +3,7 @@
 
 var CHANNEL = "#ape-project"
 var IRC_SERVER = 'irc.freenode.net'
-var IRC_PORT = 6667
+var IRC_PORT = '6667'
 
 var nickname = null;
 var users = {};
