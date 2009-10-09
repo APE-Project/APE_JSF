@@ -4,6 +4,8 @@ APE.Pipe  = new Class({
 
 	initialize: function(ape, options){
 		this.pipe = options.pipe;
+		this.properties = options.pipe.properties;
+
 		this.ape = ape;
 
 		this.request = {};

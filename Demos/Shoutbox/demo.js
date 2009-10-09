@@ -15,7 +15,7 @@ APE.Shoutbox = new Class({
 		this.els.container = $(container);
 
 		//Catch pipeCreate events when you join a channel
-		this.addEvent('pipeCreate',this.createShoutbox);
+		this.addEvent('multiPipeCreate',this.createShoutbox);
 
 		//Catch message sending
 		this.onCmd('send',this.cmdSend);

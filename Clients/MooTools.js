@@ -62,7 +62,7 @@ APE.Client = new Class({
 			tmp = {'frequency': 0};
 		}
 
-		tmp.frequency = config.frequency++;
+		tmp.frequency = config.frequency + 1;
 		Cookie.write('APE_Cookie', JSON.encode(tmp));
 		
 		APE.Config[config.identifier] = config;

@@ -15,7 +15,7 @@ APE.PipeMulti = new Class({
 			var users = options.users;
 		}
 
-		this.ape.fireEvent('pipeCreate', [this.type, this, options]);
+		this.ape.fireEvent('multiPipeCreate', [this, options]);
 
 		if (options.users) {
 			var l = users.length;
@@ -36,8 +36,15 @@ APE.PipeMulti = new Class({
 	},
 
 	addUser: function(pubid, user) {
-		this.users.set(pubid, user);
-		var u = this.users.get(pubid);
+		if (!this.ape.users.has(user.pubid)) {
+			user.pipes = new $H;
+			this.ape.users.set(pubid, user);
+		} else {
+			user = this.ape.users.get(pubid);
+		}
+		user.pipes.set(this.pipe.pubid, this);
+		var u = {'pipes':user.pipes ,'casttype': user.casttype, 'pubid': user.pubid, 'properties': user.properties};
+		this.users.set(pubid, u);
 		this.fireGlobalEvent('userJoin', [u, this]);
 		return u;
 	},
@@ -45,6 +52,10 @@ APE.PipeMulti = new Class({
 	delUser: function(pubid) {
 		var u = this.users.get(pubid);
 		this.users.erase(pubid);
+		u.pipes.erase(this.pipe.pubid)
+		if (u.pipes.getLength() == 0) {
+			this.ape.users.erase(u.pubid);
+		}
 		this.fireGlobalEvent('userLeft', [u, this]);
 		return u;
 	},

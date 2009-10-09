@@ -1,20 +1,3 @@
-if (!window.console) {
-	window.console = {
-		log:function(){
-			var div = window.parent.document.createElement('div');
-			window.parent.document.body.appendChild(div);
-			var txt = '';
-			for (var i = 0; i < arguments.length; i++) {
-				txt = txt + arguments[i];
-			}
-			div.innerHTML = txt;
-			window.parent.document.body.appendChild(window.parent.document.createElement('hr'));
-		}, 
-		info:function(){
-			console.log.run(arguments);
-		}
-	};
-}
 /*
   Copyright (C) 2008-2009 Weelya <contact@weelya.com> 
   This file is part of APE Client.
@@ -79,8 +62,11 @@ APE.Core = new Class({
 		this.request = new APE.Request(this);
 
 		this.pipes = new $H; 
+		this.users = new $H;
+
 		this.sessid = null;
 		this.pubid = null;
+
 		this.timer = null;
 		this.status = 0; // 0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request failure
 		this.failCounter = 0;
@@ -98,7 +84,6 @@ APE.Core = new Class({
 
 		//Execute complete function of APE.Client instance
 		if (options.complete) options.complete.apply(null, [this]);
-
 		this.fireEvent('load', this);
 	},
 
@@ -115,87 +100,34 @@ APE.Core = new Class({
 		}
 	},
 	poller: function() {
+		console.log(this.pollerActive);
 		if (this.pollerActive) this.check();
 	},
 
-	/***
-	 * Start the poller
-	 */
-	startPoller: function(){
-		console.log('start poller');
+	startPoller: function() {
 		this.pollerActive = true;
 	},
 
-	/***
-	 * Stop the poller (Wich send check raw)
-	 */
-	stopPoller: function(){
-		console.log('stop poller');
+	stopPoller: function() {
 		$clear(this.pollerObserver);
 		this.pollerActive = false;
 	},
 
-	parseParam: function(param){
+	parseParam: function(param) {
 		return ($type(param) == 'object') ? Hash.getValues(param) : $splat(param);
 	},
-	/***
-	 * Make a xmlhttrequest, once result received the parseResponse function is called 
-	 * @param 	String	Raw to send
-	 * @param	Boolean	If true sessid is added to request
-	 * @param	Mixed	Can be array,object or string, if more than one, must an array 
-	 * @param	Object	Options (event, async, callback )
-	 * @param	Boolean	Used only by opera
-	 */
-	send: function(raw, param, sessid, options, noWatch){
-			  /*
-		//Opera dirty fix
-		if (Browser.Engine.presto && !noWatch) {
-			this.requestVar.updated = true;
-			this.requestVar.args.push([raw, param, sessid, options]);
-			return;
-		}
 
-		//Set options
-		if (!$type(sessid)) sessid = true;
-		param = param || [];
-		options = $extend({
-			event: true,
-			callback: null
-		}, options);
-
-		var queryString = raw;
-
-		param = this.parseParam(param);
-
-		if (sessid) queryString += '&' + this.getSessid();
-
-		//Create query string
-		if (param.length > 0) queryString += '&' + param.join('&');
-
-		//Show time ;-)
-		var request = this.transport.send(queryString, options, arguments);
-
-		$clear(this.pollerObserver);
-		this.pollerObserver = this.poller.delay(this.options.pollTime, this);
-
-		if (options.event) this.fireEvent('cmd_' + raw.toLowerCase(), param);
-		*/
-	},
-
-	cancelRequest: function(){
+	cancelRequest: function() {
 		this.transport.cancel();
 	},
 
 	/***
 	 * Function called when a request fail or timeout
-	 * @param	Array	Arguments passed to request
-	 * @param	Integer	Fail status
 	 */
 	requestFail: function(args, failStatus, request) {
-		console.log('Request fail');
 		var reSendData = false;
 
-		if (!request.request || !request.request.dataSent) reSendData = false;
+		if (request.request && !request.request.dataSent) reSendData = true;
 
 		if (this.status > 0) {//APE is connected but request failed
 			this.status = failStatus;
@@ -205,13 +137,13 @@ APE.Core = new Class({
 		} else if (this.failCounter < 6 && this.status == -2) {//APE is disconnected, and it's by timeout
 			this.failCounter++;
 		}
+
 		//Cancel last request
 		this.cancelRequest();
 
 		var delay = (this.failCounter*1000);
 		if (reSendData) {
-			console.log('re sending data');
-			this.request.delay(delay, this, args);
+			this.request.send.delay(delay, this, args);
 		} else {
 			this.check.delay(delay, this);
 		}
@@ -220,10 +152,9 @@ APE.Core = new Class({
 		}.delay(delay+300, this))
 	},
 
-	/**
-	* Parse received raws
-	* @param	Array	An array of raw 
-	*/
+	/***
+	 * Parse received data from Server
+	 */
 	parseResponse: function(raws, callback){
 		if (raws){
 			if (this.status < 0 ) {
@@ -246,19 +177,16 @@ APE.Core = new Class({
 
 		var check = false;
 
-		if (!raws) check = true;//Raw received is empty, force check
-
 		if (raws && raws!='CLOSE') {
-			raws = JSON.decode(raws, true);
+			raws = JSON.decode(raws, true);//TODO replace me by eval for performance purpose
 			if (!raws){ // Something went wrong, json decode failed
 				this.check();
 				return;
 			}
 
-			for (var i = 0; i < raws.length; i++){
+			for (var i = 0; i < raws.length; i++){ //Read all raw
 				var raw = raws[i];
 				if (callback && $type(callback)=='function') {
-
 					callback.run(raw);
 				}
 				this.callRaw(raw);
@@ -278,18 +206,18 @@ APE.Core = new Class({
 	},
 
 	/***
-	 * Fire event raw_'raw', if needed create also new pipe object
-	 * @param	Object	raw object
+	 * Fire raw event. If received raw is on a non-existing pipe, create new pipe
 	 */
-	callRaw: function(raw){
+	callRaw: function(raw) {
 		var args;
 		if (raw.data.pipe) {
-			var pipeId = raw.data.pipe.pubid,
-				pipe;
+			var pipeId = raw.data.pipe.pubid, pipe;
 			if (!this.pipes.has(pipeId)) {
 				pipe = this.newPipe(raw.data.pipe.casttype, raw.data);
 			} else {
 				pipe = this.pipes.get(pipeId);
+				//Update pipe properties
+				pipe.properties = raw.data.pipe.properties;
 			}
 			args = [raw, pipe];
 			pipe.fireEvent('raw_' + raw.raw.toLowerCase(), args);
@@ -299,15 +227,9 @@ APE.Core = new Class({
 		this.fireEvent('raw_' + raw.raw.toLowerCase(), args);
 	},
 	
-	/***
-	 * Create a new pipe
-	 * @param	String	Pipe type [uni, proxy, single]
-	 * @param	Object	Options used to instanciate pipe
-	 * @return	Object	pipe
-	 */
 	newPipe: function(type, options){
 		if (options.pipe.pubid) {
-			var pipe = this.getPipe(options.pipe.pubid)
+			var pipe = this.pipes.get(options.pipe.pubid)
 			if (pipe) return pipe;
 		} 
 
@@ -318,116 +240,68 @@ APE.Core = new Class({
 
 	/***
 	 * Add a pipe to the core pipes hash
-	 * @param	string	Pipe pubid (this will be the key hash)
-	 * @return	object	Pipe object
 	 */
 	addPipe: function(pubid, pipe){
 		return this.pipes.set(pubid, pipe); 
 	},
 
-	/***
-	 * Return a pipe identified by pubid
-	 * @param	string	Pipe pubid
-	 * @return	Object	pipe
-	 */
 	getPipe: function(pubid){
-		return this.pipes.get(pubid);
-	},
-
-	getUserPipe: function(user) {
-		return this.ape.newPipe('uni', {'pipe':user});
-	},
-
-	/***
-	 * Remove a pipe from the pipe hash and fire event 'pipeDelete'
-	 * @param	string	Pipe pubid
-	 * @return	object	The pipe object
-	 */
-	delPipe: function(pubid){
 		var pipe = this.pipes.get(pubid);
-		this.pipes.erase(pubid);
-		this.fireEvent('pipeDelete', [pipe.type, pipe]);
+		if (!pipe) {
+			pipe = this.users.get(pubid);
+			if (pipe) pipe = this.newPipe('uni', {'pipe': pipe});
+		}
 		return pipe;
 	},
 
 	/***
-	* Check if there are new message for the user
-	*/
+	 * Remove a pipe from the pipe hash and fire event 'pipeDelete'
+	 */
+	delPipe: function(pubid){
+		var pipe = this.pipes.get(pubid);
+		this.pipes.erase(pubid);
+		this.fireEvent(pipe.type+'PipeDelete', [pipe.type, pipe]);
+		return pipe;
+	},
+	
 	check: function(){
 		this.request.send('CHECK', null, true);
 	},
 
-	/***
-	 * Lauche the connect request
-	 * @param	Mixed	Can be array,object or string, if more than one, must be a string	
-	 */
 	start: function(options){
 		this.connect(options); 
 	},
 
-	/****
-	* Send connect request to server
-	* @param	object with options to send to APE server with connect cmd, if more than one, must be an array
-	*/
 	connect: function(options){
-		this.request.send('CONNECT', $merge(options, {"transport":this.options.transport}), false);
+		this.request.stack.add('CONNECT', $merge(options, {"transport":this.options.transport}), false, false);
+		if (this.options.channel) { 
+			this.request.stack.add('JOIN', {"channels": this.options.channel}, false);
+		}
+		this.request.stack.send();
 	},
 
-	/***
-	* Join a channel
-	* @param	string	Channel name
-	*/
 	join: function(channel){
 		this.request.send('JOIN', {"channels":channel});
 	},
 
-	/***
-	 * Left a channel
-	 * @param	string	Pipe pubid
-	 */
 	left: function(pubid){
 		this.request.send('LEFT', {"channel":this.pipes.get(pubid).name});
 		this.delPipe(pubid);
 	},
 
-	/***
-	* Do necesary stuff to quit ape 
-	*/
 	quit: function(){
 		this.request.send('QUIT');
 		this.clearSession();
-	},
-
-	setPubid: function(pubid){
-		this.pubid = pubid;
 	},
 
 	getPubid: function(){
 		return this.pubid;
 	},
 
-	/***
-	 * Return current sessid
-	 * @return	string	sessid
-	 */
 	getSessid:function(){
 		return this.sessid;
 	},
 
-	/***
-	 * Set current sessid
-	 * @param	string	sessid
-	 */
-	setSessid: function(sessid){
-		this.sessid = sessid;
-	},
-
-	/***
-	 * Store a session variable on APE
-	 * Note : setSession can't be used while APE is currently restoring
-	 * @val 	object 	object with key/value pair
-	 * @param	string	value
-	 */
 	setSession: function(obj, options) {
 		if (this.restoring) return;
 		if (options) this.request.setOptions(options);
@@ -435,43 +309,24 @@ APE.Core = new Class({
 		this.request.send('SESSION', {'action': 'set', 'values': obj}, true);
 	},
 
-	/***
-	 * Receive a session variable from ape
-	 * @param	string	key
-	 */
 	getSession: function(key){
-		this.request.send('SESSION', {'action':'get', 'values': ((typeof key == 'Array') ? key : [key])}, true);
+		this.request.send('SESSION', {'action':'get', 'values': (($type(key) == 'array') ? key : [key])}, true);
 	},
 	
-	/***
-	 * Save in the core a variable with all information relative to the current user
-	 * @param	object	raw
-	 */
 	rawIdent: function(raw){
 		this.user = raw.data.user;
-		this.setPubid(raw.data.user.pubid);
+		this.pubid = raw.data.user.pubid;
 	},
 
-	/***
-	* Handle login raw
-	* If autojoin is defined join the specified channel, then start the poller and finnaly create cookie session
-	* @param Object received raw
-	*/
 	rawLogin: function(param){
-		this.setSessid(param.data.sessid);
+		this.sessid = param.data.sessid;
 
-		if (this.options.channel) this.join(this.options.channel);
-		
 		this.status = 1;
 		this.startPoller();
 		this.fireEvent('ready');
 		this.fireEvent('init');
 	},
 
-	/***
-	* Fire event for all error raw
-	* @param	object	raw
-	*/
 	rawErr: function(err){
 		this.fireEvent('error_' + err.data.code, err);
 	},
@@ -480,14 +335,17 @@ APE.Core = new Class({
 	 * Clear the sessions, clean timer, remove cookies, remove events
 	 */
 	clearSession:function(){
-		this.setSessid(null);
-		this.setPubid(null);
-		this.$events = {}; //Clear events
+		//Clear all APE var
+		this.sessid = null;
+		this.pubid = null;
+		this.$events = {}; 
+		this.request.chl = 1;
+		this.status = 0;
+		this.options.restore = false;
+		
 		this.fireEvent('clearSession');
 		this.stopPoller();
 		this.cancelRequest();
-		this.status = 0;
-		this.options.restore = false;
 	}
 });
 

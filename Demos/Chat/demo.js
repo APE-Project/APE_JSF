@@ -23,7 +23,9 @@ APE.Chat = new Class({
 
 		this.addEvent('load', this.start);
 		this.addEvent('init', this.createChat);
-		this.addEvent('pipeCreate', this.createPipe);
+		this.addEvent('uniPipeCreate', this.setPipeName);
+		this.addEvent('uniPipeCreate', this.createPipe);
+		this.addEvent('multiPipeCreate', this.createPipe);
 		this.addEvent('userJoin', this.createUser);
 		this.addEvent('userLeft', this.deleteUser);
 		this.addEvent('restoreEnd',this.restoreEnd);
@@ -158,8 +160,7 @@ APE.Chat = new Class({
 		user.el.dispose();
 	},
 
-	createPipe: function(type, pipe, options){
-		if(type=='uni') this.setPipeName(pipe, options);
+	createPipe: function(pipe, options){
 		var tmp;
 
 		//Define some pipe variables to handle logging and pipe elements
@@ -245,11 +246,13 @@ APE.Chat = new Class({
 	},
 
 	reset: function(){
-		this.core.clearSession();
-		if(this.els.pipeContainer){
-			this.els.pipeContainer.dispose();
-			this.els.more.dispose();
+		if (this.ape.status != 0) {
+			this.core.clearSession();
+			if(this.els.pipeContainer){
+				this.els.pipeContainer.dispose();
+				this.els.more.dispose();
+			}
+			this.core.initialize(this.core.options);
 		}
-		this.core.initialize(this.core.options);
 	}
 });

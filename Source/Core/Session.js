@@ -5,13 +5,14 @@ APE.Core = new Class({
 	initialize: function(options){
 		if (this.getInstance(options.identifier).instance) options.restore = true;
 
+		this.options.sessionVar = ['uniPipe']; 
 		this.parent(options);
 
 		//Init and save cookies
 		if (options.restore) this.init();
 
-		this.addEvent('pipeCreate',this.savePipeUni);
-		this.addEvent('pipeDelete',this.pipeDelete);
+		this.addEvent('uniPipeCreate',this.savePipeUni);
+		this.addEvent('uniPipeDelete',this.pipeDelete);
 		this.session = {
 			uniPipe: new $H
 		};
@@ -57,23 +58,24 @@ APE.Core = new Class({
 			this.fireEvent('init');
 			this.status = 1;
 			this.request.setOptions({'callback': this.restoreUniPipe.bind(this)});
-			this.getSession('uniPipe');
+		} else if (resp.raw == 'SESSIONS') { 
+			this.restoreUniPipe(resp);
 		} else if (this.status == 0) {
 			this.stopPoller();
 		}
 	},
 
-	connect:function(options){
+	connect: function(options){
 		var cookie = this.initCookie();
-		if(!cookie){//No cookie defined start a new connection
+		if (!cookie) {//No cookie defined start a new connection
 			this.parent(options);
 			this.addEvent('init',this.init);
-		}else{//Cookie or instance exist
+		} else {//Cookie or instance exist
 			this.restoring = true;
 			this.fireEvent('restoreStart');
 			this.startPoller();
 			this.request.setOptions({'callback': this.restoreCallback.bind(this)});
-			this.check();//Send a check raw (this ask ape for an updated session)
+			this.getSession(this.options.sessionVar);
 		}
 	},
 
@@ -82,7 +84,7 @@ APE.Core = new Class({
 	 * @param	String	identifier, can be used to force the identifier to find ortherwhise identifier defined in the options will be used
 	 * @return 	Boolean	false if application identifier isn't found or an object with the instance and the cookie
 	 */
-	getInstance: function(identifier){
+	getInstance: function(identifier) {
 		var	tmp = Cookie.read('APE_Cookie');
 		identifier = identifier || this.options.identifier;
 		if (!tmp) return false;
@@ -107,7 +109,6 @@ APE.Core = new Class({
 
 		for(var i = 0; i < this.cookie.instance.length; i++){
 			if(this.cookie.instance[i].identifier == identifier){
-				console.log('instance found for remove');
 				this.cookie.instance.splice(i,1);
 				return;
 			}
@@ -122,8 +123,8 @@ APE.Core = new Class({
 	initCookie: function(){
 		var tmp = this.getInstance();
 		if(tmp && tmp.instance){ //Cookie exist, application instance exist
-			this.setSessid(tmp.instance.sessid);
-			this.setPubid(tmp.instance.pubid);
+			this.sessid = tmp.instance.sessid;
+			this.pubid = tmp.instance.pubid;
 			tmp.cookie.frequency = tmp.cookie.frequency.toInt() + 1;
 			this.cookie = tmp.cookie;
 			return true;

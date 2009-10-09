@@ -21,7 +21,6 @@ APE.Transport.JSONP = new Class({
 	},
 
 	send: function(queryString, options, args) {
-		console.info('new JSONP', queryString);
 		//Opera has some trouble with JSONP, so opera use mix of SSE & JSONP
 		if (this.SSESupport && !this.eventSource) {
 			this.initSSE(queryString, options, this.readSSE.bind(this));
@@ -48,21 +47,17 @@ APE.Transport.JSONP = new Class({
 	},
 
 	clearRequest: function(request) {
-		console.log('remove script tag');
 		request.parentNode.removeChild(request);
 		for (var prop in request) delete request[prop];//Avoid memory leaks
 		$clear(this.requestFailObserver.shift());
 	},
 
 	readSSE: function(data) {
-		console.log('SSE Receiving');
 		this.ape.parseResponse(data, this.callback);
 		this.callback = null;
 	},
 
 	read: function(resp) {
-		console.log(this.requests);
-
 		$clear(this.requestFailObserver.shift());
 		this.clearRequest(this.requests.shift());
 		this.ape.parseResponse(resp, this.callback);
@@ -72,7 +67,6 @@ APE.Transport.JSONP = new Class({
 
 	cancel: function() {
 		if (this.requests.length > 0) {
-			console.log('cancel request');
 			this.clearRequest(this.requests.shift());
 		}
 	},

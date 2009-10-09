@@ -29,7 +29,7 @@ APE.Transport.longPolling = new Class({
 
 		this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [arguments, -1, request]));
 
-		return this.request;
+		return request;
 	},
 
 	running: function() {

@@ -5,6 +5,6 @@ APE.PipeSingle = new Class({
 	initialize: function(core, options){
 		this.parent(core, options);
 		this.type = 'uni';
-		this.ape.fireEvent('pipeCreate',[this.type, this, options]);
+		this.ape.fireEvent('uniPipeCreate',[this, options]);
 	}
 });

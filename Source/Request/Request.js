@@ -4,7 +4,7 @@ APE.Request = new Class({
 		this.stack = new APE.Request.Stack(ape);
 		this.cycledStack = new APE.Request.CycledStack(ape);
 		this.options = {};
-		this.chl = 0;
+		this.chl = 1;
 
 		//Fix presto bug (see request method)
 		if (Browser.Engine.presto){
@@ -33,12 +33,14 @@ APE.Request = new Class({
 			callback: null
 		}, this.options);
 
-		this.ape.transport.send(this.parseCmd(cmd, params, sessid), this.options, noWatch);
+		var ret = this.ape.transport.send(this.parseCmd(cmd, params, sessid), this.options, noWatch);
 
 		$clear(this.ape.pollerObserver);
 		this.ape.pollerObserver = this.ape.poller.delay(this.ape.options.pollTime, this.ape);
 
 		this.options = {};//Reset options
+
+		return ret;
 	},
 
 	parseCmd: function(cmd, params, sessid) {
@@ -50,6 +52,7 @@ APE.Request = new Class({
 			for (var i = 0; i < cmd.length; i++) {
 				tmp = cmd[i];
 
+				o = {};
 				o.cmd = tmp.cmd;
 				o.chl = this.chl++;
 

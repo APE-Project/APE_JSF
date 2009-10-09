@@ -24,7 +24,6 @@ APE.Request.CycledStack = new Class({
 
 	send: function() {
 		if (this.stack.length > 0) {
-			console.log('sending stack');
 			this.ape.request.send(this.stack);
 			this.stack = [];
 			if (this.reajustTime) {

@@ -17,7 +17,7 @@ APE.PipeProxy = new Class({
 		this.core.addPipe(this.getPubid(), this);
 
 		this.onRaw('proxy_event', this.rawProxyEvent );
-		this.ape.fireEvent('pipeCreate', [this.type, this, options]);
+		this.ape.fireEvent('proxyPipeCreate', [this, options]);
 	},
 
 	reset: function() {

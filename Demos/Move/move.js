@@ -15,7 +15,7 @@ APE.Move = new Class({
 
 		this.addEvent('init', this.initPlayground);
 		this.addEvent('userJoin', this.createUser);
-		this.addEvent('pipeCreate', function(type, pipe, options){
+		this.addEvent('multiPipeCreate', function(type, pipe, options){
 			if(type=='multi') this.pipe = pipe;
 		});
 		this.addEvent('userLeft', this.deleteUser);
