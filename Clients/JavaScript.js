@@ -106,14 +106,16 @@ APE.Client.prototype.load = function(config){
 	if (config.transport == 2) {
 		//I know this is dirty, but it's the only way to avoid status bar loading with JSONP
 		//If the content of the iframe is created in DOM, the status bar will always load...
-		iframe.contentDocument.open();
+		var doc = iframe.contentDocument;
+		if (!doc) doc = iframe.document;
+		doc.open();
 		var theHtml = '<html><head></head>';
 		for (var i = 0; i < config.scripts.length; i++) {
 			theHtml += '<script src="' + config.scripts[i] + '"></script>';
 		}
 		theHtml += '<body></body></html>';
-		iframe.contentDocument.write(theHtml);
-		iframe.contentDocument.close();
+		doc.write(theHtml);
+		doc.close();
 	} else {
 		iframe.setAttribute('src','http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');
 		//Firefox fix, see bug  #356558 

@@ -1,16 +1,9 @@
 /***
  * APE JSF Setup
  */
-/*
 APE.Config.baseUrl = 'http://yourdomain.com/APE_JSF/Source'; //APE JSF 
 APE.Config.domain = 'yourdomain.com'; //Your domain, must be the same than the domain in aped.conf of your server
 APE.Config.server = 'ape.yourdomain.com'; //APE server URL
-*/
-
-APE.Config.baseUrl = 'http://ape-1.efyx.lya.eu/APE_JSF/'; //APE JSF 
-APE.Config.domain = 'efyx.lya.eu'; //Your domain, must be the same than the domain in aped.conf of your server
-APE.Config.server = 'ape.efyx.lya.eu:6971'; //APE server URL
-//APE.Config.scripts = [APE.Config.baseUrl + '/Build/apeCore.js'];
 
 //Uncomment the following line if you want to load each core file separately
 (function(){

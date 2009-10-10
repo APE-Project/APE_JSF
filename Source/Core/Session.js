@@ -22,7 +22,10 @@ APE.Core = new Class({
 					uniPipe.push({'casttype':pipe.type, 'pubid':pipe.pipe.pubid, 'properties':pipe.properties});
 				}
 		});
-		if (uniPipe.length > 0) this.setSession({'uniPipe': escape(JSON.encode(uniPipe))});
+		uniPipe = escape(JSON.encode(uniPipe));
+		if (this.options.transport == 2) uniPipe = escape(uniPipe); 
+
+		if (uniPipe.length > 0) this.setSession({'uniPipe': uniPipe});
 
 	},
 
@@ -78,13 +81,14 @@ APE.Core = new Class({
 	 */
 	getInstance: function(identifier) {
 		var	tmp = Cookie.read('APE_Cookie');
+		console.log(tmp);
 		identifier = identifier || this.options.identifier;
 		if (!tmp) return false;
 
 		tmp = JSON.decode(tmp);
 		
-		//Cookie is corrupted
-		if (!tmp) return false;
+		//Cookie is corrupted or doest not contains instance
+		if (!tmp || !tmp.instance) return false;
 		//Get the instance of ape in cookie
 		for(var i = 0; i < tmp.instance.length; i++){
 			if(tmp.instance[i] && tmp.instance[i].identifier == identifier){

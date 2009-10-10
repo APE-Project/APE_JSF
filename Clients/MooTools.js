@@ -79,14 +79,16 @@ APE.Client = new Class({
 		if (config.transport == 2) {//Special case for JSONP
 			//I know this is dirty, but it's the only way to avoid status bar loading with JSONP
 			//If the content of the iframe is created in DOM, the status bar will always load...
-			iframe.contentDocument.open();
-			var theHtml = '<html><head></head>';
+			var doc = iframe.contentDocument;
+			if (!doc) doc = iframe.document;
+			doc.open();
+			var theHtml = '<html><head>';
 			for (var i = 0; i < config.scripts.length; i++) {
 				theHtml += '<script src="' + config.scripts[i] + '"></script>';
 			}
-			theHtml += '<body></body></html>';
-			iframe.contentDocument.write(theHtml);
-			iframe.contentDocument.close();
+			theHtml += '</head><body></body></html>';
+			doc.write(theHtml);
+			doc.close();
 		} else { 
 			document.domain = config.domain;
 			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');

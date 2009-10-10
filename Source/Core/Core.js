@@ -74,7 +74,7 @@ APE.Core = new Class({
 
 		this.onRaw('login', this.rawLogin);
 		this.onRaw('err', this.rawErr);
-		this.onRaw('ident',this.rawIdent);
+		this.onRaw('ident', this.rawIdent);
 
 		this.onError('003', this.clearSession);
 		this.onError('004', this.clearSession);
@@ -167,11 +167,12 @@ APE.Core = new Class({
 			}
 		}
 
-		if (raws == 'CLOSE' && !this.transport.running()) {
-			if (callback && $type(callback)=='function') callback.run(raws);
-			this.check();
-			return;
-		}
+		//This should no longer happend
+		//if (raws == 'CLOSE' && !this.transport.running()) {
+		//	if (callback && $type(callback)=='function') callback.run(raws);
+		//	this.check();
+		//	return;
+		//}
 		if (raws == 'QUIT'){
 			this.quit();
 			return; 
@@ -180,7 +181,7 @@ APE.Core = new Class({
 		var check = false;
 		var chlCallback;//Callback on challenge
 
-		if (raws && raws!='CLOSE') {
+		if (raws) {
 			raws = JSON.decode(raws, true);//TODO replace me by eval for performance purpose
 			if (!raws){ // Something went wrong, json decode failed
 				this.check();
@@ -341,7 +342,7 @@ APE.Core = new Class({
 	rawErr: function(err){
 		this.fireEvent('error_' + err.data.code, err);
 	},
-
+	
 	/***
 	 * Clear the sessions, clean timer, remove cookies, remove events
 	 */

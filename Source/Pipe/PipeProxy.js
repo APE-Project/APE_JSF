@@ -39,7 +39,6 @@ APE.PipeProxy = new Class({
 	},
 
 	send: function(data){
-			 console.log(data);
 	      this.request.send('SEND', {'msg':B64.encode(data)});
 	},
 
@@ -48,7 +47,6 @@ APE.PipeProxy = new Class({
 		switch (resp.data.event) {
 			case 'read':
 				var data = B64.decode(resp.data.data);
-				console.log(data);
 				this.fireGlobalEvent('proxyRead', data)
 				if (this.onread) this.onread(data);
 				break;

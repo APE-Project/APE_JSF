@@ -59,11 +59,9 @@ APE.Chat = new Class({
 			return;
 		}
 		if (options.sender) {
-			//pipe.name = options.sender.properties.name;
-			pipe.name = options.pipe.pubid;
+			pipe.name = options.sender.properties.name;
 		} else {
-			//pipe.name = options.pipe.properties.name;
-			pipe.name = options.pipe.pubid;
+			pipe.name = options.pipe.properties.name;
 		}
 	},
 
@@ -141,7 +139,7 @@ APE.Chat = new Class({
 				'class':'ape_user'
 			}).inject(pipe.els.users);
 		new Element('a',{
-				'text':user.pubid,
+				'text':user.properties.name,
 				'href':'javascript:void(0)',
 				'events': {
 				'click':
