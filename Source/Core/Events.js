@@ -1,7 +1,3 @@
-var APE = {
-	Request: {},
-	Transport: {}
-};
 APE.Events = new Class({
 	
 	Extends: Events,

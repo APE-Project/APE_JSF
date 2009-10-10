@@ -81,7 +81,6 @@ APE.Core = new Class({
 	 */
 	getInstance: function(identifier) {
 		var	tmp = Cookie.read('APE_Cookie');
-		console.log(tmp);
 		identifier = identifier || this.options.identifier;
 		if (!tmp) return false;
 
