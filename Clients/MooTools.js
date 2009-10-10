@@ -63,7 +63,7 @@ APE.Client = new Class({
 		}
 
 		tmp.frequency = config.frequency + 1;
-		Cookie.write('APE_Cookie', JSON.encode(tmp));
+		Cookie.write('APE_Cookie', JSON.encode(tmp), {'domain': config.domain, 'path': '/'});
 		
 		APE.Config[config.identifier] = config;
 		var iframe = new Element('iframe', {

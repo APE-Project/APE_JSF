@@ -114,7 +114,7 @@ APE.Chat = new Class({
 			var msg = new Element('div',{'class':'ape_message_container'});
 			var cnt = new Element('div',{'class':'msg_top'}).inject(msg);
 			if (sender) {
-			       new Element('div',{'class':'ape_user','text':sender.pubid}).inject(msg,'top');
+			       new Element('div',{'class':'ape_user','text':sender.name}).inject(msg,'top');
 			}
 			new Element('div',{'class':'msg_bot'}).inject(msg);
 			msg.inject(pipe.els.message);
@@ -214,7 +214,7 @@ APE.Chat = new Class({
 											ev.stop();
 											var val = this.els.sendbox.get('value');
 											if(val!=''){
-												this.getCurrentPipe().request.send('SEND',{'msg':val});
+												this.getCurrentPipe().send(val);
 												this.els.sendbox.set('value','');
 											}
 										}.bindWithEvent(this)

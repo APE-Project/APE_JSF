@@ -162,7 +162,7 @@ APE.Core = new Class({
 	},
 
 	saveCookie: function(){
-		Cookie.write('APE_Cookie', JSON.encode(this.cookie), {domain:this.options.domain});
+		Cookie.write('APE_Cookie', JSON.encode(this.cookie), {'path': '/', domain:this.options.domain});
 	},
 
 	clearSession: function(){

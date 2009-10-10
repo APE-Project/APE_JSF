@@ -42,7 +42,7 @@ APE.Client.prototype.onError = function(type, fn, internal) {
 }
 
 APE.Client.prototype.writeCookie = function (name, value) {
-	document.cookie = name + "=" + value + "" + "; path=/";
+	document.cookie = name + "=" + value + "" + "; path=/; domain=" + document.domain;
 }
 
 APE.Client.prototype.readCookie = function (name, remove) {
@@ -104,8 +104,8 @@ APE.Client.prototype.load = function(config){
 	document.body.appendChild(iframe);
 
 	if (config.transport == 2) {
-		//I know this is dirty, but it's the only way to avoid status bar loading with JSONP
 		//If the content of the iframe is created in DOM, the status bar will always load...
+		//using document.write() is the only way to avoid status bar loading with JSONP
 		var doc = iframe.contentDocument;
 		if (!doc) doc = iframe.document;
 		doc.open();
