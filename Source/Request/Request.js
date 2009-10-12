@@ -7,7 +7,7 @@ APE.Request = new Class({
 		this.chl = 1;
 		this.callbackChl = new $H;
 
-		//Fix presto bug (see request method)
+		//Fix presto bug (see send method)
 		if (Browser.Engine.presto){
 			this.requestVar = {
 				updated: false,
@@ -49,7 +49,7 @@ APE.Request = new Class({
 		var a = [];
 		var o = {};
 		if ($type(cmd) == 'array') {
-			var tmp;
+			var tmp, evParams;
 			for (var i = 0; i < cmd.length; i++) {
 				tmp = cmd[i];
 
@@ -58,6 +58,10 @@ APE.Request = new Class({
 				o.chl = this.chl++;
 
 				tmp.params ? o.params = tmp.params : null;
+
+				evParams = $extend({}, o.params);
+				this.escapeParams(o.params);
+
 				if (!$defined(sessid) || sessid !== false) o.sessid = this.ape.getSessid();
 				a.push(o);
 
@@ -65,12 +69,12 @@ APE.Request = new Class({
 				if (tmp.options && tmp.options.callback) this.callbackChl.set(o.chl, tmp.options.callback);
 				if (this.options.event) {
 					//Request is on a pipe, fire the event on the core & on the pipe
-					if (params && params.pipe) {
-						var pipe = this.ape.getPipe(params.pipe);
-						params = [pipe, params];
-						pipe.fireEvent(ev, params);
+					if (o.params && o.params.pipe) {
+						var pipe = this.ape.getPipe(o.params.pipe);
+						evParams = [pipe, evParams];
+						pipe.fireEvent(ev, evParams);
 					}
-					this.ape.fireEvent(ev, params);
+					this.ape.fireEvent(ev, evParams);
 				}
 			}
 		} else {
@@ -78,23 +82,39 @@ APE.Request = new Class({
 			o.chl = this.chl++;
 
 			params ? o.params = params : null;
+			var evParams = $extend({}, params);
+
+			this.escapeParams(params);
+
 			if (!$defined(sessid) || sessid !== false) o.sessid = this.ape.getSessid();
 			a.push(o);
+			
 			var ev = 'cmd_' + cmd.toLowerCase();
-
 			if (this.options.event) {
-				//Request is on a pipe, fire the event on the core & on the pipe
+				//Request is on a pipe, fire the event on the pipe
 				if (params && params.pipe) { 
 					var pipe = this.ape.getPipe(params.pipe);
 					if (pipe) {
-						params = [pipe, params];
-						pipe.fireEvent(ev, params);
+						evParams = [pipe, evParams];
+						pipe.fireEvent(ev, evParams);
 					}
 				}
-				this.ape.fireEvent(ev, params);
+				this.ape.fireEvent(ev, evParams);
 			}
 		}
 		return JSON.encode(a);
+	},
+
+	escapeParams: function(params) {
+		for (var i in params) {
+			if (params.hasOwnProperty(i)) {
+				if (typeof params[i] == 'string') {
+					params[i] = escape(params[i]);
+					if (this.ape.options.transport) params[i] = escape(params[i]); //In case of JSONP data have to be escaped two times
+				}
+				else this.escapeParams(params[i]);
+			}
+		}
 	},
 
 	/****

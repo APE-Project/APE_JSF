@@ -22,11 +22,8 @@ APE.Core = new Class({
 					uniPipe.push({'casttype':pipe.type, 'pubid':pipe.pipe.pubid, 'properties':pipe.properties});
 				}
 		});
-		uniPipe = escape(JSON.encode(uniPipe));
-		if (this.options.transport == 2) uniPipe = escape(uniPipe); 
 
-		if (uniPipe.length > 0) this.setSession({'uniPipe': uniPipe});
-
+		if (uniPipe.length > 0) this.setSession({'uniPipe': JSON.encode(uniPipe)});
 	},
 
 	restoreUniPipe: function(resp){

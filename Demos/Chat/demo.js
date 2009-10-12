@@ -114,7 +114,7 @@ APE.Chat = new Class({
 			var msg = new Element('div',{'class':'ape_message_container'});
 			var cnt = new Element('div',{'class':'msg_top'}).inject(msg);
 			if (sender) {
-			       new Element('div',{'class':'ape_user','text':sender.name}).inject(msg,'top');
+			       new Element('div',{'class':'ape_user','text':sender.properties.name}).inject(msg,'top');
 			}
 			new Element('div',{'class':'msg_bot'}).inject(msg);
 			msg.inject(pipe.els.message);

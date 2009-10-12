@@ -53,7 +53,7 @@ APE.Pipe  = new Class({
 	},
 
 	send: function(data){
-		this.request.send('SEND', {'msg': escape(data)});
+		this.request.send('SEND', {'msg': data});
 	},
 
 	getPubid: function(){
