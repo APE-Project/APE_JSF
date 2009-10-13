@@ -81,6 +81,10 @@ APE.Client = new Class({
 			//If the content of the iframe is created in DOM, the status bar will always load...
 			var doc = iframe.contentDocument;
 			if (!doc) doc = iframe.document;
+			//IEFix : Config is passed throught window.APEConfig as when iframe is dinamycally created without source window.parent inside the iframe return the iframe window... 
+			if (doc.window) {
+				doc.window.APEConfig = config; 
+			}
 			doc.open();
 			var theHtml = '<html><head>';
 			for (var i = 0; i < config.scripts.length; i++) {

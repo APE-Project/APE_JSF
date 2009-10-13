@@ -145,7 +145,7 @@ APE.Core = new Class({
 
 		var delay = (this.failCounter*1000);
 		if (reSendData) {
-			this.request.send.delay(delay, this, args);
+			this.request.send.delay(delay, this.request, args);
 		} else {
 			this.check.delay(delay, this);
 		}
@@ -190,10 +190,11 @@ APE.Core = new Class({
 
 			for (var i = 0; i < raws.length; i++){ //Read all raw
 				var raw = raws[i];
-				if (callback && $type(callback)=='function') {
+				if (callback && $type(callback) == 'function') {
 					callback.run(raw);
 				}
-				if (raw.data.chl) {
+
+				if (raw.data.chl) {//Execute callback on challenge
 					chlCallback = this.request.callbackChl.get(raw.data.chl);
 					if (chlCallback) {
 						chlCallback.run(raw);
@@ -201,6 +202,7 @@ APE.Core = new Class({
 					}
 				}
 				this.callRaw(raw);
+
 				//Last request is finished and it's not an error
 				if (!this.transport.running()) {
 					if (!raw.data.code || (raw.data.code!='005' && raw.data.code!= '001' && raw.data.code != '004' && raw.data.code != '003')) {
@@ -364,8 +366,11 @@ APE.Core = new Class({
 var Ape;  
 
 window.onload = function(){
-	var identifier = window.frameElement.id,
-	config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
+	var config = window.APEConfig;
+	if (!config) {
+		var identifier = window.frameElement.id;
+		config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
+	}
 	//Delay of 1ms allow browser to do not show a loading message
 	(function() {
 		new APE.Core(config);

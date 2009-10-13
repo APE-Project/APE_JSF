@@ -29,7 +29,6 @@ APE.Transport.JSONP = new Class({
 
 			var request = document.createElement('script');
 			request.src = 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport +'/?' + queryString;
-			console.log(queryString);
 			document.head.appendChild(request);
 			this.requests.push(request);
 			//Detect timeout
@@ -49,7 +48,12 @@ APE.Transport.JSONP = new Class({
 
 	clearRequest: function(request) {
 		request.parentNode.removeChild(request);
-		for (var prop in request) delete request[prop];//Avoid memory leaks
+		//Avoid memory leaks
+		if (request.clearAttributes) {
+			request.clearAttributes();
+		} else { 
+			for (var prop in request) delete request[prop];
+		}
 		$clear(this.requestFailObserver.shift());
 	},
 
@@ -59,7 +63,6 @@ APE.Transport.JSONP = new Class({
 	},
 
 	read: function(resp) {
-			  console.log(resp);
 		$clear(this.requestFailObserver.shift());
 		this.clearRequest(this.requests.shift());
 		this.ape.parseResponse(resp, this.callback);

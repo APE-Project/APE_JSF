@@ -108,6 +108,10 @@ APE.Client.prototype.load = function(config){
 		//using document.write() is the only way to avoid status bar loading with JSONP
 		var doc = iframe.contentDocument;
 		if (!doc) doc = iframe.document;
+		//IEFix : Config is passed throught window.APEConfig as when iframe is dinamycally created without source window.parent inside the iframe return the iframe window... 
+		if (doc.window) {
+			doc.window.APEConfig = config; 
+		}
 		doc.open();
 		var theHtml = '<html><head></head>';
 		for (var i = 0; i < config.scripts.length; i++) {
