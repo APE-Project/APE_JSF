@@ -5,7 +5,7 @@ Request.XHRStreaming = new Class({
 	lastTextLength: 0,
 	read: 0, //Contain the amout of data read
 
-	onStateChange: function(){
+	onStateChange: function() {
 		if (this.xhr.readyState == 1) this.dataSent = true;
 		else if (this.xhr.readyState == 3) this.progress(this.xhr.responseText, this.xhr.responseXML);
 		this.parent();
@@ -23,7 +23,6 @@ Request.XHRStreaming = new Class({
 		this.onProgress(this.processScripts(text), xml);
 	}
 });
-
 APE.Transport.XHRStreaming = new Class({
 	
 	maxRequestSize: 100000,
@@ -87,11 +86,8 @@ APE.Transport.XHRStreaming = new Class({
 			onComplete: function(resp) {
 				$clear(this.streamInfo.timeoutObserver);
 				if (this.ape.status > 0) {
-					if (this.streamInfo.cleanClose) {
-						this.ape.check();
-					} else {
-						this.newStream();
-					}
+					if (this.streamInfo.cleanClose) this.ape.check();
+					else this.newStream();
 					this.streamInfo.cleanClose = false;
 				}
 			}.bind(this)
@@ -104,9 +100,7 @@ APE.Transport.XHRStreaming = new Class({
 		this.streamInfo.timeoutObserver = (function() {
 			this.streamInfo.forceClose = true;
 			//try to imediatly close stream
-			if (this.checkStream()) {
-				this.newStream();
-			}
+			if (this.checkStream()) this.newStream();
 		}).delay(1000*60, this);
 
 		return request;
@@ -167,7 +161,9 @@ APE.Transport.XHRStreaming = new Class({
 
 	newStream: function() {
 //		this.ape.request.send('CLOSE');//This will close the stream request
-		this.request.cancel();
+		$clear(this.streamInfo.timeoutObserver);
+		this.streamRequest.cancel();
+		this.ape.check();
 	},
 
 	cancel: function(){
@@ -176,10 +172,11 @@ APE.Transport.XHRStreaming = new Class({
 		this.request.cancel();
 	}
 });
-
 APE.Transport.XHRStreaming.browserSupport = function() {
 	if (Browser.Features.xhr) {
 		if (Browser.Engine.presto && ((typeof window.addEventStream) == 'function')) return true;
+	//	else if (window.XDomainRequest) return true; //Not yet :p
 		else return Browser.Engine.trident ? 0 : true;
 	} else return 2;//No XHR Support, switch to JSONP
 }
+

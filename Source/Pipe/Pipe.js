@@ -25,7 +25,8 @@ APE.Pipe  = new Class({
 					var args = this.parsePipeCmd.apply(this, arguments);
 					this.ape.request.cycledStack.add.apply(this.ape.request.cycledStack, args);
 				}.bind(this),
-				send: this.ape.request.send
+				send: this.ape.request.send,
+				setTime: this.ape.request.cycledStack.setTime.bind(this.ape.request.cycledStack)
 			},
 			stack :  {
 				add: function() {
