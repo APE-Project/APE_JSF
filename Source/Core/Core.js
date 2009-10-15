@@ -130,15 +130,14 @@ APE.Core = new Class({
 		var reSendData = false;
 
 		if (request.request && !request.request.dataSent) reSendData = true;
-
 		if (this.status > 0) {//APE is connected but request failed
 			this.status = failStatus;
 			this.cancelRequest();
 			this.stopPoller();
 			this.fireEvent('apeDisconnect');
-		} else if (this.failCounter < 6 && this.status == -2) {//APE is disconnected, and it's by timeout
-			this.failCounter++;
-		}
+		} 
+
+		if (this.failCounter < 6) this.failCounter++;
 
 		//Cancel last request
 		this.cancelRequest();
@@ -149,33 +148,19 @@ APE.Core = new Class({
 		} else {
 			this.check.delay(delay, this);
 		}
-		/*(function() {
-			if (this.status == 0) this.check();
-		}.delay(delay+300, this))*/
 	},
 
 	/***
 	 * Parse received data from Server
 	 */
 	parseResponse: function(raws, callback){
-		if (raws){
+		if (raws) {
 			if (this.status < 0 ) {
 				this.failCounter = 0;
 				this.status = 1;
 				this.startPoller();
 				this.fireEvent('apeReconnect');
 			}
-		}
-
-		//This should no longer happend
-		//if (raws == 'CLOSE' && !this.transport.running()) {
-		//	if (callback && $type(callback)=='function') callback.run(raws);
-		//	this.check();
-		//	return;
-		//}
-		if (raws == 'QUIT'){
-			this.quit();
-			return; 
 		}
 
 		var check = false;
@@ -287,7 +272,7 @@ APE.Core = new Class({
 	},
 
 	connect: function(options, sendStack){
-		this.request.stack.add('CONNECT', $merge(options, {"transport":this.options.transport}), false, false);
+		this.request.stack.add('CONNECT', options, false, false);
 		if (this.options.channel) { 
 			this.request.stack.add('JOIN', {"channels": this.options.channel}, false);
 		}

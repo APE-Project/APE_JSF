@@ -58,11 +58,11 @@ APE.Request = new Class({
 				o.chl = this.chl++;
 
 				tmp.params ? o.params = tmp.params : null;
-
 				evParams = $extend({}, o.params);
+
 				this.escapeParams(o.params);
 
-				if (!$defined(sessid) || sessid !== false) o.sessid = this.ape.getSessid();
+				if (!$defined(tmp.sessid) || tmp.sessid !== false) o.sessid = this.ape.getSessid();
 				a.push(o);
 
 				var ev = 'cmd_' + tmp.cmd.toLowerCase();
