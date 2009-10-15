@@ -30,11 +30,11 @@ APE.Client.prototype.addEvent = function(type, fn, internal) {
 }
 
 APE.Client.prototype.onRaw = function(type, fn, internal) {
-		this.addEvent('raw_' + type, fn, internal); 
+		this.addEvent('raw_' + type.toLowerCase(), fn, internal); 
 }
 
 APE.Client.prototype.onCmd = function(type, fn, internal) {
-		this.addEvent('cmd_' + type, fn, internal); 
+		this.addEvent('cmd_' + type.toLowerCase(), fn, internal); 
 }
 
 APE.Client.prototype.onError = function(type, fn, internal) {

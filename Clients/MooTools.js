@@ -28,7 +28,7 @@ APE.Client = new Class({
 	},
 
 	onRaw: function(type, fn, internal){
-		return this.addEvent('raw_' + type, fn, internal); 
+		return this.addEvent('raw_' + type.toLowerCase(), fn, internal); 
 	},
 
 	removeEvent: function(type, fn) {
@@ -36,7 +36,7 @@ APE.Client = new Class({
 	},
 
 	onCmd: function(type, fn, internal){
-		return this.addEvent('cmd_' + type, fn, internal); 
+		return this.addEvent('cmd_' + type.toLowerCase(), fn, internal); 
 	},
 
 	onError: function(type, fn, internal){
