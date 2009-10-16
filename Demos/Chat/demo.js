@@ -58,8 +58,8 @@ APE.Chat = new Class({
 			pipe.name = options.name;
 			return;
 		}
-		if (options.sender) {
-			pipe.name = options.sender.properties.name;
+		if (options.from) {
+			pipe.name = options.from.properties.name;
 		} else {
 			pipe.name = options.pipe.properties.name;
 		}
@@ -89,7 +89,7 @@ APE.Chat = new Class({
 	},
 
 	rawData: function(raw, pipe){
-		this.writeMessage(pipe, raw.data.msg, raw.data.sender);
+		this.writeMessage(pipe, raw.data.msg, raw.data.from);
 	},
 
 	parseMessage: function(message){
@@ -105,16 +105,16 @@ APE.Chat = new Class({
 		pipe.els.message.scrollTo(0,scrollSize.y);
 	},
 
-	writeMessage: function(pipe, message, sender){
+	writeMessage: function(pipe, message, from){
 		//Append message to last message
-		if(pipe.lastMsg && pipe.lastMsg.sender.pubid == sender.pubid){
+		if(pipe.lastMsg && pipe.lastMsg.from.pubid == from.pubid){
 			var cnt = pipe.lastMsg.el;
 		}else{//Create new one
 			//Create message container
 			var msg = new Element('div',{'class':'ape_message_container'});
 			var cnt = new Element('div',{'class':'msg_top'}).inject(msg);
-			if (sender) {
-			       new Element('div',{'class':'ape_user','text':sender.properties.name}).inject(msg,'top');
+			if (from) {
+			       new Element('div',{'class':'ape_user','text':from.properties.name}).inject(msg,'top');
 			}
 			new Element('div',{'class':'msg_bot'}).inject(msg);
 			msg.inject(pipe.els.message);
@@ -126,7 +126,7 @@ APE.Chat = new Class({
 
 		this.scrollMsg(pipe);
 
-		pipe.lastMsg = {sender:sender,el:cnt};
+		pipe.lastMsg = {from:from,el:cnt};
 
 		//notify 
 		if(this.getCurrentPipe().getPubid()!=pipe.getPubid()){
