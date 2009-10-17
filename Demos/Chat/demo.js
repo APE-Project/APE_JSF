@@ -241,13 +241,11 @@ APE.Chat = new Class({
 	},
 
 	reset: function(){
-		if (this.core.status != 0) {
-			this.core.clearSession();
-			if(this.els.pipeContainer){
-				this.els.pipeContainer.dispose();
-				this.els.more.dispose();
-			}
-			this.core.initialize(this.core.options);
+		this.core.clearSession();
+		if(this.els.pipeContainer){
+			this.els.pipeContainer.dispose();
+			this.els.more.dispose();
 		}
+		this.core.initialize(this.core.options);
 	}
 });

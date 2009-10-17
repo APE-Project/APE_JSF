@@ -36,7 +36,7 @@ APE.Transport.longPolling = new Class({
 	},
 
 	cancel: function() {
-		this.request.cancel();
+		if (this.request) this.request.cancel();
 		$clear(this.requestFailObserver.shift());
 	}
 });

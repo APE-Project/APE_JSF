@@ -22,6 +22,7 @@ APE.Request = new Class({
 	},
 
 	send: function(cmd, params, sessid, options, noWatch) {
+		if (this.ape.requestDisabled) return;
 		//Opera dirty fix
 		if (Browser.Engine.presto && !noWatch) {
 			this.requestVar.updated = true;

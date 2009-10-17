@@ -167,9 +167,10 @@ APE.Transport.XHRStreaming = new Class({
 	},
 
 	cancel: function(){
+		if (this.request) this.request.cancel();
+
 		$clear(this.streamInfo.timeoutObserver);
 		$clear(this.requestFailObserver.shift());
-		this.request.cancel();
 	}
 });
 APE.Transport.XHRStreaming.browserSupport = function() {

@@ -71,6 +71,7 @@ APE.Core = new Class({
 		this.status = 0; // 0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request failure
 		this.failCounter = 0;
 		this.pollerObserver = null;
+		this.requestDisabled = false;
 
 		this.onRaw('login', this.rawLogin);
 		this.onRaw('err', this.rawErr);
@@ -113,6 +114,12 @@ APE.Core = new Class({
 	stopPoller: function() {
 		$clear(this.pollerObserver);
 		this.pollerActive = false;
+	},
+	
+	stopRequest: function() {
+		this.cancelRequest();
+		if (this.transport.streamRequest) this.transport.streamRequest.cancel();
+		this.requestDisabled = true;
 	},
 
 	parseParam: function(param) {
