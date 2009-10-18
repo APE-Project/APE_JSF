@@ -15,8 +15,8 @@ APE.Move = new Class({
 
 		this.addEvent('init', this.initPlayground);
 		this.addEvent('userJoin', this.createUser);
-		this.addEvent('multiPipeCreate', function(type, pipe, options){
-			if(type=='multi') this.pipe = pipe;
+		this.addEvent('multiPipeCreate', function(pipe, options){
+			this.pipe = pipe;
 		});
 		this.addEvent('userLeft', this.deleteUser);
 
@@ -29,23 +29,23 @@ APE.Move = new Class({
 	},
 	
 	start: function() {
-		this.core.start(this.options.name);
+		this.core.start({'name': this.options.name});
 	},
 
 	deleteUser: function(user, pipe){
 		user.element.dispose();
 	},
 
-	cmdSend: function(pipe,sessid,pubid,message){
-		this.writeMessage(pipe,message,this.core.user);
+	cmdSend: function(pipe, param){
+		this.writeMessage(pipe, param.msg, this.core.user);
 	},
 
-	rawData: function(raw,pipe){
-		this.writeMessage(pipe,raw.data.msg,raw.data.sender);
+	rawData: function(raw, pipe){
+		this.writeMessage(pipe, raw.data.msg, raw.data.from);
 	},
 
 	rawPositions: function(raw, pipe){
-		this.movePoint(raw.data.sender,raw.data.sender.properties.x,raw.data.sender.properties.y);
+		this.movePoint(raw.data.from, raw.data.x,raw.data.y);
 	},
 
 	parseMessage: function(message){
@@ -117,13 +117,10 @@ APE.Move = new Class({
 	userColor: function(nickname){
 		var color = new Array(0,0,0);
 		var i=0;
-		/*TODO
 		while(i<3 && i<nickname.length){
-			//Transformation du code ascii du caractère en code couleur
 			color[i] = Math.abs(Math.round(((nickname.charCodeAt(i)-97)/26)*200+10));			
 			i++;
 		}
-		*/
 		return color.join(',');
 	},
 

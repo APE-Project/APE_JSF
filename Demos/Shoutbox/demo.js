@@ -15,7 +15,7 @@ APE.Shoutbox = new Class({
 		this.els.container = $(container);
 
 		//Catch pipeCreate events when you join a channel
-		this.addEvent('multiPipeCreate',this.createShoutbox);
+		this.addEvent('multiPipeCreate', this.createShoutbox);
 
 		//Catch message sending
 		this.onCmd('send',this.cmdSend);
@@ -32,13 +32,13 @@ APE.Shoutbox = new Class({
 			var nickname = null;
 		}
 		//Call start method from core to start connection to APE server
-		this.core.start(nickname);
+		this.core.start({'name': nickname});
 	},
 
 	/***
 	 * Create the shoutbox
 	 */
-	createShoutbox:function(type, pipe, options){
+	createShoutbox:function(pipe, options){
 		/***
 		 * Définition d'une variables de class content l'objet pipe
 		 * Il serra utilisez pour envoyer les message
@@ -63,15 +63,15 @@ APE.Shoutbox = new Class({
 	/***
 	 * Intercepte la commande send et écrits le message dans la shoutbox
 	 */
-	cmdSend: function(pipe, sessid, pubid, message){
-		this.writeMessage(message, this.core.user.properties.name);
+	cmdSend: function(pipe, param){
+		this.writeMessage(param.msg, this.core.user.properties.name);
 	},
 
 	/***
 	 * Intercepte le raw data et écrits le message dans la shoutbox
 	 */
 	rawData: function(raw, pipe){
-		this.writeMessage(raw.datas.msg, raw.datas.sender.properties.name);
+		this.writeMessage(raw.data.msg, raw.data.from.properties.name);
 	},
 	
 	/***
