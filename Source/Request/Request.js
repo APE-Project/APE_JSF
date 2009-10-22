@@ -91,6 +91,8 @@ APE.Request = new Class({
 			a.push(o);
 			
 			var ev = 'cmd_' + cmd.toLowerCase();
+			if (options && options.callback) this.callbackChl.set(o.chl, options.callback);
+
 			if (this.options.event) {
 				//Request is on a pipe, fire the event on the pipe
 				if (params && params.pipe) { 

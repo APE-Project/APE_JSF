@@ -96,12 +96,12 @@ APE.Transport.XHRStreaming = new Class({
 		request.id = $time();
 		this.streamRequest = request;
 		
-		//Request can't exced 3min
-		this.streamInfo.timeoutObserver = (function() {
-			this.streamInfo.forceClose = true;
-			//try to imediatly close stream
-			if (this.checkStream()) this.newStream();
-		}).delay(1000*60, this);
+		//this should no longer exist
+		//this.streamInfo.timeoutObserver = (function() {
+		//	this.streamInfo.forceClose = true;
+		//	//try to imediatly close stream
+		//	if (this.checkStream()) this.newStream();
+		//}).delay(1000*60, this);
 
 		return request;
 	},

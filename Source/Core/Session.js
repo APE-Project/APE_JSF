@@ -27,16 +27,14 @@ APE.Core = new Class({
 	},
 
 	restoreUniPipe: function(resp){
-		if(resp.raw == 'SESSIONS'){
-			var pipes = JSON.decode(unescape(resp.data.sessions.uniPipe));
-			if (pipes) {
-				for (var i = 0; i < pipes.length; i++){
-					this.newPipe('uni',{'pipe': pipes[i]});
-				}
+		var pipes = JSON.decode(unescape(resp.data.sessions.uniPipe));
+		if (pipes) {
+			for (var i = 0; i < pipes.length; i++){
+				this.newPipe('uni',{'pipe': pipes[i]});
 			}
-			this.fireEvent('restoreEnd');
-			this.restoring = false;
 		}
+		this.fireEvent('restoreEnd');
+		this.restoring = false;
 	},
 
 	init: function(){
@@ -49,9 +47,6 @@ APE.Core = new Class({
 		if (resp.raw!='ERR' && this.status == 0) { 
 			this.fireEvent('init');
 			this.status = 1;
-			this.request.setOptions({'callback': this.restoreUniPipe.bind(this)});
-		} else if (resp.raw == 'SESSIONS') { 
-			this.restoreUniPipe(resp);
 		} else if (this.status == 0) {
 			this.stopPoller();
 		}
@@ -67,7 +62,7 @@ APE.Core = new Class({
 			this.fireEvent('restoreStart');
 			this.startPoller();
 			this.request.setOptions({'callback': this.restoreCallback.bind(this)});
-			this.getSession(this.options.sessionVar);
+			this.getSession(this.options.sessionVar, this.restoreUniPipe.bind(this));
 		}
 	},
 

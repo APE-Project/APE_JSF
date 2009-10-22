@@ -11,7 +11,7 @@
 <body>
 	<script type="text/javaScript">
 		function rand_chars(){
-			 var keylist="abcdefghijklmnopqrstuvwxyz123456789"
+			 var keylist="abcdefghijklmnopqrstuvwxyz"
 			 var temp=''
 			 var plength=5;
 			 for (i=0;i<plength;i++){
@@ -36,7 +36,7 @@
 					 * Note : Here we connect to ape and send a username because our ape server use modchat
 					 * But if your server don't use mod chat just remove rand_chars() :)
 					 */
-					client.core.start(rand_chars());
+					client.core.start({'name': rand_chars()});
 					client.addEvent('init',function(){ //Only connect when client is connected to APE
 						connect();
 					});

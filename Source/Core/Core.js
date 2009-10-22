@@ -86,6 +86,8 @@ APE.Core = new Class({
 		//Execute complete function of APE.Client instance
 		if (options.complete) options.complete.apply(null, [this]);
 		this.fireEvent('load', this);
+
+		if (this.options.connectOptions) this.start(this.options.connectOptions);
 	},
 
 	selectTransport: function() {
@@ -182,17 +184,11 @@ APE.Core = new Class({
 
 			for (var i = 0; i < raws.length; i++){ //Read all raw
 				var raw = raws[i];
+
 				if (callback && $type(callback) == 'function') {
 					callback.run(raw);
 				}
 
-				if (raw.data.chl) {//Execute callback on challenge
-					chlCallback = this.request.callbackChl.get(raw.data.chl);
-					if (chlCallback) {
-						chlCallback.run(raw);
-						this.request.callbackChl.erase(raw.data.chl);
-					}
-				}
 				this.callRaw(raw);
 
 				//Last request is finished and it's not an error
@@ -229,6 +225,13 @@ APE.Core = new Class({
 			}
 		} else {
 			args = raw;
+		}
+		if (raw.data.chl) {//Execute callback on challenge
+			var chlCallback = this.request.callbackChl.get(raw.data.chl);
+			if (chlCallback) {
+				chlCallback.run(raw);
+				this.request.callbackChl.erase(raw.data.chl);
+			}
 		}
 		this.fireEvent('raw_' + raw.raw.toLowerCase(), args);
 	},
@@ -281,7 +284,14 @@ APE.Core = new Class({
 	connect: function(options, sendStack){
 		this.request.stack.add('CONNECT', options, false, false);
 		if (this.options.channel) { 
-			this.request.stack.add('JOIN', {"channels": this.options.channel}, false);
+			var channel;
+			if ($type(this.options.channel) == 'object') {
+				channel = [];
+				$each(this.options.channel, function(c) {
+						channel.push(c);
+				});
+			} else channel = this.options.channel
+			this.request.stack.add('JOIN', {"channels": channel}, false);
 		}
 		if (sendStack !== false) this.request.stack.send();
 	},
@@ -315,8 +325,19 @@ APE.Core = new Class({
 		this.request.send('SESSION', {'action': 'set', 'values': obj}, true);
 	},
 
-	getSession: function(key){
-		this.request.send('SESSION', {'action':'get', 'values': (($type(key) == 'array') ? key : [key])}, true);
+	getSession: function(key, callback){
+		var options = {};
+
+		if (callback) {
+			options.callback = function(resp) { 
+				if (resp.raw == 'SESSIONS') this.run(arguments) 
+			}.bind(callback)
+		}
+
+		this.request.send('SESSION', {
+				'action':'get', 
+				'values': (($type(key) == 'array') ? key : [key])
+			}, true, options );
 	},
 	
 	rawIdent: function(raw){
