@@ -112,8 +112,8 @@ APE.Request = new Class({
 		for (var i in params) {
 			if (params.hasOwnProperty(i)) {
 				if (typeof params[i] == 'string') {
-					params[i] = escape(params[i]);
-					if (this.ape.options.transport) params[i] = escape(params[i]); //In case of JSONP data have to be escaped two times
+					params[i] = encodeURIComponent(params[i]);
+					if (this.ape.options.transport == 2) params[i] = encodeURIComponent(params[i]); //In case of JSONP data have to be escaped two times
 				}
 				else this.escapeParams(params[i]);
 			}

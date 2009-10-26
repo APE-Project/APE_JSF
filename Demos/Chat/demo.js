@@ -20,6 +20,7 @@ APE.Chat = new Class({
 		this.onRaw('data', this.rawData);
 		this.onCmd('send', this.cmdSend);
 		this.onError('004', this.reset);
+		this.onError('006', this.promptName);
 
 		this.addEvent('load', this.start);
 		this.addEvent('init', this.createChat);

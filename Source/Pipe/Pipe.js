@@ -39,14 +39,14 @@ APE.Pipe  = new Class({
 	},
 
 	parsePipeCmd: function() {
+			//convert arguments to a real array to avoid a bug with firefox see bug #292215  https://bugzilla.mozilla.org/show_bug.cgi?id=292215
+			var args = Array.prototype.slice.call(arguments);
 			if ($type(arguments[0]) == 'array') {
-				var args = arguments;
 				for (var i = 0; i < args[0].length; i++) {
 					if (!args[0][i].params) args[0][i].params = {};
 					if (this.pipe) args[0][i].pipe = this.pipe.pubid;
 				}
 			} else {
-				var args = arguments;
 				if (!args[1]) args[1] = {};
 				if (this.pipe) args[1].pipe = this.pipe.pubid;
 			}
