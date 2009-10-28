@@ -46,13 +46,14 @@ APE.Core = new Class({
 	restoreCallback: function(resp){
 		if (resp.raw!='ERR' && this.status == 0) { 
 			this.fireEvent('init');
+			this.fireEvent('ready');
 			this.status = 1;
 		} else if (this.status == 0) {
 			this.stopPoller();
 		}
 	},
 
-	connect: function(options){
+	connect: function(options, sendStack){
 		var cookie = this.initCookie();
 		if (!cookie) {//No cookie defined start a new connection
 			this.parent(options);
@@ -62,7 +63,7 @@ APE.Core = new Class({
 			this.fireEvent('restoreStart');
 			this.startPoller();
 			this.request.setOptions({'callback': this.restoreCallback.bind(this)});
-			this.getSession(this.options.sessionVar, this.restoreUniPipe.bind(this));
+			this.getSession(this.options.sessionVar, this.restoreUniPipe.bind(this), {'request': 'stack', 'sendStack': sendStack});
 		}
 	},
 

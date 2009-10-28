@@ -118,7 +118,6 @@ APE.Transport.XHRStreaming = new Class({
 
 			this.streamInfo.canClose = true;
 			this.streamInfo.cleanClose = true;
-
 			this.ape.parseResponse(text, this.streamInfo.callback);
 
 			this.streamInfo.callback = null;
@@ -132,6 +131,10 @@ APE.Transport.XHRStreaming = new Class({
 				//Clear buffer
 				this.buffer = '';
 				
+				for (var i = 0; i < length-1; i++) { 
+					this.ape.parseResponse(group[i], this.streamInfo.callback);
+				}
+
 				if (group[length-1] !== '') { //Last group complete last received raw but it's not finish
 					this.buffer += group[length-1];
 				} else { //Received fragment is complete
@@ -139,10 +142,6 @@ APE.Transport.XHRStreaming = new Class({
 					if (this.checkStream()) this.newStream();
 				}
 
-
-				for (var i = 0; i < length-1; i++) { 
-					this.ape.parseResponse(group[i], this.streamInfo.callback);
-				}
 				//Delete callback
 				this.streamInfo.callback = null;
 			} else {//Fragement received is a part of a raw 

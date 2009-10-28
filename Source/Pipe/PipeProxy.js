@@ -19,7 +19,7 @@ APE.PipeProxy = new Class({
 
 		this.core.addPipe(this.getPubid(), this);
 
-		this.onRaw('proxy_event', this.rawProxyEvent );
+		this.onRaw('proxy_event', this.rawProxyEvent);
 		this.ape.fireEvent('proxyPipeCreate', [this, options]);
 	},
 
@@ -42,8 +42,7 @@ APE.PipeProxy = new Class({
 	      this.request.send('SEND', {'msg':B64.encode(data)});
 	},
 
-	rawProxyEvent: function(resp, pipe){
-		if(!this.pipe) this.init(resp.data);
+	rawProxyEvent: function(resp){
 		switch (resp.data.event) {
 			case 'read':
 				var data = B64.decode(resp.data.data);
@@ -63,6 +62,7 @@ APE.PipeProxy = new Class({
 
 	callback: function(raw){
 		this.init(raw.data);
+		this.rawProxyEvent(raw);
 	}
 });
 

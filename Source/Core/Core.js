@@ -161,7 +161,7 @@ APE.Core = new Class({
 	/***
 	 * Parse received data from Server
 	 */
-	parseResponse: function(raws, callback){
+	parseResponse: function(raws, callback) {
 		if (raws) {
 			if (this.status < 0 ) {
 				this.failCounter = 0;
@@ -324,7 +324,7 @@ APE.Core = new Class({
 		this.request.send('SESSION', {'action': 'set', 'values': obj}, true);
 	},
 
-	getSession: function(key, callback){
+	getSession: function(key, callback, opt){
 		var options = {};
 
 		if (callback) {
@@ -332,11 +332,13 @@ APE.Core = new Class({
 				if (resp.raw == 'SESSIONS') this.run(arguments) 
 			}.bind(callback)
 		}
-
-		this.request.send('SESSION', {
+		var request = this.request.send.bind(this.request);
+		if (opt && opt.request) request = this.request[opt.request].add.bind(this.request[opt.request]);
+		request('SESSION', {
 				'action':'get', 
 				'values': (($type(key) == 'array') ? key : [key])
-			}, true, options );
+			}, true, options);
+		if (opt && opt.sendStack !== false) this.request[opt.request].send();
 	},
 	
 	rawIdent: function(raw){
