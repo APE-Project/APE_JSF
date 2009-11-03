@@ -72,9 +72,13 @@ APE.Request = new Class({
 					//Request is on a pipe, fire the event on the core & on the pipe
 					if (o.params && o.params.pipe) {
 						var pipe = this.ape.getPipe(o.params.pipe);
-						evParams = [pipe, evParams];
-						pipe.fireEvent(ev, evParams);
+						if (pipe) evParams = [pipe, evParams];
 					}
+
+					this.ape.fireEvent('onCmd', evParams);
+
+					if (pipe) pipe.fireEvent(ev, evParams);
+
 					this.ape.fireEvent(ev, evParams);
 				}
 			}
@@ -97,11 +101,12 @@ APE.Request = new Class({
 				//Request is on a pipe, fire the event on the pipe
 				if (params && params.pipe) { 
 					var pipe = this.ape.getPipe(params.pipe);
-					if (pipe) {
-						evParams = [pipe, evParams];
-						pipe.fireEvent(ev, evParams);
-					}
+					if (pipe) evParams = [pipe, evParams];
 				}
+				this.ape.fireEvent('onCmd', evParams);
+
+				if (pipe) pipe.fireEvent(ev, evParams);
+
 				this.ape.fireEvent(ev, evParams);
 			}
 		}

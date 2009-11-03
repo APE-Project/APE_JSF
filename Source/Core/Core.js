@@ -225,6 +225,9 @@ APE.Core = new Class({
 		} else {
 			args = raw;
 		}
+
+		this.fireEvent('onRaw', args);
+
 		if (raw.data.chl) {//Execute callback on challenge
 			var chlCallback = this.request.callbackChl.get(raw.data.chl);
 			if (chlCallback) {
@@ -232,6 +235,7 @@ APE.Core = new Class({
 				this.request.callbackChl.erase(raw.data.chl);
 			}
 		}
+
 		this.fireEvent('raw_' + raw.raw.toLowerCase(), args);
 	},
 	
