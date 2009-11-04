@@ -75,8 +75,6 @@ APE.Client.prototype.load = function(config){
 		}
 	}.bind(this);
 
-	document.domain = config.domain;
-
 	//Get APE cookie
 	var cookie = unescape(this.readCookie('APE_Cookie'));
 	var tmp = eval('(' + cookie + ')');
@@ -121,6 +119,7 @@ APE.Client.prototype.load = function(config){
 		doc.write(theHtml);
 		doc.close();
 	} else {
+		document.domain = config.domain;
 		iframe.setAttribute('src','http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');
 		//Firefox fix, see bug  #356558 
 		// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
