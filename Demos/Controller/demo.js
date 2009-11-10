@@ -17,13 +17,13 @@ APE.Controller = new Class({
 	},
 	
 	start: function(core){
-		this.core.start('test');
+		this.core.start({'name': $time()});
 	},
 	
 	onMsg: function(raw){
 		new Element('div', {
 			'class': 'message',
-			html: decodeURIComponent(raw.data.value)
+			html: decodeURIComponent(raw.data.message)
 		}).inject(this.container);
 	}
 	

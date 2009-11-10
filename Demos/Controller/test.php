@@ -1,4 +1,6 @@
 <?php
+$APEserver = 'http://ape-server-url/?';
+$APEPassword = 'testpasswd';
 
 $messages = array(
 	'Test Message',
@@ -6,12 +8,22 @@ $messages = array(
 	'<span style="color: #080">Hey, how are you doing?</span>',
 );
 
-$APEserver = 'http://push2.ape-project.dev.weelya.net';
-$APEPassword = 'testpwd';
-$s = $APEserver.'/?'.rawurlencode('[{"cmd":"control","params":{"password":"'.$APEPassword.'","channel":"testchannel","raw":"POSTMSG","value":"'.rawurlencode($messages[array_rand($messages)]).'"}}]');
-$res = file_get_contents($s);
-if ($res == 'OK POSTED') {
+$cmd = array(array( 
+  'cmd' => 'inlinepush', 
+  'params' =>  array( 
+	  'password'  => 'captionapppwd', 
+	  'raw'       => 'postmsg', 
+	  'channel'   => 'testchannel', 
+	  'data'      => array( //Note: data can't be a string 
+	      'message' => $messages[array_rand($messages)] 
+	  ) 
+   ) 
+)); 
+
+$data = file_get_contents($APEserver.rawurlencode(json_encode($cmd))); 
+
+if ($data == 'OK') {
 	echo 'Message sent!';
 } else {
-	echo 'Error sending message, server response is : <pre>'.$res.'</pre>';
+	echo 'Error sending message, server response is : <pre>'.$data.'</pre>';
 }
