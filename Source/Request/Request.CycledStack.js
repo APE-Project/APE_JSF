@@ -2,10 +2,10 @@ APE.Request.CycledStack = new Class({
 	initialize: function(ape) {
 		this.ape = ape;
 
-		this.timer = this.send.periodical(this.ape.options.cycledStackTime, this);
-
 		this.stack = [];
 		this.reajustTime = false;
+
+		this.timer = this.send.periodical(this.ape.options.cycledStackTime, this);
 	},
 
 	add: function(cmd, params, sessid) {

@@ -216,7 +216,7 @@ APE.Core = new Class({
 			} else {
 				pipe = this.pipes.get(pipeId);
 				//Update pipe properties
-				pipe.properties = raw.data.pipe.properties;
+				if (raw.data.pipe.properties) pipe.properties = raw.data.pipe.properties;
 			}
 			if (pipe) {
 				args = [raw, pipe];
@@ -333,7 +333,7 @@ APE.Core = new Class({
 
 		if (callback) {
 			options.callback = function(resp) { 
-				if (resp.raw == 'SESSIONS') this.run(arguments) 
+				if (resp.raw == 'SESSIONS') this.apply(null, arguments) 
 			}.bind(callback)
 		}
 		var request = this.request.send.bind(this.request);
@@ -382,15 +382,14 @@ APE.Core = new Class({
 });
 
 var Ape;  
-
-window.onload = function(){
-	var config = window.APEConfig;
-	if (!config) {
-		var identifier = window.frameElement.id;
-		config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
-	}
+APE.init = function(config){
+	//var config = window.APEConfig;
+	//if (!config) {
+	//	var identifier = window.frameElement.id;
+	//	config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
+	//}
 	//Delay of 1ms allow browser to do not show a loading message
 	(function() {
 		new APE.Core(config);
 	}).delay(1);
-};
+}

@@ -66,7 +66,6 @@ APE.Transport.JSONP = new Class({
 		$clear(this.requestFailObserver.shift());
 		this.clearRequest(this.requests.shift());
 		this.ape.parseResponse(resp, this.callback);
-
 		this.callback = null;
 	},
 

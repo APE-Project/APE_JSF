@@ -56,8 +56,8 @@ APE.Core = new Class({
 	connect: function(options, sendStack){
 		var cookie = this.initCookie();
 		if (!cookie) {//No cookie defined start a new connection
-			this.parent(options);
 			this.addEvent('init',this.init);
+			this.parent(options);
 		} else {//Cookie or instance exist
 			this.restoring = true;
 			this.fireEvent('restoreStart');
@@ -73,7 +73,7 @@ APE.Core = new Class({
 	 * @return 	Boolean	false if application identifier isn't found or an object with the instance and the cookie
 	 */
 	getInstance: function(identifier) {
-		var	tmp = Cookie.read('APE_Cookie');
+		var	tmp = Cookie.read('APE_Cookie', {'domain': document.domain});
 		identifier = identifier || this.options.identifier;
 		if (!tmp) return false;
 
@@ -155,7 +155,9 @@ APE.Core = new Class({
 	},
 
 	saveCookie: function(){
-		Cookie.write('APE_Cookie', JSON.encode(this.cookie), {'path': '/', domain:this.options.domain});
+		//Save cookie on the parent window (this is usefull with JSONP as domain in the iframe is different than the domain in the parent window)
+		//this.client.cookie.write('APE_Cookie', JSON.encode(this.cookie));
+		Cookie.write('APE_Cookie', JSON.encode(this.cookie), {'domain': document.domain});
 	},
 
 	clearSession: function(){

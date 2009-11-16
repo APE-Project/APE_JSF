@@ -119,8 +119,12 @@ APE.Request = new Class({
 				if (typeof params[i] == 'string') {
 					params[i] = encodeURIComponent(params[i]);
 					if (this.ape.options.transport == 2) params[i] = encodeURIComponent(params[i]); //In case of JSONP data have to be escaped two times
-				}
-				else this.escapeParams(params[i]);
+				} else if ($type(params[i]) == 'array' && params[i].map == null) {
+					// When APE JSF is used with client JavaScript.js array are not extended with clean & filter function this fix this issue
+					params[i].map = Array.prototype.map;
+					params[i].filter = Array.prototype.filter;
+					this.escapeParams(params[i]);
+				} else this.escapeParams(params[i]);
 			}
 		}
 	},

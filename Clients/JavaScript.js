@@ -41,11 +41,13 @@ APE.Client.prototype.onError = function(type, fn, internal) {
 		this.addEvent('error_' + type, fn, internal); 
 }
 
-APE.Client.prototype.writeCookie = function (name, value) {
-	document.cookie = name + "=" + value + "" + "; path=/; domain=" + document.domain;
+APE.Client.prototype.cookie = {};
+
+APE.Client.prototype.cookie.write = function (name, value) {
+	document.cookie = name + "=" + encodeURIComponent(value) + "; domain=" + document.domain;
 }
 
-APE.Client.prototype.readCookie = function (name, remove) {
+APE.Client.prototype.cookie.read = function (name) {
 	var nameEQ = name + "=";
 	var ca = document.cookie.split(';');
 	for(var i=0;i < ca.length;i++) {
@@ -75,8 +77,11 @@ APE.Client.prototype.load = function(config){
 		}
 	}.bind(this);
 
+	//set document.domain
+	if (config.transport != 2) document.domain = config.domain;
+
 	//Get APE cookie
-	var cookie = unescape(this.readCookie('APE_Cookie'));
+	var cookie = unescape(this.cookie.read('APE_Cookie'));
 	var tmp = eval('(' + cookie + ')');
 
 	if (tmp) {
@@ -85,10 +90,9 @@ APE.Client.prototype.load = function(config){
 		cookie = "{'frequency':0}";
 	}
 
-
 	var reg = new RegExp("'frequency':([ 0-9]+)", "g")
 	cookie = cookie.replace(reg, "'frequency': " + config.frequency + "");
-	this.writeCookie('APE_Cookie', cookie);
+	this.cookie.write('APE_Cookie', cookie);
 
 	var iframe = document.createElement('iframe');
 	iframe.setAttribute('id','ape_' + config.identifier);
@@ -97,19 +101,14 @@ APE.Client.prototype.load = function(config){
 	iframe.style.left = '-300px';
 	iframe.style.top = '-300px';
 
-	APE.Config[config.identifier] = config;
-
 	document.body.appendChild(iframe);
 
 	if (config.transport == 2) {
+		var doc = iframe.contentDocument;
+		if (!doc) doc = iframe.contentWindow.document;//For IE
+
 		//If the content of the iframe is created in DOM, the status bar will always load...
 		//using document.write() is the only way to avoid status bar loading with JSONP
-		var doc = iframe.contentDocument;
-		if (!doc) doc = iframe.document;
-		//IEFix : Config is passed throught window.APEConfig as when iframe is dinamycally created without source window.parent inside the iframe return the iframe window... 
-		if (doc.window) {
-			doc.window.APEConfig = config; 
-		}
 		doc.open();
 		var theHtml = '<html><head></head>';
 		for (var i = 0; i < config.scripts.length; i++) {
@@ -119,21 +118,24 @@ APE.Client.prototype.load = function(config){
 		doc.write(theHtml);
 		doc.close();
 	} else {
-		document.domain = config.domain;
 		iframe.setAttribute('src','http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');
 		//Firefox fix, see bug  #356558 
 		// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 		iframe.contentWindow.location.href = iframe.getAttribute('src');
 	}
+
+	iframe.onload = function() { 
+		iframe.contentWindow.APE.init(config);
+	}
 }
 
-
-if (Function.prototype.bind==null) {
+if (!Array.prototype.$family) Array.prototype.$family = {'name':'array'};//Adding mootools compatibility for APE Core
+if (Function.prototype.bind == null) {
 	Function.prototype.bind = function(bind, args) {
 		return this.create({'bind': bind, 'arguments': args});
 	}
 }
-if (Function.prototype.create==null) {
+if (Function.prototype.create == null) {
 	Function.prototype.create = function(options) {
 			var self = this;
 			options = options || {};
@@ -149,3 +151,4 @@ if (Function.prototype.create==null) {
 			};
 	}
 }
+

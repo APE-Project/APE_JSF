@@ -1,9 +1,9 @@
 /***
  * APE JSF Setup
  */
-APE.Config.baseUrl = 'http://yourdomain.com/APE_JSF/'; //APE JSF 
+APE.Config.baseUrl = 'http://yourdomain.com/APE_JSF'; //APE JSF 
 APE.Config.domain = 'yourdomain.com'; //Your domain, must be the same than the domain in aped.conf of your server
-APE.Config.server = 'ape.yourdomain.com'; //APE server URL
+APE.Config.server = 'ape.yourdomain.com:6969'; //APE server URL
 
 (function(){
 	for (var i = 0; i < arguments.length; i++)

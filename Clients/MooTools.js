@@ -43,9 +43,7 @@ APE.Client = new Class({
 		return this.addEvent('error_' + type, fn, internal); 
 	},
 
-	load: function(config){
-		var tmp	= JSON.decode(Cookie.read('APE_Cookie'));
-		
+	load: function(config){	
 		config = $merge({}, APE.Config, config);
 
 		// Init function called by core to init core variable
@@ -55,7 +53,12 @@ APE.Client = new Class({
 				this.addEvent.apply(this, this.eventProxy[i]);
 			}
 		}.bind(this);
+
+		//set document.domain
+		if (config.transport != 2) document.domain = config.domain;
 		
+		var tmp	= JSON.decode(Cookie.read('APE_Cookie'), {'domain': document.domain});
+
 		if(tmp) {
 			config.frequency = tmp.frequency.toInt();
 		} else {
@@ -63,9 +66,9 @@ APE.Client = new Class({
 		}
 
 		tmp.frequency = config.frequency + 1;
-		Cookie.write('APE_Cookie', JSON.encode(tmp), {'domain': config.domain, 'path': '/'});
+
+		Cookie.write('APE_Cookie', JSON.encode(tmp), {'domain': document.domain});
 		
-		APE.Config[config.identifier] = config;
 		var iframe = new Element('iframe', {
 			id: 'ape_' + config.identifier,
 			styles: {
@@ -77,14 +80,11 @@ APE.Client = new Class({
 		}).inject(document.body);
 
 		if (config.transport == 2) {//Special case for JSONP
-			//I know this is dirty, but it's the only way to avoid status bar loading with JSONP
-			//If the content of the iframe is created in DOM, the status bar will always load...
 			var doc = iframe.contentDocument;
-			if (!doc) doc = iframe.document;
-			//IEFix : Config is passed throught window.APEConfig as when iframe is dinamycally created without source window.parent inside the iframe return the iframe window... 
-			if (doc.window) {
-				doc.window.APEConfig = config; 
-			}
+			if (!doc) doc = iframe.contentWindow.document;
+
+			//If the content of the iframe is created in DOM, the status bar will always load...
+			//using document.write() is the only way to avoid status bar loading with JSONP
 			doc.open();
 			var theHtml = '<html><head>';
 			for (var i = 0; i < config.scripts.length; i++) {
@@ -94,14 +94,14 @@ APE.Client = new Class({
 			doc.write(theHtml);
 			doc.close();
 		} else { 
-			document.domain = config.domain;
 			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');
 			// Firefox fix, see bug  #356558 
 			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 			iframe.contentWindow.location.href = iframe.get('src');
 		}	
-		
-		return this;
+		iframe.onload = function() { 
+			iframe.contentWindow.APE.init(config);
+		}
 	}
 	
 });
