@@ -26,17 +26,19 @@ APE.Client = new Class({
 		return ret;
 	},
 
-	onRaw: function(type, fn, internal){
+	onRaw: function(type, fn, internal) {
 		return this.addEvent('raw_' + type.toLowerCase(), fn, internal); 
 	},
 
-	removeEvent: this.core.removeEvent,
+	removeEvent: function(type, fn) {
+		return this.core.removeEvent(type, fn);
+	},
 
-	onCmd: function(type, fn, internal){
+	onCmd: function(type, fn, internal) {
 		return this.addEvent('cmd_' + type.toLowerCase(), fn, internal); 
 	},
 
-	onError: function(type, fn, internal){
+	onError: function(type, fn, internal) {
 		return this.addEvent('error_' + type, fn, internal); 
 	},
 
