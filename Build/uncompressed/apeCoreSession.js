@@ -1693,6 +1693,7 @@ APE.Core = new Class({
 
 	initialize: function(options){
 		window.Ape = this;
+		if (options.channel) options.channel.$family = 'array';
 		this.setOptions(options);
 
 		this.selectTransport();
