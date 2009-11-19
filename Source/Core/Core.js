@@ -79,6 +79,7 @@ APE.Core = new Class({
 
 		this.onError('003', this.clearSession);
 		this.onError('004', this.clearSession);
+
 		//Set core var for APE.Client instance
 		if (options.init) options.init.apply(null, [this]);
 
@@ -122,7 +123,7 @@ APE.Core = new Class({
 		if (this.transport.streamRequest) this.transport.streamRequest.cancel();
 		this.requestDisabled = true;
 	},
-
+	
 	parseParam: function(param) {
 		return ($type(param) == 'object') ? Hash.getValues(param) : $splat(param);
 	},
@@ -134,7 +135,7 @@ APE.Core = new Class({
 	/***
 	 * Function called when a request fail or timeout
 	 */
-	requestFail: function(args, failStatus, request) {
+	requestFail: function(failStatus, request) {
 		var reSendData = false;
 
 		if (request.request && !request.request.dataSent) reSendData = true;
@@ -150,12 +151,13 @@ APE.Core = new Class({
 		//Cancel last request
 		this.cancelRequest();
 
-		var delay = (this.failCounter*1000);
-		if (reSendData) {
-			this.request.send.delay(delay, this.request, args);
-		} else {
+		var delay = (this.failCounter*$random(300,1000));
+
+		//if (reSendData) {
+		//	this.request.send.delay(delay, this.request, queryString);
+		//} else {
 			this.check.delay(delay, this);
-		}
+		//}
 	},
 
 	/***
@@ -175,7 +177,7 @@ APE.Core = new Class({
 		var chlCallback;//Callback on challenge
 
 		if (raws) {
-			raws = JSON.decode(raws, true);//TODO replace me by eval for performance purpose
+			raws = JSON.parse(raws); 
 			if (!raws){ // Something went wrong, json decode failed
 				this.check();
 				return;
@@ -200,7 +202,7 @@ APE.Core = new Class({
 					check = false;
 				}
 			}
-		}
+		} else if (!this.transport.running()) check = true; //No request running, request didn't respond correct JSON, something went wrong
 		if (check) this.check();
 	},
 
@@ -231,14 +233,14 @@ APE.Core = new Class({
 		if (raw.data.chl) {//Execute callback on challenge
 			var chlCallback = this.request.callbackChl.get(raw.data.chl);
 			if (chlCallback) {
-				chlCallback.run(raw);
 				this.request.callbackChl.erase(raw.data.chl);
+				chlCallback.run(raw);
 			}
 		}
 
 		this.fireEvent('raw_' + raw.raw.toLowerCase(), args);
 	},
-	
+
 	newPipe: function(type, options){
 		if (options && options.pipe.pubid) {
 			var pipe = this.pipes.get(options.pipe.pubid)
@@ -250,6 +252,11 @@ APE.Core = new Class({
 		if(type == 'proxy') return new APE.PipeProxy(this, options);
 	},
 
+	getRequest: function(opt) {
+		if (!opt.request) return this.request.send.bind(this.request);
+		else return this.request[opt.request].add.bind(this.request[opt.request]);
+	},
+
 	/***
 	 * Add a pipe to the core pipes hash
 	 */
@@ -257,7 +264,7 @@ APE.Core = new Class({
 		return this.pipes.set(pubid, pipe); 
 	},
 
-	getPipe: function(pubid){
+	getPipe: function(pubid) {
 		var pipe = this.pipes.get(pubid);
 		if (!pipe) {
 			pipe = this.users.get(pubid);
@@ -277,26 +284,22 @@ APE.Core = new Class({
 	},
 	
 	check: function(){
-		this.request.send('CHECK', null, true);
+		this.request.send('CHECK');
 	},
 
-	start: function(options, sendStack){
-		this.connect(options, sendStack); 
+	start: function(args, options){
+		this.connect(args, options); 
 	},
 
-	connect: function(options, sendStack){
-		this.request.stack.add('CONNECT', options, false, false);
+	connect: function(args, options){
+		if (!options) options = {};
+		options.sessid = false;
+
+		this.request.stack.add('CONNECT', args, options);
 		if (this.options.channel) { 
-			var channel;
-			if ($type(this.options.channel) == 'object') {
-				channel = [];
-				$each(this.options.channel, function(c) {
-						channel.push(c);
-				});
-			} else channel = this.options.channel
-			this.request.stack.add('JOIN', {"channels": channel}, false);
+			this.request.stack.add('JOIN', {"channels": this.options.channel}, options);
 		}
-		if (sendStack !== false) this.request.stack.send();
+		if (!$defined(options.sendStack) && options.sendStack !== false) this.request.stack.send();
 	},
 
 	join: function(channel){
@@ -321,28 +324,31 @@ APE.Core = new Class({
 		return this.sessid;
 	},
 
-	setSession: function(obj, options) {
+	setSession: function(obj, option) {
 		if (this.restoring) return;
-		if (options) this.request.setOptions(options);
 
-		this.request.send('SESSION', {'action': 'set', 'values': obj}, true);
+		this.request.send('SESSION', {'action': 'set', 'values': obj}, option);
 	},
 
-	getSession: function(key, callback, opt){
-		var options = {};
+	getSession: function(key, callback, option){
+		if (!option) option = {};
+		var requestOption = {};
 
 		if (callback) {
-			options.callback = function(resp) { 
+			requestOption.callback = function(resp) { 
 				if (resp.raw == 'SESSIONS') this.apply(null, arguments) 
 			}.bind(callback)
 		}
-		var request = this.request.send.bind(this.request);
-		if (opt && opt.request) request = this.request[opt.request].add.bind(this.request[opt.request]);
-		request('SESSION', {
+		requestOption.requestCallback = option.requestCallback || null;
+
+		this.getRequest(option)('SESSION', {
 				'action':'get', 
 				'values': (($type(key) == 'array') ? key : [key])
-			}, true, options);
-		if (opt && opt.sendStack !== false) this.request[opt.request].send();
+			}, requestOption);
+
+		if (option.request && option.sendStack !== false) {
+			this.request[option.request].send();
+		}
 	},
 	
 	rawIdent: function(raw){
@@ -383,11 +389,6 @@ APE.Core = new Class({
 
 var Ape;  
 APE.init = function(config){
-	//var config = window.APEConfig;
-	//if (!config) {
-	//	var identifier = window.frameElement.id;
-	//	config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
-	//}
 	//Delay of 1ms allow browser to do not show a loading message
 	(function() {
 		new APE.Core(config);

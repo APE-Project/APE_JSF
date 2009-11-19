@@ -5,6 +5,12 @@ Request.XHRStreaming = new Class({
 	lastTextLength: 0,
 	read: 0, //Contain the amout of data read
 
+	send: function() {
+		//mootools set onreadystatechange after xhr.open. In webkit, this cause readyState 1 to be never fired
+		if (Browser.Engine.webkit) this.xhr.onreadystatechange = this.onStateChange.bind(this);
+		return this.parent(options);
+	},
+
 	onStateChange: function() {
 		if (this.xhr.readyState == 1) this.dataSent = true;
 		else if (this.xhr.readyState == 3) this.progress(this.xhr.responseText, this.xhr.responseXML);
@@ -44,20 +50,20 @@ APE.Transport.XHRStreaming = new Class({
 		}
 	},
 
-	send: function(queryString, options, args) {
+	send: function(queryString, options) {
 		if (this.SSESupport && !this.eventSource) {
 			this.initSSE(queryString, options, this.readSSE.bind(this));
 			if (options.callback) this.streamInfo.callback = options.callback;
 		} else {
 			if ((!this.streamRequest || !this.streamRequest.running) && !this.eventSource) { //Only one XHRstreaming request is allowed
 				this.buffer = '';
-				this.request = this.doRequest(queryString, options, args);
+				this.request = this.doRequest(queryString, options);
 
 				if (options.callback) this.streamInfo.callback = options.callback;
 			} else { //Simple XHR request
 				var request = new Request({
 					url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
-					onFailure: this.ape.requestFail.bind(this.ape, [args, -2, this]),
+					onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 					onComplete: function(resp) {
 						$clear(this.requestFailObserver.shift());
 						this.request.dataSent = true;//In the case of XHRStreaming. Request are imediatly close.
@@ -68,7 +74,7 @@ APE.Transport.XHRStreaming = new Class({
 				this.request = request;
 
 				//set up an observer to detect request timeout
-				this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [arguments, -1, request]));
+				this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [1, request]));
 
 			}
 
@@ -76,13 +82,13 @@ APE.Transport.XHRStreaming = new Class({
 		}
 	},
 
-	doRequest: function(queryString, options, args) {
+	doRequest: function(queryString, options) {
 		this.streamInfo.forceClose = false;
 
 		var request = new Request.XHRStreaming({
 			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
 			onProgress: this.readFragment.bindWithEvent(this),
-			onFailure: this.ape.requestFail.bind(this.ape, [args, -2, this]),
+			onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 			onComplete: function(resp) {
 				$clear(this.streamInfo.timeoutObserver);
 				if (this.ape.status > 0) {
@@ -173,10 +179,13 @@ APE.Transport.XHRStreaming = new Class({
 	}
 });
 APE.Transport.XHRStreaming.browserSupport = function() {
-	if (Browser.Features.xhr) {
+	if (Browser.Features.xhr && (Browser.Engine.webkit || Browser.Engine.gecko)) {
+		return true;
+		/* Not yet 
 		if (Browser.Engine.presto && ((typeof window.addEventStream) == 'function')) return true;
-	//	else if (window.XDomainRequest) return true; //Not yet :p
+		else if (window.XDomainRequest) return true;
 		else return Browser.Engine.trident ? 0 : true;
+		*/
 	} else return 2;//No XHR Support, switch to JSONP
 }
 

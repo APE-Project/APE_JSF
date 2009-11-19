@@ -20,19 +20,20 @@ APE.Chat = new Class({
 		this.onRaw('data', this.rawData);
 		this.onCmd('send', this.cmdSend);
 		this.onError('004', this.reset);
+
 		this.onError('006', this.promptName);
+		this.onError('005', this.promptName);
 
 		this.addEvent('load', this.start);
-		this.addEvent('init', this.createChat);
+		this.addEvent('ready', this.createChat);
 		this.addEvent('uniPipeCreate', this.setPipeName);
 		this.addEvent('uniPipeCreate', this.createPipe);
 		this.addEvent('multiPipeCreate', this.createPipe);
 		this.addEvent('userJoin', this.createUser);
 		this.addEvent('userLeft', this.deleteUser);
-		this.addEvent('restoreEnd',this.restoreEnd);
 	},
 
-	promptName: function(error){
+	promptName: function(errorRaw){
 		this.els.namePrompt = {};
 		this.els.namePrompt.div = new Element('form',{'class':'ape_name_prompt','text':'Choose a nickname : '}).inject(this.options.container)
 		this.els.namePrompt.div.addEvent('submit',function(ev){
@@ -43,6 +44,14 @@ APE.Chat = new Class({
 		}.bindWithEvent(this));
 		this.els.namePrompt.input = new Element('input',{'class':'text'}).inject(this.els.namePrompt.div);
 		new Element('input',{'class':'submit','type':'submit','value':'GO!'}).inject(this.els.namePrompt.div)
+		var error;
+		if (errorRaw) {
+			if (errorRaw.data.code == 005) error = 'This nick is already in use';
+			if (errorRaw.data.code == 006) error = 'Bad nick, a nick must contain a-z 0-9 characters';
+			if (error) {
+				new Element('div', {'styles':{'padding-top': 5, 'font-weight': 'bold'},'text': error}).inject(this.els.namePrompt.div);
+			}
+		}
 	},
 
 	start: function(){
@@ -50,7 +59,17 @@ APE.Chat = new Class({
 		if(!this.options.name && !this.core.options.restore){
 			this.promptName();
 		}else{
-			this.core.start({'name':this.options.name});
+			var opt = {'sendStack': false, 'request': 'stack'};
+
+			this.core.start({'name':this.options.name}, opt);
+
+			if (this.core.options.restore) {
+				this.core.getSession('currentPipe', function(resp) {
+					this.setCurrentPipe(resp.data.sessions.currentPipe);
+				}.bind(this), opt);
+			}
+
+			this.core.request.stack.send();
 		}
 	},
 
@@ -70,7 +89,7 @@ APE.Chat = new Class({
 		return this.currentPipe;
 	},
 
-	setCurrentPipe: function(pubid,save){
+	setCurrentPipe: function(pubid, save){
 		save = !save;
 		if (this.currentPipe){
 			this.currentPipe.els.tab.addClass('unactive');
@@ -85,7 +104,7 @@ APE.Chat = new Class({
 		return this.currentPipe;
 	},
 
-	cmdSend: function(pipe, data){
+	cmdSend: function(data, pipe){
 		this.writeMessage(pipe, data.msg, this.core.user);
 	},
 
@@ -231,14 +250,6 @@ APE.Chat = new Class({
 							'id':'sendbox_button',
 							'value':''
 						}).inject(this.els.sendboxForm);
-	},
-
-	restoreEnd: function(){
-		this.core.request.setOptions({'callback':function(resp){
-			if(resp.raw=='SESSIONS' && resp.data.sessions.currentPipe) this.setCurrentPipe(resp.data.sessions.currentPipe);
-		}.bind(this)});
-
-		this.core.getSession('currentPipe');
 	},
 
 	reset: function(){

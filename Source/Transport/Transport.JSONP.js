@@ -7,24 +7,25 @@ APE.Transport.JSONP = new Class({
 		this.requestFailObserver = [];
 		this.requests = [];
 		
-		//If browser support servent sent event, switch to SSE / JSONP transport 
-		if (this.SSESupport) this.ape.options.transport = 3;
+		//If browser support servent sent event, switch to SSE / JSONP transport  (not yet supported by APE server)
+		//if (this.SSESupport) this.ape.options.transport = 3;
 		
 		window.parent.onkeyup = function(ev) {
 			if (ev.keyCode == 27) {
 				this.cancel();//Escape key
 				if (this.ape.status > 0) {
-					if (!this.SSESupport) this.ape.request('CLOSE');
+					//if (!this.SSESupport) 
+					this.ape.request('CLOSE');
 				}
 			}
 		}.bind(this);
 	},
 
-	send: function(queryString, options, args) {
+	send: function(queryString, options) {
 		//Opera has some trouble with JSONP, so opera use mix of SSE & JSONP
-		if (this.SSESupport && !this.eventSource) {
+		/*if (this.SSESupport && !this.eventSource) { //SSE not yet supported by APE server
 			this.initSSE(queryString, options, this.readSSE.bind(this));
-		} else {
+		} else { */
 			this.callback = options.callback;
 
 			var request = document.createElement('script');
@@ -32,7 +33,7 @@ APE.Transport.JSONP = new Class({
 			document.head.appendChild(request);
 			this.requests.push(request);
 			//Detect timeout
-			this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [arguments, -1, request]));
+			this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [-1, request]));
 
 			if (Browser.Engine.gecko) {
 				//Firefox hack to avoid status bar always show a loading message
@@ -43,7 +44,7 @@ APE.Transport.JSONP = new Class({
 					document.body.removeChild(tmp);
 				}).delay(200);
 			}
-		}
+		//}
 	},
 
 	clearRequest: function(request) {
@@ -76,11 +77,11 @@ APE.Transport.JSONP = new Class({
 	},
 
 	running: function() {
-		if (this.SSESupport) {
+		/* if (this.SSESupport) {
 			return this.eventSource ? true : false;
-		} else {
+		} else { */
 			return this.requests.length > 0 ? true : false;
-		}
+		//}
 	}
 
 	

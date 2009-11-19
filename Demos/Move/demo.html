@@ -24,12 +24,12 @@
 
 			var client = new APE.Move({
 				'container':$('ape_master_container'),
-				'name':rand_chars()
 			});
 
 			client.load({
 				'identifier':'movedemo',
-				'channel':'move'
+				'channel':'move',
+				'connectOptions': {'name': rand_chars()}
 			});
 		</script>
 	</body>

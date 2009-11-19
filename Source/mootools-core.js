@@ -1563,9 +1563,11 @@ var Request = new Class({
 		}
 
 
+
 		this.xhr.open(method.toUpperCase(), url, this.options.async);
 
 		this.xhr.onreadystatechange = this.onStateChange.bind(this);
+
 
 		this.headers.each(function(value, key){
 			try {
@@ -1606,3 +1608,4 @@ var methods = {};
 Request.implement(methods);
 
 })();
+

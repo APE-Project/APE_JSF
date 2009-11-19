@@ -5,7 +5,6 @@ APE.Core = new Class({
 	initialize: function(options){
 		if (this.getInstance(options.identifier).instance) options.restore = true;
 
-		this.options.sessionVar = ['uniPipe']; 
 		this.parent(options);
 
 		//Init and save cookies
@@ -23,11 +22,11 @@ APE.Core = new Class({
 				}
 		});
 
-		if (uniPipe.length > 0) this.setSession({'uniPipe': JSON.encode(uniPipe)});
+		if (uniPipe.length > 0) this.setSession({'uniPipe': encodeURIComponent(JSON.stringify(uniPipe))});
 	},
 
 	restoreUniPipe: function(resp){
-		var pipes = JSON.decode(unescape(resp.data.sessions.uniPipe));
+		var pipes = JSON.parse(decodeURIComponent(resp.data.sessions.uniPipe));
 		if (pipes) {
 			for (var i = 0; i < pipes.length; i++){
 				this.newPipe('uni',{'pipe': pipes[i]});
@@ -53,17 +52,20 @@ APE.Core = new Class({
 		}
 	},
 
-	connect: function(options, sendStack){
+	connect: function(args, options){
 		var cookie = this.initCookie();
 		if (!cookie) {//No cookie defined start a new connection
 			this.addEvent('init',this.init);
-			this.parent(options);
+			this.parent(args, options);
 		} else {//Cookie or instance exist
+			if (!options) options = {};
+			if (!options.request) options.request = 'stack';
+			options.requestCallback = this.restoreCallback.bind(this);
+
 			this.restoring = true;
 			this.fireEvent('restoreStart');
 			this.startPoller();
-			this.request.setOptions({'callback': this.restoreCallback.bind(this)});
-			this.getSession(this.options.sessionVar, this.restoreUniPipe.bind(this), {'request': 'stack', 'sendStack': sendStack});
+			this.getSession('uniPipe', this.restoreUniPipe.bind(this), options);
 		}
 	},
 

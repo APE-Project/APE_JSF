@@ -3,7 +3,6 @@ APE.Request = new Class({
 		this.ape = ape;
 		this.stack = new APE.Request.Stack(ape);
 		this.cycledStack = new APE.Request.CycledStack(ape);
-		this.options = {};
 		this.chl = 1;
 		this.callbackChl = new $H;
 
@@ -17,35 +16,31 @@ APE.Request = new Class({
 		}
 	},
 
-	setOptions: function(options) {
-		this.options = $merge(options, this.options);
-	},
-
-	send: function(cmd, params, sessid, options, noWatch) {
+	send: function(cmd, params, options, noWatch) {
 		if (this.ape.requestDisabled) return;
 		//Opera dirty fix
 		if (Browser.Engine.presto && !noWatch) {
 			this.requestVar.updated = true;
-			this.requestVar.args.push([cmd, params, sessid, options]);
+			this.requestVar.args.push([cmd, params, options]);
 			return;
 		}
 
-		this.options = $merge({
-			event: true,
-			callback: null
-		}, this.options);
+		var opt = {};
+		if (!options) options = {};
 
-		var ret = this.ape.transport.send(this.parseCmd(cmd, params, sessid, options), this.options, noWatch);
+		opt.event = options.event || true;
+		opt.requestCallback = options.requestCallback || null;
+		opt.callback = options.callback;
+
+		var ret = this.ape.transport.send(this.parseCmd(cmd, params, opt), opt);
 
 		$clear(this.ape.pollerObserver);
 		this.ape.pollerObserver = this.ape.poller.delay(this.ape.options.pollTime, this.ape);
 
-		this.options = {};//Reset options
-
 		return ret;
 	},
 
-	parseCmd: function(cmd, params, sessid, options) {
+	parseCmd: function(cmd, params, options) {
 		var queryString = '';
 		var a = [];
 		var o = {};
@@ -57,22 +52,24 @@ APE.Request = new Class({
 				o = {};
 				o.cmd = tmp.cmd;
 				o.chl = this.chl++;
+				if (!tmp.options) tmp.options = {};
 
 				tmp.params ? o.params = tmp.params : null;
 				evParams = $extend({}, o.params);
 
-				this.escapeParams(o.params);
 
-				if (!$defined(tmp.sessid) || tmp.sessid !== false) o.sessid = this.ape.getSessid();
+				if (!$defined(tmp.options.sessid) || tmp.options.sessid !== false) o.sessid = this.ape.sessid;
 				a.push(o);
 
 				var ev = 'cmd_' + tmp.cmd.toLowerCase();
-				if (tmp.options && tmp.options.callback) this.callbackChl.set(o.chl, tmp.options.callback);
-				if (this.options.event) {
-					//Request is on a pipe, fire the event on the core & on the pipe
+
+				if (tmp.options.callback) this.callbackChl.set(o.chl, tmp.options.callback);
+				if (tmp.options.requestCallback) options.requestCallback = tmp.options.requestCallback;
+				if (options.event) {
+					//Request is on a pipe, fire the event on the pipe
 					if (o.params && o.params.pipe) {
 						var pipe = this.ape.getPipe(o.params.pipe);
-						if (pipe) evParams = [pipe, evParams];
+						if (pipe) evParams = [evParams, pipe];
 					}
 
 					this.ape.fireEvent('onCmd', evParams);
@@ -89,19 +86,18 @@ APE.Request = new Class({
 			params ? o.params = params : null;
 			var evParams = $extend({}, params);
 
-			this.escapeParams(params);
 
-			if (!$defined(sessid) || sessid !== false) o.sessid = this.ape.getSessid();
+			if (!$defined(options.sessid) || options.sessid !== false) o.sessid = this.ape.sessid;
 			a.push(o);
 			
 			var ev = 'cmd_' + cmd.toLowerCase();
-			if (options && options.callback) this.callbackChl.set(o.chl, options.callback);
+			if (options.callback) this.callbackChl.set(o.chl, options.callback);
 
-			if (this.options.event) {
+			if (options.event) {
 				//Request is on a pipe, fire the event on the pipe
 				if (params && params.pipe) { 
 					var pipe = this.ape.getPipe(params.pipe);
-					if (pipe) evParams = [pipe, evParams];
+					if (pipe) evParams = [evParams, pipe];
 				}
 				this.ape.fireEvent('onCmd', evParams);
 
@@ -110,23 +106,16 @@ APE.Request = new Class({
 				this.ape.fireEvent(ev, evParams);
 			}
 		}
-		return JSON.encode(a);
-	},
 
-	escapeParams: function(params) {
-		for (var i in params) {
-			if (params.hasOwnProperty(i)) {
-				if (typeof params[i] == 'string') {
-					params[i] = encodeURIComponent(params[i]);
-					if (this.ape.options.transport == 2) params[i] = encodeURIComponent(params[i]); //In case of JSONP data have to be escaped two times
-				} else if ($type(params[i]) == 'array' && params[i].map == null) {
-					// When APE JSF is used with client JavaScript.js array are not extended with clean & filter function this fix this issue
-					params[i].map = Array.prototype.map;
-					params[i].filter = Array.prototype.filter;
-					this.escapeParams(params[i]);
-				} else this.escapeParams(params[i]);
-			}
-		}
+		var transport = this.ape.options.transport;
+		return JSON.stringify(a, function(key, value) {
+				if (typeof(value) == 'string') {
+					value = encodeURIComponent(value);
+					//In case of JSONP data have to be escaped two times
+					if (transport == 2) value = encodeURIComponent(value);
+					return value;
+				} else return value;
+			});
 	},
 
 	/****

@@ -22,7 +22,6 @@ APE.Client = new Class({
 			ret = this.core.addEvent(type, newFn, internal);
 			this.core.$originalEvents[type] = this.core.$originalEvents[type] || [];
 			this.core.$originalEvents[type][fn] = newFn;
-			delete this.core.$originalEvents[type][fn];
 		}
 		return ret;
 	},
@@ -31,9 +30,7 @@ APE.Client = new Class({
 		return this.addEvent('raw_' + type.toLowerCase(), fn, internal); 
 	},
 
-	removeEvent: function(type, fn) {
-		this.core.removeEvent(type, this.core.$originalEvents[type][fn]);
-	},
+	removeEvent: this.core.removeEvent,
 
 	onCmd: function(type, fn, internal){
 		return this.addEvent('cmd_' + type.toLowerCase(), fn, internal); 
@@ -100,7 +97,7 @@ APE.Client = new Class({
 			iframe.contentWindow.location.href = iframe.get('src');
 		}	
 		iframe.onload = function() { 
-			iframe.contentWindow.APE.init(config);
+			if (iframe.contentWindow.APE) iframe.contentWindow.APE.init(config);
 		}
 	}
 	

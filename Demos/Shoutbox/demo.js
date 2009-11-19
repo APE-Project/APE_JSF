@@ -63,7 +63,7 @@ APE.Shoutbox = new Class({
 	/***
 	 * Intercepte la commande send et écrits le message dans la shoutbox
 	 */
-	cmdSend: function(pipe, param){
+	cmdSend: function(param,pipe) {
 		this.writeMessage(param.msg, this.core.user.properties.name);
 	},
 

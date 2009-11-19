@@ -22,11 +22,12 @@ APE.Client.prototype.addEvent = function(type, fn, internal) {
 	}else{
 		var ret = this.core.addEvent(type, newFn, internal);
 		this.core.$originalEvents[type] = this.core.$originalEvents[type] || [];
-		//WTF? : TODO FIXME before 1.0 
 		this.core.$originalEvents[type][fn] = newFn;
-		delete this.core.$originalEvents[type][fn];
 	}
 	return ret;
+}
+APE.Client.prototype.removeEvent = function(type, fn) {
+	return this.core.removeEvent(type, fn);
 }
 
 APE.Client.prototype.onRaw = function(type, fn, internal) {
@@ -125,11 +126,10 @@ APE.Client.prototype.load = function(config){
 	}
 
 	iframe.onload = function() { 
-		iframe.contentWindow.APE.init(config);
+		if (iframe.contentWindow.APE) iframe.contentWindow.APE.init(config);
 	}
 }
 
-if (!Array.prototype.$family) Array.prototype.$family = {'name':'array'};//Adding mootools compatibility for APE Core
 if (Function.prototype.bind == null) {
 	Function.prototype.bind = function(bind, args) {
 		return this.create({'bind': bind, 'arguments': args});

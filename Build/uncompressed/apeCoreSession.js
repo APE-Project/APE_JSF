@@ -1563,9 +1563,11 @@ var Request = new Class({
 		}
 
 
+
 		this.xhr.open(method.toUpperCase(), url, this.options.async);
 
 		this.xhr.onreadystatechange = this.onStateChange.bind(this);
+
 
 		this.headers.each(function(value, key){
 			try {
@@ -1606,6 +1608,7 @@ var methods = {};
 Request.implement(methods);
 
 })();
+
 var APE = {
 	'version': '1.0b1',
 	'Request': {},
@@ -1625,6 +1628,10 @@ APE.Events = new Class({
 	
 	onError: function(type, fn, internal) {                                
 		return this.addEvent('error_' + type, fn, internal);
+	},
+
+	removeEvent: function(type, fn) {
+		return Events.prototype.removeEvent.run([type, this.$originalEvents[type][fn]], this);
 	}
 	
 });
@@ -1709,6 +1716,7 @@ APE.Core = new Class({
 
 		this.onError('003', this.clearSession);
 		this.onError('004', this.clearSession);
+
 		//Set core var for APE.Client instance
 		if (options.init) options.init.apply(null, [this]);
 
@@ -1752,7 +1760,7 @@ APE.Core = new Class({
 		if (this.transport.streamRequest) this.transport.streamRequest.cancel();
 		this.requestDisabled = true;
 	},
-
+	
 	parseParam: function(param) {
 		return ($type(param) == 'object') ? Hash.getValues(param) : $splat(param);
 	},
@@ -1764,7 +1772,7 @@ APE.Core = new Class({
 	/***
 	 * Function called when a request fail or timeout
 	 */
-	requestFail: function(args, failStatus, request) {
+	requestFail: function(failStatus, request) {
 		var reSendData = false;
 
 		if (request.request && !request.request.dataSent) reSendData = true;
@@ -1780,12 +1788,13 @@ APE.Core = new Class({
 		//Cancel last request
 		this.cancelRequest();
 
-		var delay = (this.failCounter*1000);
-		if (reSendData) {
-			this.request.send.delay(delay, this.request, args);
-		} else {
+		var delay = (this.failCounter*$random(300,1000));
+
+		//if (reSendData) {
+		//	this.request.send.delay(delay, this.request, queryString);
+		//} else {
 			this.check.delay(delay, this);
-		}
+		//}
 	},
 
 	/***
@@ -1805,7 +1814,7 @@ APE.Core = new Class({
 		var chlCallback;//Callback on challenge
 
 		if (raws) {
-			raws = JSON.decode(raws, true);//TODO replace me by eval for performance purpose
+			raws = JSON.parse(raws); 
 			if (!raws){ // Something went wrong, json decode failed
 				this.check();
 				return;
@@ -1830,7 +1839,7 @@ APE.Core = new Class({
 					check = false;
 				}
 			}
-		}
+		} else if (!this.transport.running()) check = true; //No request running, request didn't respond correct JSON, something went wrong
 		if (check) this.check();
 	},
 
@@ -1861,14 +1870,14 @@ APE.Core = new Class({
 		if (raw.data.chl) {//Execute callback on challenge
 			var chlCallback = this.request.callbackChl.get(raw.data.chl);
 			if (chlCallback) {
-				chlCallback.run(raw);
 				this.request.callbackChl.erase(raw.data.chl);
+				chlCallback.run(raw);
 			}
 		}
 
 		this.fireEvent('raw_' + raw.raw.toLowerCase(), args);
 	},
-	
+
 	newPipe: function(type, options){
 		if (options && options.pipe.pubid) {
 			var pipe = this.pipes.get(options.pipe.pubid)
@@ -1880,6 +1889,11 @@ APE.Core = new Class({
 		if(type == 'proxy') return new APE.PipeProxy(this, options);
 	},
 
+	getRequest: function(opt) {
+		if (!opt.request) return this.request.send.bind(this.request);
+		else return this.request[opt.request].add.bind(this.request[opt.request]);
+	},
+
 	/***
 	 * Add a pipe to the core pipes hash
 	 */
@@ -1887,7 +1901,7 @@ APE.Core = new Class({
 		return this.pipes.set(pubid, pipe); 
 	},
 
-	getPipe: function(pubid){
+	getPipe: function(pubid) {
 		var pipe = this.pipes.get(pubid);
 		if (!pipe) {
 			pipe = this.users.get(pubid);
@@ -1907,26 +1921,22 @@ APE.Core = new Class({
 	},
 	
 	check: function(){
-		this.request.send('CHECK', null, true);
+		this.request.send('CHECK');
 	},
 
-	start: function(options, sendStack){
-		this.connect(options, sendStack); 
+	start: function(args, options){
+		this.connect(args, options); 
 	},
 
-	connect: function(options, sendStack){
-		this.request.stack.add('CONNECT', options, false, false);
+	connect: function(args, options){
+		if (!options) options = {};
+		options.sessid = false;
+
+		this.request.stack.add('CONNECT', args, options);
 		if (this.options.channel) { 
-			var channel;
-			if ($type(this.options.channel) == 'object') {
-				channel = [];
-				$each(this.options.channel, function(c) {
-						channel.push(c);
-				});
-			} else channel = this.options.channel
-			this.request.stack.add('JOIN', {"channels": channel}, false);
+			this.request.stack.add('JOIN', {"channels": this.options.channel}, options);
 		}
-		if (sendStack !== false) this.request.stack.send();
+		if (!$defined(options.sendStack) && options.sendStack !== false) this.request.stack.send();
 	},
 
 	join: function(channel){
@@ -1951,28 +1961,31 @@ APE.Core = new Class({
 		return this.sessid;
 	},
 
-	setSession: function(obj, options) {
+	setSession: function(obj, option) {
 		if (this.restoring) return;
-		if (options) this.request.setOptions(options);
 
-		this.request.send('SESSION', {'action': 'set', 'values': obj}, true);
+		this.request.send('SESSION', {'action': 'set', 'values': obj}, option);
 	},
 
-	getSession: function(key, callback, opt){
-		var options = {};
+	getSession: function(key, callback, option){
+		if (!option) option = {};
+		var requestOption = {};
 
 		if (callback) {
-			options.callback = function(resp) { 
+			requestOption.callback = function(resp) { 
 				if (resp.raw == 'SESSIONS') this.apply(null, arguments) 
 			}.bind(callback)
 		}
-		var request = this.request.send.bind(this.request);
-		if (opt && opt.request) request = this.request[opt.request].add.bind(this.request[opt.request]);
-		request('SESSION', {
+		requestOption.requestCallback = option.requestCallback || null;
+
+		this.getRequest(option)('SESSION', {
 				'action':'get', 
 				'values': (($type(key) == 'array') ? key : [key])
-			}, true, options);
-		if (opt && opt.sendStack !== false) this.request[opt.request].send();
+			}, requestOption);
+
+		if (option.request && option.sendStack !== false) {
+			this.request[option.request].send();
+		}
 	},
 	
 	rawIdent: function(raw){
@@ -2013,11 +2026,6 @@ APE.Core = new Class({
 
 var Ape;  
 APE.init = function(config){
-	//var config = window.APEConfig;
-	//if (!config) {
-	//	var identifier = window.frameElement.id;
-	//	config = window.parent.APE.Config[identifier.substring(4, identifier.length)];
-	//}
 	//Delay of 1ms allow browser to do not show a loading message
 	(function() {
 		new APE.Core(config);
@@ -2261,7 +2269,6 @@ APE.Request = new Class({
 		this.ape = ape;
 		this.stack = new APE.Request.Stack(ape);
 		this.cycledStack = new APE.Request.CycledStack(ape);
-		this.options = {};
 		this.chl = 1;
 		this.callbackChl = new $H;
 
@@ -2275,35 +2282,31 @@ APE.Request = new Class({
 		}
 	},
 
-	setOptions: function(options) {
-		this.options = $merge(options, this.options);
-	},
-
-	send: function(cmd, params, sessid, options, noWatch) {
+	send: function(cmd, params, options, noWatch) {
 		if (this.ape.requestDisabled) return;
 		//Opera dirty fix
 		if (Browser.Engine.presto && !noWatch) {
 			this.requestVar.updated = true;
-			this.requestVar.args.push([cmd, params, sessid, options]);
+			this.requestVar.args.push([cmd, params, options]);
 			return;
 		}
 
-		this.options = $merge({
-			event: true,
-			callback: null
-		}, this.options);
+		var opt = {};
+		if (!options) options = {};
 
-		var ret = this.ape.transport.send(this.parseCmd(cmd, params, sessid, options), this.options, noWatch);
+		opt.event = options.event || true;
+		opt.requestCallback = options.requestCallback || null;
+		opt.callback = options.callback;
+
+		var ret = this.ape.transport.send(this.parseCmd(cmd, params, opt), opt);
 
 		$clear(this.ape.pollerObserver);
 		this.ape.pollerObserver = this.ape.poller.delay(this.ape.options.pollTime, this.ape);
 
-		this.options = {};//Reset options
-
 		return ret;
 	},
 
-	parseCmd: function(cmd, params, sessid, options) {
+	parseCmd: function(cmd, params, options) {
 		var queryString = '';
 		var a = [];
 		var o = {};
@@ -2315,22 +2318,24 @@ APE.Request = new Class({
 				o = {};
 				o.cmd = tmp.cmd;
 				o.chl = this.chl++;
+				if (!tmp.options) tmp.options = {};
 
 				tmp.params ? o.params = tmp.params : null;
 				evParams = $extend({}, o.params);
 
-				this.escapeParams(o.params);
 
-				if (!$defined(tmp.sessid) || tmp.sessid !== false) o.sessid = this.ape.getSessid();
+				if (!$defined(tmp.options.sessid) || tmp.options.sessid !== false) o.sessid = this.ape.sessid;
 				a.push(o);
 
 				var ev = 'cmd_' + tmp.cmd.toLowerCase();
-				if (tmp.options && tmp.options.callback) this.callbackChl.set(o.chl, tmp.options.callback);
-				if (this.options.event) {
-					//Request is on a pipe, fire the event on the core & on the pipe
+
+				if (tmp.options.callback) this.callbackChl.set(o.chl, tmp.options.callback);
+				if (tmp.options.requestCallback) options.requestCallback = tmp.options.requestCallback;
+				if (options.event) {
+					//Request is on a pipe, fire the event on the pipe
 					if (o.params && o.params.pipe) {
 						var pipe = this.ape.getPipe(o.params.pipe);
-						if (pipe) evParams = [pipe, evParams];
+						if (pipe) evParams = [evParams, pipe];
 					}
 
 					this.ape.fireEvent('onCmd', evParams);
@@ -2347,19 +2352,18 @@ APE.Request = new Class({
 			params ? o.params = params : null;
 			var evParams = $extend({}, params);
 
-			this.escapeParams(params);
 
-			if (!$defined(sessid) || sessid !== false) o.sessid = this.ape.getSessid();
+			if (!$defined(options.sessid) || options.sessid !== false) o.sessid = this.ape.sessid;
 			a.push(o);
 			
 			var ev = 'cmd_' + cmd.toLowerCase();
-			if (options && options.callback) this.callbackChl.set(o.chl, options.callback);
+			if (options.callback) this.callbackChl.set(o.chl, options.callback);
 
-			if (this.options.event) {
+			if (options.event) {
 				//Request is on a pipe, fire the event on the pipe
 				if (params && params.pipe) { 
 					var pipe = this.ape.getPipe(params.pipe);
-					if (pipe) evParams = [pipe, evParams];
+					if (pipe) evParams = [evParams, pipe];
 				}
 				this.ape.fireEvent('onCmd', evParams);
 
@@ -2368,23 +2372,16 @@ APE.Request = new Class({
 				this.ape.fireEvent(ev, evParams);
 			}
 		}
-		return JSON.encode(a);
-	},
 
-	escapeParams: function(params) {
-		for (var i in params) {
-			if (params.hasOwnProperty(i)) {
-				if (typeof params[i] == 'string') {
-					params[i] = encodeURIComponent(params[i]);
-					if (this.ape.options.transport == 2) params[i] = encodeURIComponent(params[i]); //In case of JSONP data have to be escaped two times
-				} else if ($type(params[i]) == 'array' && params[i].map == null) {
-					// When APE JSF is used with client JavaScript.js array are not extended with clean & filter function this fix this issue
-					params[i].map = Array.prototype.map;
-					params[i].filter = Array.prototype.filter;
-					this.escapeParams(params[i]);
-				} else this.escapeParams(params[i]);
-			}
-		}
+		var transport = this.ape.options.transport;
+		return JSON.stringify(a, function(key, value) {
+				if (typeof(value) == 'string') {
+					value = encodeURIComponent(value);
+					//In case of JSONP data have to be escaped two times
+					if (transport == 2) value = encodeURIComponent(value);
+					return value;
+				} else return value;
+			});
 	},
 
 	/****
@@ -2406,8 +2403,8 @@ APE.Request.Stack = new Class({
 		this.ape = ape;
 		this.stack =[];
 	},
-	add: function(cmd, params, sessid, options) {
-		this.stack.push({'cmd':cmd, 'params':params, 'sessid':sessid, 'options': options});
+	add: function(cmd, params, options) {
+		this.stack.push({'cmd':cmd, 'params':params, 'options': options});
 	},
 	send: function() {
 		this.ape.request.send(this.stack);
@@ -2452,6 +2449,12 @@ Request = new Class({
 
 	Extends: Request,
 
+	send: function(options) {
+		//mootools set onreadystatechange after xhr.open, in webkit, this cause readyState 1 to be never fired
+		if (Browser.Engine.webkit) this.xhr.onreadystatechange = this.onStateChange.bind(this);
+		return this.parent(options);
+	},
+
 	onStateChange: function() {
 		if (this.xhr.readyState == 1) this.dataSent = true;
 		this.parent();
@@ -2464,19 +2467,20 @@ APE.Transport.longPolling = new Class({
 		this.requestFailObserver = [];
 	},
 
-	send: function(queryString, options, args) {
+	send: function(queryString, options) {
 		var request = new Request({
 			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/'+this.ape.options.transport+'/?',
-			onFailure: this.ape.requestFail.bind(this.ape, [args, -2, this]),
+			onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 			onComplete: function(resp) {
 				$clear(this.requestFailObserver.shift());
-				this.ape.parseResponse(resp, options.callback);
+				this.ape.parseResponse(resp, options.requestCallback);
 			}.bind(this)
 		}).send(queryString);
+		request.id = $time();
 
 		this.request = request;
 
-		this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [arguments, -1, request]));
+		this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [-1, request]));
 
 		return request;
 	},
@@ -2510,6 +2514,12 @@ Request.XHRStreaming = new Class({
 
 	lastTextLength: 0,
 	read: 0, //Contain the amout of data read
+
+	send: function() {
+		//mootools set onreadystatechange after xhr.open. In webkit, this cause readyState 1 to be never fired
+		if (Browser.Engine.webkit) this.xhr.onreadystatechange = this.onStateChange.bind(this);
+		return this.parent(options);
+	},
 
 	onStateChange: function() {
 		if (this.xhr.readyState == 1) this.dataSent = true;
@@ -2550,20 +2560,20 @@ APE.Transport.XHRStreaming = new Class({
 		}
 	},
 
-	send: function(queryString, options, args) {
+	send: function(queryString, options) {
 		if (this.SSESupport && !this.eventSource) {
 			this.initSSE(queryString, options, this.readSSE.bind(this));
 			if (options.callback) this.streamInfo.callback = options.callback;
 		} else {
 			if ((!this.streamRequest || !this.streamRequest.running) && !this.eventSource) { //Only one XHRstreaming request is allowed
 				this.buffer = '';
-				this.request = this.doRequest(queryString, options, args);
+				this.request = this.doRequest(queryString, options);
 
 				if (options.callback) this.streamInfo.callback = options.callback;
 			} else { //Simple XHR request
 				var request = new Request({
 					url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
-					onFailure: this.ape.requestFail.bind(this.ape, [args, -2, this]),
+					onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 					onComplete: function(resp) {
 						$clear(this.requestFailObserver.shift());
 						this.request.dataSent = true;//In the case of XHRStreaming. Request are imediatly close.
@@ -2574,7 +2584,7 @@ APE.Transport.XHRStreaming = new Class({
 				this.request = request;
 
 				//set up an observer to detect request timeout
-				this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [arguments, -1, request]));
+				this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [1, request]));
 
 			}
 
@@ -2582,13 +2592,13 @@ APE.Transport.XHRStreaming = new Class({
 		}
 	},
 
-	doRequest: function(queryString, options, args) {
+	doRequest: function(queryString, options) {
 		this.streamInfo.forceClose = false;
 
 		var request = new Request.XHRStreaming({
 			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
 			onProgress: this.readFragment.bindWithEvent(this),
-			onFailure: this.ape.requestFail.bind(this.ape, [args, -2, this]),
+			onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 			onComplete: function(resp) {
 				$clear(this.streamInfo.timeoutObserver);
 				if (this.ape.status > 0) {
@@ -2679,10 +2689,13 @@ APE.Transport.XHRStreaming = new Class({
 	}
 });
 APE.Transport.XHRStreaming.browserSupport = function() {
-	if (Browser.Features.xhr) {
+	if (Browser.Features.xhr && (Browser.Engine.webkit || Browser.Engine.gecko)) {
+		return true;
+		/* Not yet 
 		if (Browser.Engine.presto && ((typeof window.addEventStream) == 'function')) return true;
-	//	else if (window.XDomainRequest) return true; //Not yet :p
+		else if (window.XDomainRequest) return true;
 		else return Browser.Engine.trident ? 0 : true;
+		*/
 	} else return 2;//No XHR Support, switch to JSONP
 }
 
@@ -2695,24 +2708,25 @@ APE.Transport.JSONP = new Class({
 		this.requestFailObserver = [];
 		this.requests = [];
 		
-		//If browser support servent sent event, switch to SSE / JSONP transport 
-		if (this.SSESupport) this.ape.options.transport = 3;
+		//If browser support servent sent event, switch to SSE / JSONP transport  (not yet supported by APE server)
+		//if (this.SSESupport) this.ape.options.transport = 3;
 		
 		window.parent.onkeyup = function(ev) {
 			if (ev.keyCode == 27) {
 				this.cancel();//Escape key
 				if (this.ape.status > 0) {
-					if (!this.SSESupport) this.ape.request('CLOSE');
+					//if (!this.SSESupport) 
+					this.ape.request('CLOSE');
 				}
 			}
 		}.bind(this);
 	},
 
-	send: function(queryString, options, args) {
+	send: function(queryString, options) {
 		//Opera has some trouble with JSONP, so opera use mix of SSE & JSONP
-		if (this.SSESupport && !this.eventSource) {
+		/*if (this.SSESupport && !this.eventSource) { //SSE not yet supported by APE server
 			this.initSSE(queryString, options, this.readSSE.bind(this));
-		} else {
+		} else { */
 			this.callback = options.callback;
 
 			var request = document.createElement('script');
@@ -2720,7 +2734,7 @@ APE.Transport.JSONP = new Class({
 			document.head.appendChild(request);
 			this.requests.push(request);
 			//Detect timeout
-			this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [arguments, -1, request]));
+			this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [-1, request]));
 
 			if (Browser.Engine.gecko) {
 				//Firefox hack to avoid status bar always show a loading message
@@ -2731,7 +2745,7 @@ APE.Transport.JSONP = new Class({
 					document.body.removeChild(tmp);
 				}).delay(200);
 			}
-		}
+		//}
 	},
 
 	clearRequest: function(request) {
@@ -2764,11 +2778,11 @@ APE.Transport.JSONP = new Class({
 	},
 
 	running: function() {
-		if (this.SSESupport) {
+		/* if (this.SSESupport) {
 			return this.eventSource ? true : false;
-		} else {
+		} else { */
 			return this.requests.length > 0 ? true : false;
-		}
+		//}
 	}
 
 	
@@ -2866,6 +2880,394 @@ if (!Browser.Engine.trident && !Browser.Engine.presto && !(Browser.Engine.gecko 
 		return window.parent.clearTimeout(id);
 	};
 }
+/*
+    http://www.JSON.org/json2.js
+    2009-09-29
+
+    Public Domain.
+
+    NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+
+    See http://www.JSON.org/js.html
+
+    This file creates a global JSON object containing two methods: stringify
+    and parse.
+
+        JSON.stringify(value, replacer, space)
+            value       any JavaScript value, usually an object or array.
+
+            replacer    an optional parameter that determines how object
+                        values are stringified for objects. It can be a
+                        function or an array of strings.
+
+            space       an optional parameter that specifies the indentation
+                        of nested structures. If it is omitted, the text will
+                        be packed without extra whitespace. If it is a number,
+                        it will specify the number of spaces to indent at each
+                        level. If it is a string (such as '\t' or '&nbsp;'),
+                        it contains the characters used to indent at each level.
+
+            This method produces a JSON text from a JavaScript value.
+
+            When an object value is found, if the object contains a toJSON
+            method, its toJSON method will be called and the result will be
+            stringified. A toJSON method does not serialize: it returns the
+            value represented by the name/value pair that should be serialized,
+            or undefined if nothing should be serialized. The toJSON method
+            will be passed the key associated with the value, and this will be
+            bound to the value
+
+            For example, this would serialize Dates as ISO strings.
+
+                Date.prototype.toJSON = function (key) {
+                    function f(n) {
+                        // Format integers to have at least two digits.
+                        return n < 10 ? '0' + n : n;
+                    }
+
+                    return this.getUTCFullYear()   + '-' +
+                         f(this.getUTCMonth() + 1) + '-' +
+                         f(this.getUTCDate())      + 'T' +
+                         f(this.getUTCHours())     + ':' +
+                         f(this.getUTCMinutes())   + ':' +
+                         f(this.getUTCSeconds())   + 'Z';
+                };
+
+            You can provide an optional replacer method. It will be passed the
+            key and value of each member, with this bound to the containing
+            object. The value that is returned from your method will be
+            serialized. If your method returns undefined, then the member will
+            be excluded from the serialization.
+
+            If the replacer parameter is an array of strings, then it will be
+            used to select the members to be serialized. It filters the results
+            such that only members with keys listed in the replacer array are
+            stringified.
+
+            Values that do not have JSON representations, such as undefined or
+            functions, will not be serialized. Such values in objects will be
+            dropped; in arrays they will be replaced with null. You can use
+            a replacer function to replace those with JSON values.
+            JSON.stringify(undefined) returns undefined.
+
+            The optional space parameter produces a stringification of the
+            value that is filled with line breaks and indentation to make it
+            easier to read.
+
+            If the space parameter is a non-empty string, then that string will
+            be used for indentation. If the space parameter is a number, then
+            the indentation will be that many spaces.
+
+            Example:
+
+            text = JSON.stringify(['e', {pluribus: 'unum'}]);
+            // text is '["e",{"pluribus":"unum"}]'
+
+
+            text = JSON.stringify(['e', {pluribus: 'unum'}], null, '\t');
+            // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
+
+            text = JSON.stringify([new Date()], function (key, value) {
+                return this[key] instanceof Date ?
+                    'Date(' + this[key] + ')' : value;
+            });
+            // text is '["Date(---current time---)"]'
+
+
+        JSON.parse(text, reviver)
+            This method parses a JSON text to produce an object or array.
+            It can throw a SyntaxError exception.
+
+            The optional reviver parameter is a function that can filter and
+            transform the results. It receives each of the keys and values,
+            and its return value is used instead of the original value.
+            If it returns what it received, then the structure is not modified.
+            If it returns undefined then the member is deleted.
+
+            Example:
+
+            // Parse the text. Values that look like ISO date strings will
+            // be converted to Date objects.
+
+            myData = JSON.parse(text, function (key, value) {
+                var a;
+                if (typeof value === 'string') {
+                    a =
+/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+                    if (a) {
+                        return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
+                            +a[5], +a[6]));
+                    }
+                }
+                return value;
+            });
+
+            myData = JSON.parse('["Date(09/09/2001)"]', function (key, value) {
+                var d;
+                if (typeof value === 'string' &&
+                        value.slice(0, 5) === 'Date(' &&
+                        value.slice(-1) === ')') {
+                    d = new Date(value.slice(5, -1));
+                    if (d) {
+                        return d;
+                    }
+                }
+                return value;
+            });
+
+
+    This is a reference implementation. You are free to copy, modify, or
+    redistribute.
+
+    This code should be minified before deployment.
+    See http://javascript.crockford.com/jsmin.html
+
+    USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
+    NOT CONTROL.
+*/
+
+/*jslint evil: true, strict: false */
+
+/*members "", "\b", "\t", "\n", "\f", "\r", "\"", JSON, "\\", apply,
+    call, charCodeAt, getUTCDate, getUTCFullYear, getUTCHours,
+    getUTCMinutes, getUTCMonth, getUTCSeconds, hasOwnProperty, join,
+    lastIndex, length, parse, prototype, push, replace, slice, stringify,
+    test, toJSON, toString, valueOf
+*/
+
+
+// Create a JSON object only if one does not already exist. We create the
+// methods in a closure to avoid creating global variables.
+
+if (!this.JSON) {
+    this.JSON = {};
+}
+
+(function () {
+
+    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        gap,
+        indent,
+        rep;
+
+
+    function quote(string) {
+
+// If the string contains no control characters, no quote characters, and no
+// backslash characters, then we can safely slap some quotes around it.
+// Otherwise we must also replace the offending characters with safe escape
+// sequences.
+
+		return '"'+string+'"';
+    }
+
+
+    function str(key, holder) {
+
+// Produce a string from holder[key].
+
+        var i,          // The loop counter.
+            k,          // The member key.
+            v,          // The member value.
+            length,
+            mind = gap,
+            partial,
+            value = holder[key];
+
+// If the value has a toJSON method, call it to obtain a replacement value.
+
+        //if (value && typeof value === 'object' &&
+        //        typeof value.toJSON === 'function') {
+        //    value = value.toJSON(key);
+        //}
+
+// If we were called with a replacer function, then call the replacer to
+// obtain a replacement value.
+
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+
+// What happens next depends on the value's type.
+
+        switch (typeof value) {
+        case 'string':
+            return quote(value);
+
+        case 'number':
+
+// JSON numbers must be finite. Encode non-finite numbers as null.
+
+            return isFinite(value) ? String(value) : 'null';
+
+        case 'boolean':
+        case 'null':
+
+// If the value is a boolean or null, convert it to a string. Note:
+// typeof null does not produce 'null'. The case is included here in
+// the remote chance that this gets fixed someday.
+
+            return String(value);
+
+// If the type is 'object', we might be dealing with an object or an array or
+// null.
+
+        case 'object':
+
+// Due to a specification blunder in ECMAScript, typeof null is 'object',
+// so watch out for that case.
+
+            if (!value) {
+                return 'null';
+            }
+
+// Make an array to hold the partial results of stringifying this object value.
+
+            gap += indent;
+            partial = [];
+
+// Is the value an array?
+
+            if (Object.prototype.toString.apply(value) === '[object Array]') {
+
+// The value is an array. Stringify every element. Use null as a placeholder
+// for non-JSON values.
+
+                length = value.length;
+                for (i = 0; i < length; i += 1) {
+                    partial[i] = str(i, value) || 'null';
+                }
+
+// Join all of the elements together, separated with commas, and wrap them in
+// brackets.
+
+                v = partial.length === 0 ? '[]' :
+                    gap ? '[\n' + gap +
+                            partial.join(',\n' + gap) + '\n' +
+                                mind + ']' :
+                          '[' + partial.join(',') + ']';
+                gap = mind;
+                return v;
+            }
+
+// If the replacer is an array, use it to select the members to be stringified.
+
+
+// Otherwise, iterate through all of the keys in the object.
+
+                for (k in value) {
+                    if (Object.hasOwnProperty.call(value, k)) {
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+
+// Join all of the member texts together, separated with commas,
+// and wrap them in braces.
+
+            v = partial.length === 0 ? '{}' :
+                gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
+                        mind + '}' : '{' + partial.join(',') + '}';
+            gap = mind;
+            return v;
+        }
+    }
+
+// If the JSON object does not yet have a stringify method, give it one.
+
+    if (typeof JSON.stringify !== 'function') {
+        JSON.stringify = function (value, replacer, space) {
+			rep = replacer;
+            return str('', {'': value});
+        };
+    }
+
+
+// If the JSON object does not yet have a parse method, give it one.
+
+    if (typeof JSON.parse !== 'function') {
+        JSON.parse = function (text, reviver) {
+
+// The parse method takes a text and an optional reviver function, and returns
+// a JavaScript value if the text is a valid JSON text.
+
+            var j;
+
+            function walk(holder, key) {
+
+// The walk method is used to recursively walk the resulting structure so
+// that modifications can be made.
+
+                var k, v, value = holder[key];
+                if (value && typeof value === 'object') {
+                    for (k in value) {
+                        if (Object.hasOwnProperty.call(value, k)) {
+                            v = walk(value, k);
+                            if (v !== undefined) {
+                                value[k] = v;
+                            } else {
+                                delete value[k];
+                            }
+                        }
+                    }
+                }
+                return reviver.call(holder, key, value);
+            }
+
+
+// Parsing happens in four stages. In the first stage, we replace certain
+// Unicode characters with escape sequences. JavaScript handles many characters
+// incorrectly, either silently deleting them, or treating them as line endings.
+
+            cx.lastIndex = 0;
+            if (cx.test(text)) {
+                text = text.replace(cx, function (a) {
+                    return '\\u' +
+                        ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+                });
+            }
+
+// In the second stage, we run the text against regular expressions that look
+// for non-JSON patterns. We are especially concerned with '()' and 'new'
+// because they can cause invocation, and '=' because it can cause mutation.
+// But just to be safe, we want to reject all unexpected forms.
+
+// We split the second stage into 4 regexp operations in order to work around
+// crippling inefficiencies in IE's and Safari's regexp engines. First we
+// replace the JSON backslash pairs with '@' (a non-JSON character). Second, we
+// replace all simple value tokens with ']' characters. Third, we delete all
+// open brackets that follow a colon or comma or that begin the text. Finally,
+// we look to see that the remaining characters are only whitespace or ']' or
+// ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.
+
+            if (/^[\],:{}\s]*$/.
+test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').
+replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+
+// In the third stage we use the eval function to compile the text into a
+// JavaScript structure. The '{' operator is subject to a syntactic ambiguity
+// in JavaScript: it can begin a block or an object literal. We wrap the text
+// in parens to eliminate the ambiguity.
+
+                j = eval('(' + text + ')');
+
+// In the optional fourth stage, we recursively walk the new structure, passing
+// each name/value pair to a reviver function for possible transformation.
+
+                return typeof reviver === 'function' ?
+                    walk({'': j}, '') : j;
+            }
+
+// If the text is not JSON parseable, then a SyntaxError is thrown.
+
+            throw new SyntaxError('JSON.parse');
+        };
+    }
+}());
 APE.Core = new Class({
 
 	Extends: APE.Core,
@@ -2873,7 +3275,6 @@ APE.Core = new Class({
 	initialize: function(options){
 		if (this.getInstance(options.identifier).instance) options.restore = true;
 
-		this.options.sessionVar = ['uniPipe']; 
 		this.parent(options);
 
 		//Init and save cookies
@@ -2891,11 +3292,11 @@ APE.Core = new Class({
 				}
 		});
 
-		if (uniPipe.length > 0) this.setSession({'uniPipe': JSON.encode(uniPipe)});
+		if (uniPipe.length > 0) this.setSession({'uniPipe': encodeURIComponent(JSON.stringify(uniPipe))});
 	},
 
 	restoreUniPipe: function(resp){
-		var pipes = JSON.decode(unescape(resp.data.sessions.uniPipe));
+		var pipes = JSON.parse(decodeURIComponent(resp.data.sessions.uniPipe));
 		if (pipes) {
 			for (var i = 0; i < pipes.length; i++){
 				this.newPipe('uni',{'pipe': pipes[i]});
@@ -2921,17 +3322,20 @@ APE.Core = new Class({
 		}
 	},
 
-	connect: function(options, sendStack){
+	connect: function(args, options){
 		var cookie = this.initCookie();
 		if (!cookie) {//No cookie defined start a new connection
 			this.addEvent('init',this.init);
-			this.parent(options);
+			this.parent(args, options);
 		} else {//Cookie or instance exist
+			if (!options) options = {};
+			if (!options.request) options.request = 'stack';
+			options.requestCallback = this.restoreCallback.bind(this);
+
 			this.restoring = true;
 			this.fireEvent('restoreStart');
 			this.startPoller();
-			this.request.setOptions({'callback': this.restoreCallback.bind(this)});
-			this.getSession(this.options.sessionVar, this.restoreUniPipe.bind(this), {'request': 'stack', 'sendStack': sendStack});
+			this.getSession('uniPipe', this.restoreUniPipe.bind(this), options);
 		}
 	},
 

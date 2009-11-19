@@ -11,9 +11,7 @@ APE.Move = new Class({
 
 		this.setOptions(options);
 
-		this.addEvent('load', this.start);
-
-		this.addEvent('init', this.initPlayground);
+		this.addEvent('ready', this.initPlayground);
 		this.addEvent('userJoin', this.createUser);
 		this.addEvent('multiPipeCreate', function(pipe, options){
 			this.pipe = pipe;
@@ -27,16 +25,12 @@ APE.Move = new Class({
 
 		this.onError('004',this.reset);
 	},
-	
-	start: function() {
-		this.core.start({'name': this.options.name});
-	},
 
 	deleteUser: function(user, pipe){
 		user.element.dispose();
 	},
 
-	cmdSend: function(pipe, param){
+	cmdSend: function(param, pipe) {
 		this.writeMessage(pipe, param.msg, this.core.user);
 	},
 
