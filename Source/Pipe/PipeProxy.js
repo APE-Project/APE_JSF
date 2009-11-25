@@ -34,12 +34,12 @@ APE.PipeProxy = new Class({
 	open: function(hostname, port){
 		if (this.core.status == 0) this.core.start(null, false);
 		//Adding a callback to request response to create a new pipe if this.pipe haven't been init
-		this.request.stack.add('PROXY_CONNECT', {'host':hostname, 'port':port}, true, this.pipe ? {} : {'callback':this.callback.bind(this)});
+		this.request.stack.add('PROXY_CONNECT', {'host':hostname, 'port':port}, this.pipe ? {} : {'callback':this.callback.bind(this)});
 		this.request.stack.send();
 	},
 
 	send: function(data){
-	      this.request.send('SEND', {'msg':B64.encode(data)});
+		this.request.send('SEND', {'msg':B64.encode(data)});
 	},
 
 	rawProxyEvent: function(resp){
