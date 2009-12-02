@@ -17,7 +17,7 @@ APE.Controller = new Class({
 	},
 	
 	start: function(core){
-		this.core.start({'name': $time()});
+		this.core.start({'name': $time().toString()});
 	},
 	
 	onMsg: function(raw){
