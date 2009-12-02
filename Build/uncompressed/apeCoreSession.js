@@ -1775,7 +1775,6 @@ APE.Core = new Class({
 	 */
 	requestFail: function(failStatus, request) {
 		var reSendData = false;
-
 		if (request.request && !request.request.dataSent) reSendData = true;
 		if (this.status > 0) {//APE is connected but request failed
 			this.status = failStatus;
@@ -2516,7 +2515,7 @@ Request.XHRStreaming = new Class({
 	lastTextLength: 0,
 	read: 0, //Contain the amout of data read
 
-	send: function() {
+	send: function(options) {
 		//mootools set onreadystatechange after xhr.open. In webkit, this cause readyState 1 to be never fired
 		if (Browser.Engine.webkit) this.xhr.onreadystatechange = this.onStateChange.bind(this);
 		return this.parent(options);
@@ -2717,7 +2716,8 @@ APE.Transport.JSONP = new Class({
 				this.cancel();//Escape key
 				if (this.ape.status > 0) {
 					//if (!this.SSESupport) 
-					this.ape.request('CLOSE');
+					//this.ape.request('CLOSE');
+					this.ape.check();
 				}
 			}
 		}.bind(this);
@@ -2728,7 +2728,7 @@ APE.Transport.JSONP = new Class({
 		/*if (this.SSESupport && !this.eventSource) { //SSE not yet supported by APE server
 			this.initSSE(queryString, options, this.readSSE.bind(this));
 		} else { */
-			this.callback = options.callback;
+			this.callback = options.requestCallback;
 
 			var request = document.createElement('script');
 			request.src = 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport +'/?' + queryString;
@@ -3293,7 +3293,7 @@ APE.Core = new Class({
 				}
 		});
 
-		if (uniPipe.length > 0) this.setSession({'uniPipe': encodeURIComponent(JSON.stringify(uniPipe))});
+		if (uniPipe.length > 0) this.setSession({'uniPipe': JSON.stringify(uniPipe)});
 	},
 
 	restoreUniPipe: function(resp){
@@ -3349,9 +3349,7 @@ APE.Core = new Class({
 		var	tmp = Cookie.read('APE_Cookie', {'domain': document.domain});
 		identifier = identifier || this.options.identifier;
 		if (!tmp) return false;
-
-		tmp = JSON.decode(tmp);
-		
+		tmp = JSON.parse(tmp);
 		//Cookie is corrupted or doest not contains instance
 		if (!tmp || !tmp.instance) return false;
 		//Get the instance of ape in cookie
@@ -3430,7 +3428,7 @@ APE.Core = new Class({
 	saveCookie: function(){
 		//Save cookie on the parent window (this is usefull with JSONP as domain in the iframe is different than the domain in the parent window)
 		//this.client.cookie.write('APE_Cookie', JSON.encode(this.cookie));
-		Cookie.write('APE_Cookie', JSON.encode(this.cookie), {'domain': document.domain});
+		Cookie.write('APE_Cookie', JSON.stringify(this.cookie), {'domain': document.domain});
 	},
 
 	clearSession: function(){

@@ -55,7 +55,7 @@ APE.Client.prototype.cookie.read = function (name) {
 		var c = ca[i];
 		while (c.charAt(0)==' ') c = c.substring(1,c.length);
 		if (c.indexOf(nameEQ) == 0){
-			return c.substring(nameEQ.length,c.length);
+			return decodeURIComponent(c.substring(nameEQ.length,c.length));
 		}
 	}
 	return null;
@@ -82,17 +82,17 @@ APE.Client.prototype.load = function(config){
 	if (config.transport != 2) document.domain = config.domain;
 
 	//Get APE cookie
-	var cookie = unescape(this.cookie.read('APE_Cookie'));
+	var cookie = this.cookie.read('APE_Cookie');
 	var tmp = eval('(' + cookie + ')');
 
 	if (tmp) {
 		config.frequency = tmp.frequency+1;
 	} else {
-		cookie = "{'frequency':0}";
+		cookie = '{"frequency":0}';
 	}
 
-	var reg = new RegExp("'frequency':([ 0-9]+)", "g")
-	cookie = cookie.replace(reg, "'frequency': " + config.frequency + "");
+	var reg = new RegExp('"frequency":([ 0-9]+)' , "g")
+	cookie = cookie.replace(reg, '"frequency":' + config.frequency);
 	this.cookie.write('APE_Cookie', cookie);
 
 	var iframe = document.createElement('iframe');
@@ -126,7 +126,8 @@ APE.Client.prototype.load = function(config){
 	}
 
 	iframe.onload = function() { 
-		if (iframe.contentWindow.APE) iframe.contentWindow.APE.init(config);
+		if (!iframe.contentWindow.APE) setTimeout(iframe.onload, 100);//Sometimes IE fire the onload event, but the iframe is not loaded -_-
+		else iframe.contentWindow.APE.init(config);
 	}
 }
 

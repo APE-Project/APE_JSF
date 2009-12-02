@@ -5,7 +5,7 @@ Request.XHRStreaming = new Class({
 	lastTextLength: 0,
 	read: 0, //Contain the amout of data read
 
-	send: function() {
+	send: function(options) {
 		//mootools set onreadystatechange after xhr.open. In webkit, this cause readyState 1 to be never fired
 		if (Browser.Engine.webkit) this.xhr.onreadystatechange = this.onStateChange.bind(this);
 		return this.parent(options);

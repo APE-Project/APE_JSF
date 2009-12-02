@@ -138,7 +138,6 @@ APE.Core = new Class({
 	 */
 	requestFail: function(failStatus, request) {
 		var reSendData = false;
-
 		if (request.request && !request.request.dataSent) reSendData = true;
 		if (this.status > 0) {//APE is connected but request failed
 			this.status = failStatus;

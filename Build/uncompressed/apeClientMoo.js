@@ -98,9 +98,10 @@ APE.Client = new Class({
 			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 			iframe.contentWindow.location.href = iframe.get('src');
 		}	
-		iframe.onload = function() { 
-			if (iframe.contentWindow.APE) iframe.contentWindow.APE.init(config);
-		}
+		iframe.addEvent('load',  function() { 
+			if (!iframe.contentWindow.APE) setTimeout(iframe.onload, 100);//Sometimes IE fire the onload event, but the iframe is not loaded -_-
+			else iframe.contentWindow.APE.init(config);
+		});
 	}
 	
 });

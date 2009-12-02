@@ -22,7 +22,7 @@ APE.Core = new Class({
 				}
 		});
 
-		if (uniPipe.length > 0) this.setSession({'uniPipe': encodeURIComponent(JSON.stringify(uniPipe))});
+		if (uniPipe.length > 0) this.setSession({'uniPipe': JSON.stringify(uniPipe)});
 	},
 
 	restoreUniPipe: function(resp){
@@ -78,9 +78,7 @@ APE.Core = new Class({
 		var	tmp = Cookie.read('APE_Cookie', {'domain': document.domain});
 		identifier = identifier || this.options.identifier;
 		if (!tmp) return false;
-
-		tmp = JSON.decode(tmp);
-		
+		tmp = JSON.parse(tmp);
 		//Cookie is corrupted or doest not contains instance
 		if (!tmp || !tmp.instance) return false;
 		//Get the instance of ape in cookie
@@ -159,7 +157,7 @@ APE.Core = new Class({
 	saveCookie: function(){
 		//Save cookie on the parent window (this is usefull with JSONP as domain in the iframe is different than the domain in the parent window)
 		//this.client.cookie.write('APE_Cookie', JSON.encode(this.cookie));
-		Cookie.write('APE_Cookie', JSON.encode(this.cookie), {'domain': document.domain});
+		Cookie.write('APE_Cookie', JSON.stringify(this.cookie), {'domain': document.domain});
 	},
 
 	clearSession: function(){

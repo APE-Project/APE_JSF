@@ -1775,7 +1775,6 @@ APE.Core = new Class({
 	 */
 	requestFail: function(failStatus, request) {
 		var reSendData = false;
-
 		if (request.request && !request.request.dataSent) reSendData = true;
 		if (this.status > 0) {//APE is connected but request failed
 			this.status = failStatus;
@@ -2516,7 +2515,7 @@ Request.XHRStreaming = new Class({
 	lastTextLength: 0,
 	read: 0, //Contain the amout of data read
 
-	send: function() {
+	send: function(options) {
 		//mootools set onreadystatechange after xhr.open. In webkit, this cause readyState 1 to be never fired
 		if (Browser.Engine.webkit) this.xhr.onreadystatechange = this.onStateChange.bind(this);
 		return this.parent(options);
@@ -2717,7 +2716,8 @@ APE.Transport.JSONP = new Class({
 				this.cancel();//Escape key
 				if (this.ape.status > 0) {
 					//if (!this.SSESupport) 
-					this.ape.request('CLOSE');
+					//this.ape.request('CLOSE');
+					this.ape.check();
 				}
 			}
 		}.bind(this);
@@ -2728,7 +2728,7 @@ APE.Transport.JSONP = new Class({
 		/*if (this.SSESupport && !this.eventSource) { //SSE not yet supported by APE server
 			this.initSSE(queryString, options, this.readSSE.bind(this));
 		} else { */
-			this.callback = options.callback;
+			this.callback = options.requestCallback;
 
 			var request = document.createElement('script');
 			request.src = 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport +'/?' + queryString;

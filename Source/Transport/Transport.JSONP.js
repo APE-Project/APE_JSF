@@ -15,7 +15,8 @@ APE.Transport.JSONP = new Class({
 				this.cancel();//Escape key
 				if (this.ape.status > 0) {
 					//if (!this.SSESupport) 
-					this.ape.request('CLOSE');
+					//this.ape.request('CLOSE');
+					this.ape.check();
 				}
 			}
 		}.bind(this);
@@ -26,7 +27,7 @@ APE.Transport.JSONP = new Class({
 		/*if (this.SSESupport && !this.eventSource) { //SSE not yet supported by APE server
 			this.initSSE(queryString, options, this.readSSE.bind(this));
 		} else { */
-			this.callback = options.callback;
+			this.callback = options.requestCallback;
 
 			var request = document.createElement('script');
 			request.src = 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport +'/?' + queryString;
