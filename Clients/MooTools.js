@@ -54,7 +54,8 @@ APE.Client = new Class({
 		}.bind(this);
 
 		//set document.domain
-		if (config.transport != 2) document.domain = config.domain;
+		if (config.transport != 2 && config.domain != 'auto') document.domain = config.domain;
+		if (config.domain == 'auto') document.domain = document.domain;
 		
 		var tmp	= JSON.decode(Cookie.read('APE_Cookie'), {'domain': document.domain});
 
@@ -93,7 +94,7 @@ APE.Client = new Class({
 			doc.write(theHtml);
 			doc.close();
 		} else { 
-			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');
+			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"domain":"' + document.domain + '","scripts":["' + config.scripts.join('","') + '"]}}]');
 			// Firefox fix, see bug  #356558 
 			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 			iframe.contentWindow.location.href = iframe.get('src');

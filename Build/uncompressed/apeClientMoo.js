@@ -54,7 +54,8 @@ APE.Client = new Class({
 		}.bind(this);
 
 		//set document.domain
-		if (config.transport != 2) document.domain = config.domain;
+		if (config.transport != 2 && config.domain != 'auto') document.domain = config.domain;
+		if (config.domain == 'auto') document.domain = document.domain;
 		
 		var tmp	= JSON.decode(Cookie.read('APE_Cookie'), {'domain': document.domain});
 
@@ -93,7 +94,7 @@ APE.Client = new Class({
 			doc.write(theHtml);
 			doc.close();
 		} else { 
-			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"scripts":["' + config.scripts.join('","') + '"]}}]');
+			iframe.set('src', 'http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"domain":"' + document.domain + '","scripts":["' + config.scripts.join('","') + '"]}}]');
 			// Firefox fix, see bug  #356558 
 			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 			iframe.contentWindow.location.href = iframe.get('src');
@@ -109,9 +110,9 @@ APE.Client = new Class({
 /***
  * APE JSF Setup
  */
-APE.Config.baseUrl = 'http://yourdomain.com/APE_JSF'; //APE JSF 
-APE.Config.domain = 'yourdomain.com'; //Your domain, must be the same than the domain in aped.conf of your server
-APE.Config.server = 'ape.yourdomain.com:6969'; //APE server URL
+APE.Config.baseUrl = 'http://local.ape-project.org/APE_JSF'; //APE JSF 
+APE.Config.domain = 'auto'; 
+APE.Config.server = 'ape.local.ape-project.org:6969'; //APE server URL
 
 (function(){
 	for (var i = 0; i < arguments.length; i++)
