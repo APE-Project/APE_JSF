@@ -1,5 +1,5 @@
 <?php
-$APEserver = 'http://ape-server-url/?';
+$APEserver = 'http://local.ape-project.org:6969/?';
 $APEPassword = 'testpasswd';
 
 $messages = array(
@@ -20,6 +20,7 @@ $cmd = array(array(
    ) 
 )); 
 
+var_dump($APEserver.rawurlencode(json_encode($cmd)));
 $data = file_get_contents($APEserver.rawurlencode(json_encode($cmd))); 
 
 if ($data == 'OK') {

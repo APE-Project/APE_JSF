@@ -156,7 +156,8 @@
 						} else {
 							var error = false;
 							try {
-								document.domain = APE.Config.domain;
+								if (APE.Config.domain == 'auto') document.domain = document.domain;
+								else document.domain = APE.Config.domain;
 								error = false;
 							} catch (e) {
 								error = true;
@@ -206,7 +207,7 @@
 						}
 					};
 
-					new Element('script', {'type': 'text/javascript', 'src': 'http://' + APE.Config.server + '/2/?[{"cmd":"setup"}]'}).inject(document.body);
+					new Element('script', {'type': 'text/javascript', 'src': 'http://' + APE.Config.server + '/2/?' + encodeURIComponent('[{"cmd":"setup","params":{"domain":"' + document.domain + '"}}]')}).inject(document.body);
 
 					var timer = (function() {
 						this.fireEvent('testComplete', {'error': "Can't contact APE Server. Please check the folowing url is pointing to your APE server : <a href=\"http://" + APE.Config.server + "\" target=\"_blank\">http://" + APE.Config.server + "</a>"});
@@ -230,7 +231,7 @@
 						}
 					};
 
-					new Element('script', {'type': 'text/javascript', 'src': 'http://0.' + APE.Config.server + '/2/?[{"cmd":"setup"}]'}).inject(document.body);
+					new Element('script', {'type': 'text/javascript', 'src': 'http://0.' + APE.Config.server + '/2/?' + encodeURIComponent('[{"cmd":"setup","params":{"domain":"' + document.domain + '"}}]')}).inject(document.body);
 
 					var timer = (function() {
 						this.fireEvent('testComplete', {'error': "Can't contact APE Server. Please check the folowing url is pointing to your APE server : http://0." + APE.Config.server + ""});
