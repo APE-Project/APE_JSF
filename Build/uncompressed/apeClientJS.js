@@ -121,9 +121,11 @@ APE.Client.prototype.load = function(config){
 		doc.close();
 	} else {
 		iframe.setAttribute('src','http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"domain":"' + document.domain +'","scripts":["' + config.scripts.join('","') + '"]}}]');
-		//Firefox fix, see bug  #356558 
-		// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
-		iframe.contentWindow.location.href = iframe.getAttribute('src');
+		if (navigator.product == 'Gecko') { 
+			//Firefox fix, see bug  #356558 
+			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
+			iframe.contentWindow.location.href = iframe.getAttribute('src');
+		}
 	}
 
 	iframe.onload = function() { 
