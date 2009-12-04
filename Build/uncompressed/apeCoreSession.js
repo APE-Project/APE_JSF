@@ -1762,7 +1762,6 @@ APE.Core = new Class({
 
 	initialize: function(options){
 		window.Ape = this;
-		if (options.channel) options.channel.$family = 'array';
 		this.setOptions(options);
 
 		this.selectTransport();
@@ -2287,6 +2286,7 @@ APE.PipeMulti = new Class({
 
 	rawLeft: function(raw, pipe) {
 		this.delUser(raw.data.user.pubid);
+		if (raw.data.user.pubid == this.ape.user.pubid) this.ape.delPipe(pipe.pipe.pubid);
 	},
 
 	addUser: function(pubid, user) {
