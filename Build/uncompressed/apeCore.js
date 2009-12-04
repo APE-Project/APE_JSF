@@ -1,24 +1,28 @@
 /*
-Script: Core.js
-	MooTools - My Object Oriented JavaScript Tools.
+---
 
-License:
-	MIT-style license.
+script: Core.js
 
-Copyright:
-	Copyright (c) 2006-2008 [Valerio Proietti](http://mad4milk.net/).
+description: The core of MooTools, contains all the base functions and the Native and Hash implementations. Required by all the other scripts.
 
-Code & Documentation:
-	[The MooTools production team](http://mootools.net/developers/).
+license: MIT-style license.
 
-Inspiration:
-	- Class implementation inspired by [Base.js](http://dean.edwards.name/weblog/2006/03/base/) Copyright (c) 2006 Dean Edwards, [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
-	- Some functionality inspired by [Prototype.js](http://prototypejs.org) Copyright (c) 2005-2007 Sam Stephenson, [MIT License](http://opensource.org/licenses/mit-license.php)
+copyright: Copyright (c) 2006-2008 [Valerio Proietti](http://mad4milk.net/).
+
+authors: The MooTools production team (http://mootools.net/developers/)
+
+inspiration:
+- Class implementation inspired by [Base.js](http://dean.edwards.name/weblog/2006/03/base/) Copyright (c) 2006 Dean Edwards, [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+- Some functionality inspired by [Prototype.js](http://prototypejs.org) Copyright (c) 2005-2007 Sam Stephenson, [MIT License](http://opensource.org/licenses/mit-license.php)
+
+provides: [Mootools, Native, Hash.base, Array.each, $util]
+
+...
 */
 
 var MooTools = {
-	'version': '1.2.2',
-	'build': 'f0491d62fbb7e906789aa3733d6a67d43e5af7c9'
+	'version': '1.2.4',
+	'build': '0d9113241a90b9cd5643b926795852a2026710d4'
 };
 
 var Native = function(options){
@@ -53,7 +57,8 @@ var Native = function(options){
 
 	object.alias = function(a1, a2, a3){
 		if (typeof a1 == 'string'){
-			if ((a1 = this.prototype[a1])) return add(this, a2, a1, a3);
+			var pa1 = this.prototype[a1];
+			if ((a1 = pa1)) return add(this, a2, a1, a3);
 		}
 		for (var a in a1) this.alias(a, a1[a], a2);
 		return this;
@@ -99,7 +104,7 @@ Native.typize = function(object, family){
 		'String': ["charAt", "charCodeAt", "concat", "indexOf", "lastIndexOf", "match", "replace", "search", "slice", "split", "substr", "substring", "toLowerCase", "toUpperCase", "valueOf"]
 	};
 	for (var g in generics){
-		for (var i = generics[g].length; i--;) Native.genericize(window[g], generics[g][i], true);
+		for (var i = generics[g].length; i--;) Native.genericize(natives[g], generics[g][i], true);
 	}
 })();
 
@@ -199,7 +204,7 @@ function $H(object){
 };
 
 function $lambda(value){
-	return (typeof value == 'function') ? value : function(){
+	return ($type(value) == 'function') ? value : function(){
 		return value;
 	};
 };
@@ -287,11 +292,21 @@ function $unlink(object){
 
 
 /*
-Script: Browser.js
-	The Browser Core. Contains Browser initialization, Window and Document, and the Browser Hash.
+---
 
-License:
-	MIT-style license.
+script: Browser.js
+
+description: The Browser Core. Contains Browser initialization, Window and Document, and the Browser Hash.
+
+license: MIT-style license.
+
+requires: 
+- /Native
+- /$util
+
+provides: [Browser, Window, Document, $exec]
+
+...
 */
 
 var Browser = $merge({
@@ -311,7 +326,7 @@ var Browser = $merge({
 		},
 
 		trident: function(){
-			return (!window.ActiveXObject) ? false : ((window.XMLHttpRequest) ? 5 : 4);
+			return (!window.ActiveXObject) ? false : ((window.XMLHttpRequest) ? ((document.querySelectorAll) ? 6 : 5) : 4);
 		},
 
 		webkit: function(){
@@ -319,7 +334,7 @@ var Browser = $merge({
 		},
 
 		gecko: function(){
-			return (document.getBoxObjectFor == undefined) ? false : ((document.getElementsByClassName) ? 19 : 18);
+			return (!document.getBoxObjectFor && window.mozInnerScreenX == null) ? false : ((document.getElementsByClassName) ? 19 : 18);
 		}
 
 	}
@@ -350,6 +365,8 @@ Browser.Request = function(){
 		return new XMLHttpRequest();
 	}, function(){
 		return new ActiveXObject('MSXML2.XMLHTTP');
+	}, function(){
+		return new ActiveXObject('Microsoft.XMLHTTP');
 	});
 };
 
@@ -426,7 +443,7 @@ var Document = new Native({
 		if (Browser.Engine.trident && Browser.Engine.version <= 4) $try(function(){
 			doc.execCommand("BackgroundImageCache", false, true);
 		});
-		if (Browser.Engine.trident) doc.window.attachEvent('onunload', function() {
+		if (Browser.Engine.trident) doc.window.attachEvent('onunload', function(){
 			doc.window.detachEvent('onunload', arguments.callee);
 			doc.head = doc.html = doc.window = null;
 		});
@@ -445,11 +462,21 @@ new Document(document);
 
 
 /*
-Script: Array.js
-	Contains Array Prototypes like each, contains, and erase.
+---
 
-License:
-	MIT-style license.
+script: Array.js
+
+description: Contains Array Prototypes like each, contains, and erase.
+
+license: MIT-style license.
+
+requires:
+- /$util
+- /Array.each
+
+provides: [Array]
+
+...
 */
 
 Array.implement({
@@ -469,7 +496,7 @@ Array.implement({
 		return results;
 	},
 
-	clean: function() {
+	clean: function(){
 		return this.filter($defined);
 	},
 
@@ -587,11 +614,21 @@ Array.implement({
 
 
 /*
-Script: Function.js
-	Contains Function Prototypes like create, bind, pass, and delay.
+---
 
-License:
-	MIT-style license.
+script: Function.js
+
+description: Contains Function Prototypes like create, bind, pass, and delay.
+
+license: MIT-style license.
+
+requires:
+- /Native
+- /$util
+
+provides: [Function]
+
+...
 */
 
 Function.implement({
@@ -650,11 +687,21 @@ Function.implement({
 
 
 /*
-Script: Number.js
-	Contains Number Prototypes like limit, round, times, and ceil.
+---
 
-License:
-	MIT-style license.
+script: Number.js
+
+description: Contains Number Prototypes like limit, round, times, and ceil.
+
+license: MIT-style license.
+
+requires:
+- /Native
+- /$util
+
+provides: [Number]
+
+...
 */
 
 Number.implement({
@@ -696,11 +743,20 @@ Number.alias('times', 'each');
 
 
 /*
-Script: String.js
-	Contains String Prototypes like camelCase, capitalize, test, and toInt.
+---
 
-License:
-	MIT-style license.
+script: String.js
+
+description: Contains String Prototypes like camelCase, capitalize, test, and toInt.
+
+license: MIT-style license.
+
+requires:
+- /Native
+
+provides: [String]
+
+...
 */
 
 String.implement({
@@ -783,11 +839,20 @@ String.implement({
 
 
 /*
-Script: Hash.js
-	Contains Hash Prototypes. Provides a means for overcoming the JavaScript practical impossibility of extending native Objects.
+---
 
-License:
-	MIT-style license.
+script: Hash.js
+
+description: Contains Hash Prototypes. Provides a means for overcoming the JavaScript practical impossibility of extending native Objects.
+
+license: MIT-style license.
+
+requires:
+- /Hash.base
+
+provides: [Hash]
+
+...
 */
 
 Hash.implement({
@@ -806,14 +871,14 @@ Hash.implement({
 	},
 
 	extend: function(properties){
-		Hash.each(properties, function(value, key){
+		Hash.each(properties || {}, function(value, key){
 			Hash.set(this, key, value);
 		}, this);
 		return this;
 	},
 
 	combine: function(properties){
-		Hash.each(properties, function(value, key){
+		Hash.each(properties || {}, function(value, key){
 			Hash.include(this, key, value);
 		}, this);
 		return this;
@@ -919,11 +984,25 @@ Hash.alias({keyOf: 'indexOf', hasValue: 'contains'});
 
 
 /*
-Script: Event.js
-	Contains the Event Native, to make the event object completely crossbrowser.
+---
 
-License:
-	MIT-style license.
+script: Event.js
+
+description: Contains the Event Class, to make the event object cross-browser.
+
+license: MIT-style license.
+
+requires:
+- /Window
+- /Document
+- /Hash
+- /Array
+- /Function
+- /String
+
+provides: [Event]
+
+...
 */
 
 var Event = new Native({
@@ -1035,11 +1114,26 @@ Event.implement({
 
 
 /*
-Script: Class.js
-	Contains the Class Function for easily creating, extending, and implementing reusable Classes.
+---
 
-License:
-	MIT-style license.
+script: Class.js
+
+description: Contains the Class Function for easily creating, extending, and implementing reusable Classes.
+
+license: MIT-style license.
+
+requires:
+- /$util
+- /Native
+- /Array
+- /String
+- /Function
+- /Number
+- /Hash
+
+provides: [Class]
+
+...
 */
 
 function Class(params){
@@ -1189,11 +1283,20 @@ Class.Mutators = {
 
 
 /*
-Script: Class.Extras.js
-	Contains Utility Classes that can be implemented into your own Classes to ease the execution of many common tasks.
+---
 
-License:
-	MIT-style license.
+script: Class.Extras.js
+
+description: Contains Utility Classes that can be implemented into your own Classes to ease the execution of many common tasks.
+
+license: MIT-style license.
+
+requires:
+- /Class
+
+provides: [Chain, Events, Options]
+
+...
 */
 
 var Chain = new Class({
@@ -1269,7 +1372,7 @@ var Events = new Class({
 });
 
 Events.removeOn = function(string){
-	return string.replace(/^on([A-Z])/, function(full, first) {
+	return string.replace(/^on([A-Z])/, function(full, first){
 		return first.toLowerCase();
 	});
 };
@@ -1290,69 +1393,25 @@ var Options = new Class({
 });
 
 
-/*
-Script: JSON.js
-	JSON encoder and decoder.
-
-License:
-	MIT-style license.
-
-See Also:
-	<http://www.json.org/>
-*/
-
-var JSON = new Hash({
-
-	$specialChars: {'\b': '\\b', '\t': '\\t', '\n': '\\n', '\f': '\\f', '\r': '\\r', '"' : '\\"', '\\': '\\\\'},
-
-	$replaceChars: function(chr){
-		return JSON.$specialChars[chr] || '\\u00' + Math.floor(chr.charCodeAt() / 16).toString(16) + (chr.charCodeAt() % 16).toString(16);
-	},
-
-	encode: function(obj){
-		switch ($type(obj)){
-			case 'string':
-				return '"' + obj.replace(/[\x00-\x1f\\"]/g, JSON.$replaceChars) + '"';
-			case 'array':
-				return '[' + String(obj.map(JSON.encode).filter($defined)) + ']';
-			case 'object': case 'hash':
-				var string = [];
-				Hash.each(obj, function(value, key){
-					var json = JSON.encode(value);
-					if (json) string.push(JSON.encode(key) + ':' + json);
-				});
-				return '{' + string + '}';
-			case 'number': case 'boolean': return String(obj);
-			case false: return 'null';
-		}
-		return null;
-	},
-
-	decode: function(string, secure){
-		if ($type(string) != 'string' || !string.length) return null;
-		if (secure && !(/^[,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]*$/).test(string.replace(/\\./g, '@').replace(/"[^"\\\n\r]*"/g, ''))) return null;
-		return eval('(' + string + ')');
-	}
-
-});
-
-Native.implement([Hash, Array, String, Number], {
-
-	toJSON: function(){
-		return JSON.encode(this);
-	}
-
-});
 
 /*
-Script: Cookie.js
-	Class for creating, loading, and saving browser Cookies.
+---
 
-License:
-	MIT-style license.
+script: Cookie.js
 
-Credits:
-	Based on the functions by Peter-Paul Koch (http://quirksmode.org).
+description: Class for creating, reading, and deleting browser Cookies.
+
+license: MIT-style license.
+
+credits:
+- Based on the functions by Peter-Paul Koch (http://quirksmode.org).
+
+requires:
+- /Options
+
+provides: [Cookie]
+
+...
 */
 
 var Cookie = new Class({
@@ -1411,13 +1470,25 @@ Cookie.dispose = function(key, options){
 };
 
 
-
 /*
-Script: Request.js
-	Powerful all purpose Request Class. Uses XMLHTTPRequest.
+---
 
-License:
-	MIT-style license.
+script: Request.js
+
+description: Powerful all purpose Request Class. Uses XMLHTTPRequest.
+
+license: MIT-style license.
+
+requires:
+- /Element
+- /Chain
+- /Events
+- /Options
+- /Browser
+
+provides: [Request]
+
+...
 */
 
 var Request = new Class({
@@ -1464,6 +1535,7 @@ var Request = new Class({
 		$try(function(){
 			this.status = this.xhr.status;
 		}.bind(this));
+		this.xhr.onreadystatechange = $empty;
 		if (this.options.isSuccess.call(this, this.status)){
 			this.response = {text: this.xhr.responseText, xml: this.xhr.responseXML};
 			this.success(this.response.text, this.response.xml);
@@ -1471,7 +1543,6 @@ var Request = new Class({
 			this.response = {text: null, xml: null};
 			this.failure();
 		}
-		this.xhr.onreadystatechange = $empty;
 	},
 
 	isSuccess: function(){
@@ -1528,10 +1599,10 @@ var Request = new Class({
 
 		var old = this.options;
 		options = $extend({data: old.data, url: old.url, method: old.method}, options);
-		var data = options.data, url = options.url, method = options.method;
+		var data = options.data, url = String(options.url), method = options.method.toLowerCase();
 
 		switch ($type(data)){
-			case 'element': data = $(data).toQueryString(); break;
+			case 'element': data = document.id(data).toQueryString(); break;
 			case 'object': case 'hash': data = Hash.toQueryString(data);
 		}
 
@@ -1540,7 +1611,7 @@ var Request = new Class({
 			data = (data) ? format + '&' + data : format;
 		}
 
-		if (this.options.emulation && ['put', 'delete'].contains(method)){
+		if (this.options.emulation && !['get', 'post'].contains(method)){
 			var _method = '_method=' + method;
 			data = (data) ? _method + '&' + data : _method;
 			method = 'post';
@@ -1551,23 +1622,22 @@ var Request = new Class({
 			this.headers.set('Content-type', 'application/x-www-form-urlencoded' + encoding);
 		}
 
-		if(this.options.noCache) {
-			var noCache = "noCache=" + new Date().getTime();
+		if (this.options.noCache){
+			var noCache = 'noCache=' + new Date().getTime();
 			data = (data) ? noCache + '&' + data : noCache;
 		}
 
+		var trimPosition = url.lastIndexOf('/');
+		if (trimPosition > -1 && (trimPosition = url.indexOf('#')) > -1) url = url.substr(0, trimPosition);
 
 		if (data && method == 'get'){
 			url = url + (url.contains('?') ? '&' : '?') + data;
 			data = null;
 		}
 
-
-
 		this.xhr.open(method.toUpperCase(), url, this.options.async);
 
 		this.xhr.onreadystatechange = this.onStateChange.bind(this);
-
 
 		this.headers.each(function(value, key){
 			try {
@@ -1601,14 +1671,13 @@ var methods = {};
 ['get', 'post', 'put', 'delete', 'GET', 'POST', 'PUT', 'DELETE'].each(function(method){
 	methods[method] = function(){
 		var params = Array.link(arguments, {url: String.type, data: $defined});
-		return this.send($extend(params, {method: method.toLowerCase()}));
+		return this.send($extend(params, {method: method}));
 	};
 });
 
 Request.implement(methods);
 
 })();
-
 var APE = {
 	'version': '1.0b1',
 	'Request': {},

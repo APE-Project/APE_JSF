@@ -50,7 +50,7 @@ APE.Move = new Class({
 		//Define sender
 		sender = this.pipe.getUser(sender.pubid);
 
-		//destory old message
+		//destroy old message
 		sender.element.getElements('.ape_message_container').destroy();
 
 		//Create message container
@@ -103,9 +103,16 @@ APE.Move = new Class({
 					'background-color':'rgb('+this.userColor(user.properties.name)+')'
 				}
 				}).inject(user.element,'inside');
-		new Element('span',{
+		var span = new Element('span',{
 				'text':user.properties.name
 			}).inject(user.element,'inside');
+		if (user.pubid == this.core.user.pubid) {
+				span.addClass('you');
+				span.set('text', 'You');
+				if (!this.core.options.restore) {
+					this.movePoint(this.core.user, $random(0, 640), $random(0,300));
+				}
+		}
 	},
 
 	userColor: function(nickname){
@@ -160,9 +167,26 @@ APE.Move = new Class({
 		this.element = this.options.container;
 		this.els = {};
 		this.els.move_box = new Element('div',{'class':'move_box'}).inject(this.element);
-		this.els.move_box.addEvent('click',function(ev){ 
+		this.els.move_box.addEvent('mousedown',function(ev){ 
+			ev.stop();
 			this.sendpos(ev.page.x,ev.page.y);
 		}.bindWithEvent(this));
+		var el1 = new Element('div', {'id': 'moveOverlay', 'styles': {'opacity': 0.5}}).inject(this.element,'top');
+		var el2 = new Element('div', {'id': 'moveOverlay', 'styles': {'background': 'none', 'z-index':6}, 'text': 'Click on the grey area to move your ball'}).inject(this.element,'top');
+		var clear = function() {
+		 	el1.fade('out');
+		 	el2.fade('out');
+			el.get('morph').addEvent('complete', function() {
+				el1.dispose();
+				el2.dispose();
+			});
+		}
+
+		el2.addEvent('click', function() {
+				el1.destroy();
+				el2.destroy();
+		});
+		clear.delay(1500);
 		this.els.more = new Element('div',{'id':'more'}).inject(this.element,'inside');
 
 		this.els.sendboxContainer = new Element('div',{'id':'ape_sendbox_container'}).inject(this.els.more);

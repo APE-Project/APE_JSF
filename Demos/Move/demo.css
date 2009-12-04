@@ -1,7 +1,22 @@
+#moveOverlay {
+	width: 698px;
+	text-align:center;
+	line-height:403px;
+	color: #FFF;
+	font-weight: bold;
+	height: 403px;
+	background: #000;
+	position:absolute;
+	z-index:5;
+	margin-left:-8px;
+	margin-top: -8px;
+	cursor:pointer;
+}
 #more,
 #ape_master_container{
 	width:685px;
 	margin:auto;
+	font-family:'Verdana',"Lucida Grande",'Arial','sans-serif';
 }
 #ape_master_container{
 	height:385px;
@@ -31,9 +46,16 @@
 	-background-image:none;
 	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled=true, sizingMethod=crop src='Images/round.png');
 }
+.demo_box_container span.you {
+	color: #D58025;
+	font-weight:bold;
+}
 .demo_box_container span{
 	color:white;
 	font-size:14px;
+	width:36px;
+	text-align:center;
+	display:inline-block;
 }
 #ape_sendbox_container{
 	border-left:4px #FFF;
@@ -82,6 +104,7 @@
 	height:9px;
 }
 .move_box{
+	cursor:pointer;
 	height:345px;
 	width:682px;
 	position:absolute;
