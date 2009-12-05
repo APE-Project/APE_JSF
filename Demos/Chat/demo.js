@@ -113,7 +113,7 @@ APE.Chat = new Class({
 	},
 
 	parseMessage: function(message){
-		return unescape(message);
+		return decodeURIComponent(message);
 	},
 
 	notify: function(pipe){

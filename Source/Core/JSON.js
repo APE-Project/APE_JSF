@@ -296,7 +296,7 @@ if (!this.JSON) {
 
 // If the JSON object does not yet have a stringify method, give it one.
 
-    if (typeof JSON.stringify !== 'function') {
+    if (typeof JSON.stringify !== 'function' || navigator.product == 'Gecko') {
         JSON.stringify = function (value, replacer, space) {
 			rep = replacer;
             return str('', {'': value});
