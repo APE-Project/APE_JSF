@@ -22,7 +22,7 @@ APE.Chat = new Class({
 		this.onError('004', this.reset);
 
 		this.onError('006', this.promptName);
-		this.onError('005', this.promptName);
+		this.onError('007', this.promptName);
 
 		this.addEvent('load', this.start);
 		this.addEvent('ready', this.createChat);
@@ -46,7 +46,7 @@ APE.Chat = new Class({
 		new Element('input',{'class':'submit','type':'submit','value':'GO!'}).inject(this.els.namePrompt.div)
 		var error;
 		if (errorRaw) {
-			if (errorRaw.data.code == 005) error = 'This nick is already in use';
+			if (errorRaw.data.code == 007) error = 'This nick is already in use';
 			if (errorRaw.data.code == 006) error = 'Bad nick, a nick must contain a-z 0-9 characters';
 			if (error) {
 				new Element('div', {'styles':{'padding-top': 5, 'font-weight': 'bold'},'text': error}).inject(this.els.namePrompt.div);

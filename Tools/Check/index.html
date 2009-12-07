@@ -210,7 +210,7 @@
 					new Element('script', {'type': 'text/javascript', 'src': 'http://' + APE.Config.server + '/2/?' + encodeURIComponent('[{"cmd":"setup","params":{"domain":"' + document.domain + '"}}]')}).inject(document.body);
 
 					var timer = (function() {
-						this.fireEvent('testComplete', {'error': "Can't contact APE Server. Please check the folowing url is pointing to your APE server : <a href=\"http://" + APE.Config.server + "\" target=\"_blank\">http://" + APE.Config.server + "</a>"});
+						this.fireEvent('testComplete', {'error': "Can't contact APE Server. Please check the your APE Server is running and the folowing url is pointing to your APE server : <a href=\"http://" + APE.Config.server + "\" target=\"_blank\">http://" + APE.Config.server + "</a>"});
 					 }).delay(1000, this);
 
 				}.bind(this));

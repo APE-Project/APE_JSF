@@ -296,7 +296,20 @@ if (!this.JSON) {
 
 // If the JSON object does not yet have a stringify method, give it one.
 
-    if (typeof JSON.stringify !== 'function' || navigator.product == 'Gecko') {
+    if (
+		typeof JSON.stringify !== 'function' || 
+		(
+			navigator.product == 'Gecko' && 
+			//There is a know bug with some version of FF 3.5 with the replacer parameters, this test, is to check if the browser havent a bugy version of JSON.stringify 
+			(function() {
+				var tmp = JSON.stringify({x:1}, function (k,v) {
+					return typeof v === 'number' ? 3 : v;
+				});
+				return tmp.x == 1 ? true : false; 
+			})
+		)
+	) {
+
         JSON.stringify = function (value, replacer, space) {
 			rep = replacer;
             return str('', {'': value});
