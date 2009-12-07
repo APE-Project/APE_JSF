@@ -164,6 +164,10 @@ APE.Config.baseUrl = 'http://local.ape-project.org/APE_JSF'; //APE JSF
 APE.Config.domain = 'auto'; 
 APE.Config.server = 'ape.local.ape-project.org:6969'; //APE server URL
 
+//APE.Config.baseUrl = 'http://ape-git.dev.weelya.net/APE_JSF'; //APE JSF 
+//APE.Config.domain = 'dev.weelya.net'; 
+//APE.Config.server = 'ape.ape-git.dev.weelya.net:6970'; //APE server URL
+
 (function(){
 	for (var i = 0; i < arguments.length; i++)
 		APE.Config.scripts.push(APE.Config.baseUrl + '/Source/' + arguments[i] + '.js');

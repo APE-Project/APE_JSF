@@ -76,6 +76,7 @@ APE.Core = new Class({
 		this.onRaw('login', this.rawLogin);
 		this.onRaw('err', this.rawErr);
 		this.onRaw('ident', this.rawIdent);
+		this.onRaw('quit', this.rawQuit);
 
 		this.onError('003', this.clearSession);
 		this.onError('004', this.clearSession);
@@ -366,6 +367,10 @@ APE.Core = new Class({
 
 	rawErr: function(err){
 		this.fireEvent('error_' + err.data.code, err);
+	},
+
+	rawQuit: function() {
+		this.stopRequest();
 	},
 	
 	/***

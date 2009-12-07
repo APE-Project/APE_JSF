@@ -1,5 +1,5 @@
 var APE = {
-	'version': '1.0b1',
+	'version': '1.0',
 	'Request': {},
 	'Transport': {}
 };

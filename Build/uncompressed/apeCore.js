@@ -1679,7 +1679,7 @@ Request.implement(methods);
 
 })();
 var APE = {
-	'version': '1.0b1',
+	'version': '1.0',
 	'Request': {},
 	'Transport': {}
 };
@@ -1782,6 +1782,7 @@ APE.Core = new Class({
 		this.onRaw('login', this.rawLogin);
 		this.onRaw('err', this.rawErr);
 		this.onRaw('ident', this.rawIdent);
+		this.onRaw('quit', this.rawQuit);
 
 		this.onError('003', this.clearSession);
 		this.onError('004', this.clearSession);
@@ -1899,7 +1900,7 @@ APE.Core = new Class({
 
 				//Last request is finished and it's not an error
 				if (!this.transport.running()) {
-					if (!raw.data.code || (raw.data.code != '006' && raw.data.code!='005' && raw.data.code!= '001' && raw.data.code != '004' && raw.data.code != '003')) {
+					if (!raw.data.code || (raw.data.code != '006' && raw.data.code != '007' && raw.data.code != '005' && raw.data.code!= '001' && raw.data.code != '004' && raw.data.code != '003')) {
 						check = true;
 					}
 				} else {
@@ -2072,6 +2073,10 @@ APE.Core = new Class({
 
 	rawErr: function(err){
 		this.fireEvent('error_' + err.data.code, err);
+	},
+
+	rawQuit: function() {
+		this.stopRequest();
 	},
 	
 	/***
@@ -3248,7 +3253,20 @@ if (!this.JSON) {
 
 // If the JSON object does not yet have a stringify method, give it one.
 
-    if (typeof JSON.stringify !== 'function' || navigator.product == 'Gecko') {
+    if (
+		typeof JSON.stringify !== 'function' || 
+		(
+			navigator.product == 'Gecko' && 
+			//There is a know bug with some version of FF 3.5 with the replacer parameters, this test, is to check if the browser havent a bugy version of JSON.stringify 
+			(function() {
+				var tmp = JSON.stringify({x:1}, function (k,v) {
+					return typeof v === 'number' ? 3 : v;
+				});
+				return tmp.x == 1 ? true : false; 
+			})
+		)
+	) {
+
         JSON.stringify = function (value, replacer, space) {
 			rep = replacer;
             return str('', {'': value});
