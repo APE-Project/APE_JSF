@@ -110,7 +110,8 @@ APE.Move = new Class({
 				span.addClass('you');
 				span.set('text', 'You');
 				if (!this.core.options.restore) {
-					this.sendpos($random(0, 640), $random(0,300));
+					var offset = this.element.getPosition();
+					this.sendpos($random(0, 640) + offset.x, $random(0,300) + offset.y);
 				}
 		}
 	},
