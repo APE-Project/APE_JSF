@@ -43,7 +43,7 @@ APE.Move = new Class({
 	},
 
 	parseMessage: function(message){
-		return unescape(message);
+		return decodeURIComponent(message);
 	},
 
 	writeMessage: function(pipe,message,sender){
