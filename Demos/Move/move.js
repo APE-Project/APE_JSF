@@ -110,7 +110,7 @@ APE.Move = new Class({
 				span.addClass('you');
 				span.set('text', 'You');
 				if (!this.core.options.restore) {
-					this.movePoint(this.core.user, $random(0, 640), $random(0,300));
+					this.sendpos($random(0, 640), $random(0,300));
 				}
 		}
 	},
@@ -176,7 +176,7 @@ APE.Move = new Class({
 		var clear = function() {
 		 	el1.fade('out');
 		 	el2.fade('out');
-			el.get('morph').addEvent('complete', function() {
+			el1.get('morph').addEvent('complete', function() {
 				el1.dispose();
 				el2.dispose();
 			});
