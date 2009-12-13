@@ -145,6 +145,7 @@ APE.Core = new Class({
 			this.stopPoller();
 			this.fireEvent('apeDisconnect');
 		} 
+		console.log('requestFail', failStatus, request);
 
 		if (this.failCounter < 6) this.failCounter++;
 
@@ -308,7 +309,6 @@ APE.Core = new Class({
 
 	left: function(pubid){
 		this.request.send('LEFT', {"channel":this.pipes.get(pubid).name});
-		this.delPipe(pubid);
 	},
 
 	quit: function(){
