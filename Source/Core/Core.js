@@ -302,8 +302,10 @@ APE.Core = new Class({
 		if (!$defined(options.sendStack) && options.sendStack !== false) this.request.stack.send();
 	},
 
-	join: function(channel){
-		this.request.send('JOIN', {"channels":channel});
+	join: function(channel, options) {
+		options = options || {};
+		options.channels = channels;
+		this.request.send('JOIN', options);
 	},
 
 	left: function(pubid){
