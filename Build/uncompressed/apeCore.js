@@ -2010,13 +2010,12 @@ APE.Core = new Class({
 
 	join: function(channel, options) {
 		options = options || {};
-		options.channels = channels;
+		options.channels = channel;
 		this.request.send('JOIN', options);
 	},
 
 	left: function(pubid){
 		this.request.send('LEFT', {"channel":this.pipes.get(pubid).name});
-		this.delPipe(pubid);
 	},
 
 	quit: function(){

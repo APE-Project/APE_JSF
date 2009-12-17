@@ -304,7 +304,7 @@ APE.Core = new Class({
 
 	join: function(channel, options) {
 		options = options || {};
-		options.channels = channels;
+		options.channels = channel;
 		this.request.send('JOIN', options);
 	},
 
