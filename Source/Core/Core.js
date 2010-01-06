@@ -303,7 +303,7 @@ APE.Core = new Class({
 	},
 
 	join: function(channel, options) {
-		options = options || {};
+		options = options || {};
 		options.channels = channel;
 		this.request.send('JOIN', options);
 	},
