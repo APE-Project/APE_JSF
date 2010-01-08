@@ -184,7 +184,7 @@ APE.Chat = new Class({
 
 		//Container
 		pipe.els.container = new Element('div',{
-							'class':'ape_pipe ape_none '
+							'class':'ape_pipe ape_none'
 						}).inject(this.els.pipeContainer);
 
 		//Message container

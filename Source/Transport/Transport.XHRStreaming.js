@@ -53,13 +53,13 @@ APE.Transport.XHRStreaming = new Class({
 	send: function(queryString, options) {
 		if (this.SSESupport && !this.eventSource) {
 			this.initSSE(queryString, options, this.readSSE.bind(this));
-			if (options.callback) this.streamInfo.callback = options.callback;
+			if (options.requestCallback) this.streamInfo.callback = options.requestCallback;
 		} else {
 			if ((!this.streamRequest || !this.streamRequest.running) && !this.eventSource) { //Only one XHRstreaming request is allowed
 				this.buffer = '';
 				this.request = this.doRequest(queryString, options);
 
-				if (options.callback) this.streamInfo.callback = options.callback;
+				if (options.requestCallback) this.streamInfo.callback = options.requestCallback;
 			} else { //Simple XHR request
 				var request = new Request({
 					url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
@@ -70,7 +70,6 @@ APE.Transport.XHRStreaming = new Class({
 						this.ape.parseResponse(resp, options.callback);
 					}.bind(this)
 				}).send(queryString);
-				request.id = $time();
 				this.request = request;
 
 				//set up an observer to detect request timeout

@@ -31,7 +31,6 @@ APE.Request = new Class({
 		opt.event = options.event || true;
 		opt.requestCallback = options.requestCallback || null;
 		opt.callback = options.callback;
-
 		var ret = this.ape.transport.send(this.parseCmd(cmd, params, opt), opt);
 
 		$clear(this.ape.pollerObserver);

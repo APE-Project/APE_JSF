@@ -1,5 +1,5 @@
 <?php
-$APEserver = 'http://local.ape-project.org:6969/?';
+$APEserver = 'http://ape-git.timyy.com:6970/?';
 $APEPassword = 'testpasswd';
 
 $messages = array(

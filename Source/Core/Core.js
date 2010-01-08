@@ -92,18 +92,17 @@ APE.Core = new Class({
 	},
 
 	selectTransport: function() {
-		var transports = [APE.Transport.longPolling, APE.Transport.XHRStreaming, APE.Transport.JSONP];
+		var transports = [APE.Transport.longPolling, APE.Transport.XHRStreaming, APE.Transport.JSONP,null, null, null, APE.Transport.WebSocket];
 		var transport = this.options.transport;
 		var support;
 
-		while (support != true) {
+		while (support !== true) {
 			support = transports[transport].browserSupport();//Test if browser support transport	
 
-			if (support) {
+			if (support === true) {
 				this.options.transport = transport;
 				this.transport = new transports[transport](this);
-			}
-			else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
+			} else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
 		}
 	},
 	poller: function() {
@@ -303,7 +302,7 @@ APE.Core = new Class({
 	},
 
 	join: function(channel, options) {
-		options = options || {};
+		options = options || {};
 		options.channels = channel;
 		this.request.send('JOIN', options);
 	},

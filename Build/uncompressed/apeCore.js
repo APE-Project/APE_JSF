@@ -1798,18 +1798,17 @@ APE.Core = new Class({
 	},
 
 	selectTransport: function() {
-		var transports = [APE.Transport.longPolling, APE.Transport.XHRStreaming, APE.Transport.JSONP];
+		var transports = [APE.Transport.longPolling, APE.Transport.XHRStreaming, APE.Transport.JSONP,null, null, null, APE.Transport.WebSocket];
 		var transport = this.options.transport;
 		var support;
 
-		while (support != true) {
+		while (support !== true) {
 			support = transports[transport].browserSupport();//Test if browser support transport	
 
-			if (support) {
+			if (support === true) {
 				this.options.transport = transport;
 				this.transport = new transports[transport](this);
-			}
-			else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
+			} else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
 		}
 	},
 	poller: function() {
@@ -2009,7 +2008,7 @@ APE.Core = new Class({
 	},
 
 	join: function(channel, options) {
-		options = options || {};
+		options = options || {};
 		options.channels = channel;
 		this.request.send('JOIN', options);
 	},
@@ -2372,7 +2371,6 @@ APE.Request = new Class({
 		opt.event = options.event || true;
 		opt.requestCallback = options.requestCallback || null;
 		opt.callback = options.callback;
-
 		var ret = this.ape.transport.send(this.parseCmd(cmd, params, opt), opt);
 
 		$clear(this.ape.pollerObserver);
@@ -2638,13 +2636,13 @@ APE.Transport.XHRStreaming = new Class({
 	send: function(queryString, options) {
 		if (this.SSESupport && !this.eventSource) {
 			this.initSSE(queryString, options, this.readSSE.bind(this));
-			if (options.callback) this.streamInfo.callback = options.callback;
+			if (options.requestCallback) this.streamInfo.callback = options.requestCallback;
 		} else {
 			if ((!this.streamRequest || !this.streamRequest.running) && !this.eventSource) { //Only one XHRstreaming request is allowed
 				this.buffer = '';
 				this.request = this.doRequest(queryString, options);
 
-				if (options.callback) this.streamInfo.callback = options.callback;
+				if (options.requestCallback) this.streamInfo.callback = options.requestCallback;
 			} else { //Simple XHR request
 				var request = new Request({
 					url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
@@ -2655,7 +2653,6 @@ APE.Transport.XHRStreaming = new Class({
 						this.ape.parseResponse(resp, options.callback);
 					}.bind(this)
 				}).send(queryString);
-				request.id = $time();
 				this.request = request;
 
 				//set up an observer to detect request timeout
