@@ -1924,8 +1924,6 @@ APE.Core = new Class({
 				pipe = this.newPipe(raw.data.pipe.casttype, raw.data);
 			} else {
 				pipe = this.pipes.get(pipeId);
-				//Update pipe properties
-				if (raw.data.pipe.properties) pipe.properties = raw.data.pipe.properties;
 			}
 			if (pipe) {
 				args = [raw, pipe];
