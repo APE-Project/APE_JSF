@@ -1,9 +1,9 @@
 /***
  * APE JSF Setup
  */
-APE.Config.baseUrl = 'http://ape-git.timyy.com/APE_JSF'; //APE JSF 
+APE.Config.baseUrl = 'http://local.ape-project.org/ape-jsf'; //APE JSF 
 APE.Config.domain = 'auto'; 
-APE.Config.server = 'ape-git.timyy.com:6973'; //APE server URL
+APE.Config.server = 'ape.local.ape-project.org:6969'; //APE server URL
 
 (function(){
 	for (var i = 0; i < arguments.length; i++)
