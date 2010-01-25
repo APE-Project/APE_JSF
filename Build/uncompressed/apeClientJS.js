@@ -70,6 +70,7 @@ APE.Client.prototype.load = function(config){
 	config.domain = config.domain || APE.Config.domain || document.domain;
 	config.scripts = config.scripts || APE.Config.scripts;
 	config.server = config.server || APE.Config.server;
+	config.secure = config.sercure || APE.Config.secure;
 
 	config.init = function(core){
 		this.core = core;
@@ -120,7 +121,7 @@ APE.Client.prototype.load = function(config){
 		doc.write(theHtml);
 		doc.close();
 	} else {
-		iframe.setAttribute('src','http://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"domain":"' + document.domain +'","scripts":["' + config.scripts.join('","') + '"]}}]');
+		iframe.setAttribute('src',(config.secure ? 'https': 'http') + '://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"domain":"' + document.domain +'","scripts":["' + config.scripts.join('","') + '"]}}]');
 		if (navigator.product == 'Gecko') { 
 			//Firefox fix, see bug  #356558 
 			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558

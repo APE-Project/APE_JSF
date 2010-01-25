@@ -1757,7 +1757,8 @@ APE.Core = new Class({
 		identifier: 'ape', // Identifier is used by cookie to differentiate ape instance
 		transport: 0, // Transport 0: long polling, 1 : XHRStreaming, 2: JSONP, 3 SSE / JSONP, 4 : SSE / XHR
 		frequency: 0, // Frequency identifier
-		cycledStackTime: 350 //Time before send request of cycledStack
+		cycledStackTime: 350, //Time before send request of cycledStack
+		secure: false
 	},
 
 	initialize: function(options){
@@ -1773,6 +1774,7 @@ APE.Core = new Class({
 		this.sessid = null;
 		this.pubid = null;
 
+		this.serverUri = (this.options.secure ? 'https' : 'http') + '://' + this.options.frequency + '.' + this.options.server + '/' + this.options.transport + '/?',
 		this.timer = null;
 		this.status = 0; // 0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request failure
 		this.failCounter = 0;
@@ -2533,6 +2535,7 @@ Request = new Class({
 		this.parent();
 	}
 });
+
 APE.Transport.longPolling = new Class({
 
 	initialize: function(ape) { 
@@ -2542,7 +2545,7 @@ APE.Transport.longPolling = new Class({
 
 	send: function(queryString, options) {
 		var request = new Request({
-			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/'+this.ape.options.transport+'/?',
+			url: this.ape.serverUri,
 			onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 			onComplete: function(resp) {
 				$clear(this.requestFailObserver.shift());
@@ -2576,7 +2579,7 @@ APE.Request.SSE = new Class({
 	initSSE: function(queryString, options, readCallback) {
 		var tmp = document.createElement('div');
 		document.body.appendChild(tmp);
-		tmp.innerHTML = '<event-source src="http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/?' + queryString + '&' + $time() + '" id="APE_SSE">';
+		tmp.innerHTML = '<event-source src="' + this.ape.serverUri + queryString + '&' + $time() + '" id="APE_SSE">';
 		this.eventSource = document.getElementById('APE_SSE');
 		this.eventSource.addEventListener('ape-data', function(ev) { readCallback.run(ev.data) }, false);
 	}
@@ -2645,7 +2648,7 @@ APE.Transport.XHRStreaming = new Class({
 				if (options.requestCallback) this.streamInfo.callback = options.requestCallback;
 			} else { //Simple XHR request
 				var request = new Request({
-					url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
+					url: this.ape.serverUri,
 					onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 					onComplete: function(resp) {
 						$clear(this.requestFailObserver.shift());
@@ -2668,7 +2671,7 @@ APE.Transport.XHRStreaming = new Class({
 		this.streamInfo.forceClose = false;
 
 		var request = new Request.XHRStreaming({
-			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
+			url: this.ape.serverUri,
 			onProgress: this.readFragment.bindWithEvent(this),
 			onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 			onComplete: function(resp) {
@@ -2803,7 +2806,7 @@ APE.Transport.JSONP = new Class({
 			this.callback = options.requestCallback;
 
 			var request = document.createElement('script');
-			request.src = 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport +'/?' + queryString;
+			request.src = this.ape.serverUri + queryString;
 			document.head.appendChild(request);
 			this.requests.push(request);
 			//Detect timeout

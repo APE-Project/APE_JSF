@@ -51,7 +51,8 @@ APE.Core = new Class({
 		identifier: 'ape', // Identifier is used by cookie to differentiate ape instance
 		transport: 0, // Transport 0: long polling, 1 : XHRStreaming, 2: JSONP, 3 SSE / JSONP, 4 : SSE / XHR
 		frequency: 0, // Frequency identifier
-		cycledStackTime: 350 //Time before send request of cycledStack
+		cycledStackTime: 350, //Time before send request of cycledStack
+		secure: false
 	},
 
 	initialize: function(options){
@@ -67,6 +68,7 @@ APE.Core = new Class({
 		this.sessid = null;
 		this.pubid = null;
 
+		this.serverUri = (this.options.secure ? 'https' : 'http') + '://' + this.options.frequency + '.' + this.options.server + '/' + this.options.transport + '/?',
 		this.timer = null;
 		this.status = 0; // 0 = APE is not initialized, 1 = connected, -1 = Disconnected by timeout, -2 = Disconnected by request failure
 		this.failCounter = 0;

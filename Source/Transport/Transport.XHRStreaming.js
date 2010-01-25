@@ -62,7 +62,7 @@ APE.Transport.XHRStreaming = new Class({
 				if (options.requestCallback) this.streamInfo.callback = options.requestCallback;
 			} else { //Simple XHR request
 				var request = new Request({
-					url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
+					url: this.ape.serverUri,
 					onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 					onComplete: function(resp) {
 						$clear(this.requestFailObserver.shift());
@@ -85,7 +85,7 @@ APE.Transport.XHRStreaming = new Class({
 		this.streamInfo.forceClose = false;
 
 		var request = new Request.XHRStreaming({
-			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport + '/?',
+			url: this.ape.serverUri,
 			onProgress: this.readFragment.bindWithEvent(this),
 			onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 			onComplete: function(resp) {

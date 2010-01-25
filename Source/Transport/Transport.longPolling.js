@@ -13,6 +13,7 @@ Request = new Class({
 		this.parent();
 	}
 });
+
 APE.Transport.longPolling = new Class({
 
 	initialize: function(ape) { 
@@ -22,7 +23,7 @@ APE.Transport.longPolling = new Class({
 
 	send: function(queryString, options) {
 		var request = new Request({
-			url: 'http://' + this.ape.options.frequency + '.' + this.ape.options.server + '/'+this.ape.options.transport+'/?',
+			url: this.ape.serverUri,
 			onFailure: this.ape.requestFail.bind(this.ape, [-2, this]),
 			onComplete: function(resp) {
 				$clear(this.requestFailObserver.shift());

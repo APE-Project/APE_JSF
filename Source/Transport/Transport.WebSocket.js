@@ -8,7 +8,7 @@ APE.Transport.WebSocket = new Class({
 	},
 
 	initWs: function() {
-		this.ws = new WebSocket('ws://' + this.ape.options.frequency + this.ape.options.server + '/' + this.ape.options.transport +'/');
+		this.ws = new WebSocket( (this.ape.options.secure ? 'ws' : 'wss') + '://' + this.ape.options.frequency + this.ape.options.server + '/' + this.ape.options.transport +'/');
 		this.ws.onmessage = this.readWs.bind(this);
 		this.ws.onclose = this.initWs.bind(this);
 		this.ws.onopen = this.openWs.bind(this);
