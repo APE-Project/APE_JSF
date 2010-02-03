@@ -32,7 +32,7 @@ APE.PipeMulti = new Class({
 	},
 
 	rawLeft: function(raw, pipe) {
-		this.delUser(raw.data.user.pubid);
+		if (pipe.name[0] != '*') this.delUser(raw.data.user.pubid);
 		if (raw.data.user.pubid == this.ape.user.pubid) this.ape.delPipe(pipe.pipe.pubid);
 	},
 
