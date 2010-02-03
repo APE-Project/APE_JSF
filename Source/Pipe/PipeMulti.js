@@ -22,9 +22,9 @@ APE.PipeMulti = new Class({
 			for (var i=0; i < l; i++) {
 				this.addUser(users[i].pubid, users[i]);
 			}
-			this.onRaw('left', this.rawLeft);
-			this.onRaw('join', this.rawJoin);
 		}
+		this.onRaw('left', this.rawLeft);
+		this.onRaw('join', this.rawJoin);
 	},
 
 	rawJoin: function(raw, pipe) {
