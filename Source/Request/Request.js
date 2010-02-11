@@ -71,7 +71,7 @@ APE.Request = new Class({
 						if (pipe) evParams = [evParams, pipe];
 					}
 
-					this.ape.fireEvent('onCmd', evParams);
+					this.ape.fireEvent('onCmd', [tmp.cmd, evParams]);
 
 					if (pipe) pipe.fireEvent(ev, evParams);
 
@@ -98,7 +98,7 @@ APE.Request = new Class({
 					var pipe = this.ape.getPipe(params.pipe);
 					if (pipe) evParams = [evParams, pipe];
 				}
-				this.ape.fireEvent('onCmd', evParams);
+				this.ape.fireEvent('onCmd', [cmd, evParams]);
 
 				if (pipe) pipe.fireEvent(ev, evParams);
 

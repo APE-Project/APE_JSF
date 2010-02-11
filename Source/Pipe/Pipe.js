@@ -57,10 +57,6 @@ APE.Pipe  = new Class({
 		this.request.send('SEND', {'msg': data});
 	},
 
-	left: function() {
-		this.ape.left(this.pipe.pubid);
-	},
-
 	getPubid: function(){
 		return this.pipe.pubid;
 	},

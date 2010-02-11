@@ -36,6 +36,10 @@ APE.PipeMulti = new Class({
 		if (raw.data.user.pubid == this.ape.user.pubid) this.ape.delPipe(pipe.pipe.pubid);
 	},
 
+	left: function() {
+		this.ape.left(this.pipe.pubid);
+	},
+
 	addUser: function(pubid, user) {
 		if (!this.ape.users.has(user.pubid)) {
 			user.pipes = new $H;

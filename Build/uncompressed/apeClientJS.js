@@ -80,8 +80,10 @@ APE.Client.prototype.load = function(config){
 	}.bind(this);
 
 	//set document.domain
-	if (config.transport != 2 && config.domain != 'auto') document.domain = config.domain;
-	if (config.domain == 'auto') document.domain = document.domain;
+	if (config.transport != 2) {
+		if (config.domain != 'auto') document.domain = config.domain;
+		if (config.domain == 'auto') document.domain = document.domain;
+	}
 
 	//Get APE cookie
 	var cookie = this.cookie.read('APE_Cookie');
@@ -161,6 +163,7 @@ if (Function.prototype.create == null) {
 /***
  * APE JSF Setup
  */
+
 APE.Config.baseUrl = 'http://local.ape-project.org/ape-jsf'; //APE JSF 
 APE.Config.domain = 'auto'; 
 APE.Config.server = 'ape.local.ape-project.org:6969'; //APE server URL
@@ -169,3 +172,4 @@ APE.Config.server = 'ape.local.ape-project.org:6969'; //APE server URL
 	for (var i = 0; i < arguments.length; i++)
 		APE.Config.scripts.push(APE.Config.baseUrl + '/Source/' + arguments[i] + '.js');
 })('mootools-core', 'Core/APE', 'Core/Events', 'Core/Core', 'Pipe/Pipe', 'Pipe/PipeProxy', 'Pipe/PipeMulti', 'Pipe/PipeSingle', 'Request/Request','Request/Request.Stack', 'Request/Request.CycledStack', 'Transport/Transport.longPolling','Transport/Transport.SSE', 'Transport/Transport.XHRStreaming', 'Transport/Transport.JSONP', 'Transport/Transport.WebSocket', 'Core/Utility', 'Core/JSON');
+APE.Config.scripts.push(APE.Config.baseUrl + '/Plugins/Debug/Client/Plugins/Debug.js');

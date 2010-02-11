@@ -2163,10 +2163,6 @@ APE.Pipe  = new Class({
 		this.request.send('SEND', {'msg': data});
 	},
 
-	left: function() {
-		this.ape.left(this.pipe.pubid);
-	},
-
 	getPubid: function(){
 		return this.pipe.pubid;
 	},
@@ -2280,9 +2276,9 @@ APE.PipeMulti = new Class({
 			for (var i=0; i < l; i++) {
 				this.addUser(users[i].pubid, users[i]);
 			}
-			this.onRaw('left', this.rawLeft);
-			this.onRaw('join', this.rawJoin);
 		}
+		this.onRaw('left', this.rawLeft);
+		this.onRaw('join', this.rawJoin);
 	},
 
 	rawJoin: function(raw, pipe) {
@@ -2290,8 +2286,12 @@ APE.PipeMulti = new Class({
 	},
 
 	rawLeft: function(raw, pipe) {
-		this.delUser(raw.data.user.pubid);
+		if (pipe.name[0] != '*') this.delUser(raw.data.user.pubid);
 		if (raw.data.user.pubid == this.ape.user.pubid) this.ape.delPipe(pipe.pipe.pubid);
+	},
+
+	left: function() {
+		this.ape.left(this.pipe.pubid);
 	},
 
 	addUser: function(pubid, user) {
@@ -2411,7 +2411,7 @@ APE.Request = new Class({
 						if (pipe) evParams = [evParams, pipe];
 					}
 
-					this.ape.fireEvent('onCmd', evParams);
+					this.ape.fireEvent('onCmd', [tmp.cmd, evParams]);
 
 					if (pipe) pipe.fireEvent(ev, evParams);
 
@@ -2438,7 +2438,7 @@ APE.Request = new Class({
 					var pipe = this.ape.getPipe(params.pipe);
 					if (pipe) evParams = [evParams, pipe];
 				}
-				this.ape.fireEvent('onCmd', evParams);
+				this.ape.fireEvent('onCmd', [cmd, evParams]);
 
 				if (pipe) pipe.fireEvent(ev, evParams);
 

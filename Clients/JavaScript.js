@@ -80,8 +80,10 @@ APE.Client.prototype.load = function(config){
 	}.bind(this);
 
 	//set document.domain
-	if (config.transport != 2 && config.domain != 'auto') document.domain = config.domain;
-	if (config.domain == 'auto') document.domain = document.domain;
+	if (config.transport != 2) {
+		if (config.domain != 'auto') document.domain = config.domain;
+		if (config.domain == 'auto') document.domain = document.domain;
+	}
 
 	//Get APE cookie
 	var cookie = this.cookie.read('APE_Cookie');

@@ -54,8 +54,10 @@ APE.Client = new Class({
 		}.bind(this);
 
 		//set document.domain
-		if (config.transport != 2 && config.domain != 'auto') document.domain = config.domain;
-		if (config.domain == 'auto') document.domain = document.domain;
+		if (config.transport != 2) {
+			if (config.domain != 'auto') document.domain = config.domain;
+			if (config.domain == 'auto') document.domain = document.domain;
+		}
 		
 		var tmp	= JSON.decode(Cookie.read('APE_Cookie'), {'domain': document.domain});
 
