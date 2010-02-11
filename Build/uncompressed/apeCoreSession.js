@@ -3367,8 +3367,8 @@ APE.Core = new Class({
 		//Init and save cookies
 		if (options.restore) this.init();
 
-		this.addEvent('uniPipeCreate',this.saveSessionPipe);
-		this.addEvent('uniPipeDelete',this.saveSessionPipe);
+		this.addEvent('uniPipeCreate', this.saveSessionPipe);
+		this.addEvent('uniPipeDelete', this.saveSessionPipe);
 	},
 	
 	saveSessionPipe:function(){
@@ -3379,7 +3379,7 @@ APE.Core = new Class({
 				}
 		});
 
-		if (uniPipe.length > 0) this.setSession({'uniPipe': JSON.stringify(uniPipe)});
+		this.setSession({'uniPipe': JSON.stringify(uniPipe)});
 	},
 
 	restoreUniPipe: function(resp){
