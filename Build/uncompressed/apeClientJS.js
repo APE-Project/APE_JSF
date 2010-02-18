@@ -66,7 +66,7 @@ APE.Client.prototype.load = function(config){
 	config = config || {};
 
 	config.transport = config.transport || APE.Config.transport || 0;
-	config.frequency = config.frequency || 0;
+	config.frequency = config.frequency || 0;
 	config.domain = config.domain || APE.Config.domain || document.domain;
 	config.scripts = config.scripts || APE.Config.scripts;
 	config.server = config.server || APE.Config.server;
@@ -125,7 +125,7 @@ APE.Client.prototype.load = function(config){
 	} else {
 		iframe.setAttribute('src',(config.secure ? 'https': 'http') + '://' + config.frequency + '.' + config.server + '/?[{"cmd":"script","params":{"domain":"' + document.domain +'","scripts":["' + config.scripts.join('","') + '"]}}]');
 		if (navigator.product == 'Gecko') { 
-			//Firefox fix, see bug  #356558 
+			//Firefox fix, see bug #356558 
 			// https://bugzilla.mozilla.org/show_bug.cgi?id=356558
 			iframe.contentWindow.location.href = iframe.getAttribute('src');
 		}
@@ -172,4 +172,3 @@ APE.Config.server = 'ape.local.ape-project.org:6969'; //APE server URL
 	for (var i = 0; i < arguments.length; i++)
 		APE.Config.scripts.push(APE.Config.baseUrl + '/Source/' + arguments[i] + '.js');
 })('mootools-core', 'Core/APE', 'Core/Events', 'Core/Core', 'Pipe/Pipe', 'Pipe/PipeProxy', 'Pipe/PipeMulti', 'Pipe/PipeSingle', 'Request/Request','Request/Request.Stack', 'Request/Request.CycledStack', 'Transport/Transport.longPolling','Transport/Transport.SSE', 'Transport/Transport.XHRStreaming', 'Transport/Transport.JSONP', 'Transport/Transport.WebSocket', 'Core/Utility', 'Core/JSON');
-APE.Config.scripts.push(APE.Config.baseUrl + '/Plugins/Debug/Client/Plugins/Debug.js');
