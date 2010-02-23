@@ -185,6 +185,7 @@ APE.Transport.XHRStreaming.browserSupport = function() {
 		else if (window.XDomainRequest) return true;
 		else return Browser.Engine.trident ? 0 : true;
 		*/
-	} else return 2;//No XHR Support, switch to JSONP
+	} else if (Browser.Features.xhr) return 0;//No XHRStreaming support switch to long polling
+	else return 2;//No XHR Support, switch to JSONP
 }
 
