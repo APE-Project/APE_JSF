@@ -1984,7 +1984,7 @@ APE.Core = new Class({
 	delPipe: function(pubid){
 		var pipe = this.pipes.get(pubid);
 		this.pipes.erase(pubid);
-		this.fireEvent(pipe.type+'PipeDelete', [pipe.type, pipe]);
+		this.fireEvent(pipe.type+'PipeDelete', [pipe]);
 		return pipe;
 	},
 	
@@ -2769,7 +2769,8 @@ APE.Transport.XHRStreaming.browserSupport = function() {
 		else if (window.XDomainRequest) return true;
 		else return Browser.Engine.trident ? 0 : true;
 		*/
-	} else return 2;//No XHR Support, switch to JSONP
+	} else if (Browser.Features.xhr) return 0;//No XHRStreaming support switch to long polling
+	else return 2;//No XHR Support, switch to JSONP
 }
 
 APE.Transport.JSONP = new Class({

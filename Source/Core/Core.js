@@ -278,7 +278,7 @@ APE.Core = new Class({
 	delPipe: function(pubid){
 		var pipe = this.pipes.get(pubid);
 		this.pipes.erase(pubid);
-		this.fireEvent(pipe.type+'PipeDelete', [pipe.type, pipe]);
+		this.fireEvent(pipe.type+'PipeDelete', [pipe]);
 		return pipe;
 	},
 	

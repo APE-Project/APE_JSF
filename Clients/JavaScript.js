@@ -106,7 +106,7 @@ APE.Client.prototype.load = function(config){
 	iframe.style.left = '-300px';
 	iframe.style.top = '-300px';
 
-	document.body.appendChild(iframe);
+	document.body.insertBefore(iframe,document.body.childNodes[0]);
 
 	if (config.transport == 2) {
 		var doc = iframe.contentDocument;
