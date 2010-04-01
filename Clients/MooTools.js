@@ -81,6 +81,11 @@ APE.Client = new Class({
 			}
 		}).inject(document.body);
 
+		iframe.addEvent('load',  function() { 
+			if (!iframe.contentWindow.APE) setTimeout(iframe.onload, 100);//Sometimes IE fire the onload event, but the iframe is not loaded -_-
+			else iframe.contentWindow.APE.init(config);
+		});
+
 		if (config.transport == 2) {//Special case for JSONP
 			var doc = iframe.contentDocument;
 			if (!doc) doc = iframe.contentWindow.document;
@@ -104,10 +109,6 @@ APE.Client = new Class({
 			}
 		}	
 
-		iframe.addEvent('load',  function() { 
-			if (!iframe.contentWindow.APE) setTimeout(iframe.onload, 100);//Sometimes IE fire the onload event, but the iframe is not loaded -_-
-			else iframe.contentWindow.APE.init(config);
-		});
 	}
 	
 });

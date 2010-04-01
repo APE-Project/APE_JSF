@@ -108,6 +108,11 @@ APE.Client.prototype.load = function(config){
 
 	document.body.insertBefore(iframe,document.body.childNodes[0]);
 
+	iframe.onload = function() { 
+		if (!iframe.contentWindow.APE) setTimeout(iframe.onload, 100);//Sometimes IE fire the onload event, but the iframe is not loaded -_-
+		else iframe.contentWindow.APE.init(config);
+	}
+
 	if (config.transport == 2) {
 		var doc = iframe.contentDocument;
 		if (!doc) doc = iframe.contentWindow.document;//For IE
@@ -115,11 +120,11 @@ APE.Client.prototype.load = function(config){
 		//If the content of the iframe is created in DOM, the status bar will always load...
 		//using document.write() is the only way to avoid status bar loading with JSONP
 		doc.open();
-		var theHtml = '<html><head></head>';
+		var theHtml = '<html><head>';
 		for (var i = 0; i < config.scripts.length; i++) {
-			theHtml += '<script src="' + config.scripts[i] + '"></script>';
+			theHtml += '<script type="text/JavaScript" src="' + config.scripts[i] + '"></script>';
 		}
-		theHtml += '<body></body></html>';
+		theHtml += '</head><body></body></html>';
 		doc.write(theHtml);
 		doc.close();
 	} else {
@@ -131,10 +136,6 @@ APE.Client.prototype.load = function(config){
 		}
 	}
 
-	iframe.onload = function() { 
-		if (!iframe.contentWindow.APE) setTimeout(iframe.onload, 100);//Sometimes IE fire the onload event, but the iframe is not loaded -_-
-		else iframe.contentWindow.APE.init(config);
-	}
 }
 
 if (Function.prototype.bind == null) {
