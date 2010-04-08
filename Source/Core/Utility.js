@@ -71,21 +71,26 @@ var B64 = new Hash({
 		return out.join(''); //  string
 	}
 });
-//Override setInterval to be done outside the frame (there is some issue inside the frame with FF3 and WebKit)
-if (!Browser.Engine.trident && !Browser.Engine.presto && !(Browser.Engine.gecko && Browser.Engine.version<=18)) {
-	setInterval = function(fn,time) {
-		return window.parent.setInterval(fn, time);
-	};
-	
-	setTimeout = function(fn,time) {
-		return window.parent.setTimeout(fn, time);
-	};
-	
-	clearInterval = function(id) {
-		return window.parent.clearInterval(id);
-	};
-	
-	clearTimeout = function(id) {
-		return window.parent.clearTimeout(id);
-	};
-}
+try {
+	//Avoid showing error if window.parent.setInterval() is not working (ie : permission denied)
+	window.parent.setInterval();
+
+	//Override setInterval to be done outside the frame (there is some issue inside the frame with FF3 and WebKit)
+	if (!Browser.Engine.trident && !Browser.Engine.presto && !(Browser.Engine.gecko && Browser.Engine.version<=18)) {
+		setInterval = function(fn,time) {
+			return window.parent.setInterval(fn, time);
+		};
+		
+		setTimeout = function(fn,time) {
+			return window.parent.setTimeout(fn, time);
+		};
+		
+		clearInterval = function(id) {
+			return window.parent.clearInterval(id);
+		};
+		
+		clearTimeout = function(id) {
+			return window.parent.clearTimeout(id);
+		};
+	}
+} catch (e) {};
