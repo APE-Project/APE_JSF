@@ -108,9 +108,14 @@ APE.Client.prototype.load = function(config){
 
 	document.body.insertBefore(iframe,document.body.childNodes[0]);
 
-	iframe.onload = function() { 
-		if (!iframe.contentWindow.APE) setTimeout(iframe.onload, 100);//Sometimes IE fire the onload event, but the iframe is not loaded -_-
-		else iframe.contentWindow.APE.init(config);
+	var initFn = function() {
+		iframe.contentWindow.APE.init(config);
+	}
+
+	if (iframe.addEventListener) {
+		iframe.addEventListener('load', initFn, false);
+	} else if (iframe.attachEvent) {
+		iframe.attachEvent('onload', initfn);
 	}
 
 	if (config.transport == 2) {
