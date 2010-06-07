@@ -122,6 +122,7 @@
 				this.addTest('Loading Client', function() {
 						var req = new Request({
 							'url': '../../Clients/MooTools.js',
+							'method': 'get',
 							'evalResponse': true,
 							'onComplete': function(resp) {
 								if (window.APE) this.fireEvent('testComplete', {'sucess': true});
@@ -133,6 +134,7 @@
 				this.addTest('Loading config', function() {
 					var req = new Request({
 						'url': '../../Demos/config.js',
+						'method': 'get',
 						'evalResponse': true,
 						'onComplete': function() {
 							if (APE.Config.baseUrl) {
