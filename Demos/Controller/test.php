@@ -22,8 +22,9 @@ $cmd = array(array(
 
 var_dump($APEserver.rawurlencode(json_encode($cmd)));
 $data = file_get_contents($APEserver.rawurlencode(json_encode($cmd))); 
+$data = json_decode($data);
 
-if ($data == 'OK') {
+if ($data[0]->data->value == 'ok') {
 	echo 'Message sent!';
 } else {
 	echo 'Error sending message, server response is : <pre>'.$data.'</pre>';
