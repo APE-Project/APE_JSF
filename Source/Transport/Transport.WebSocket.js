@@ -23,6 +23,7 @@ APE.Transport.WebSocket = new Class({
 	openWs: function() {
 		if (this.stack.length > 0) {
 			for (var i = 0; i < this.stack.length; i++) this.send(this.stack[i].q, this.stack[i].options);
+			this.stack.length = 0;
 		}
 	},
 
@@ -36,7 +37,7 @@ APE.Transport.WebSocket = new Class({
 	},
 
 	running: function() {
-		return this.readyState ? true : false;
+		return this.ws.readyState ? true : false;
 	},
 
 	cancel: function() {
