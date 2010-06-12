@@ -115,7 +115,7 @@ APE.Client.prototype.load = function(config){
 	if (iframe.addEventListener) {
 		iframe.addEventListener('load', initFn, false);
 	} else if (iframe.attachEvent) {
-		iframe.attachEvent('onload', initfn);
+		iframe.attachEvent('onload', initFn);
 	}
 
 	if (config.transport == 2) {

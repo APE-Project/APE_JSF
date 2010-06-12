@@ -2867,6 +2867,7 @@ APE.Transport.JSONP.browserSupport = function() { return true };
 APE.Transport.WebSocket = new Class({
 
 	stack: [],
+	connRunning: false,
 
 	initialize: function(ape) {
 		this.ape = ape;
@@ -2875,21 +2876,31 @@ APE.Transport.WebSocket = new Class({
 
 	initWs: function() {
 		this.ws = new WebSocket( (this.ape.options.secure ? 'wss' : 'ws') + '://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport +'/');
+		this.connRunning = true;
 		this.ws.onmessage = this.readWs.bind(this);
-		this.ws.onclose = this.initWs.bind(this);
 		this.ws.onopen = this.openWs.bind(this);
+		this.ws.onclose = this.closeWs.bind(this);
+		this.ws.onerror = this.errorWs.bind(this);
 	},
 
 	readWs: function(evt) {
-			console.log(evt.data);
-			this.ape.parseResponse(evt.data, this.callback);
-			this.callback = null;
+		this.ape.parseResponse(evt.data, this.callback);
+		this.callback = null;
 	},
 
 	openWs: function() {
 		if (this.stack.length > 0) {
 			for (var i = 0; i < this.stack.length; i++) this.send(this.stack[i].q, this.stack[i].options);
+			this.stack.length = 0;
 		}
+	},
+
+	closeWs: function() {
+		this.connRunning = false;
+	},
+
+	errorWs: function() {
+		this.connRunning = false;
 	},
 
 	send: function(queryString, options) {
@@ -2902,7 +2913,7 @@ APE.Transport.WebSocket = new Class({
 	},
 
 	running: function() {
-		return this.readyState ? true : false;
+		return this.connRunning;
 	},
 
 	cancel: function() {
