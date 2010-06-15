@@ -40,15 +40,17 @@ APE.PipeMulti = new Class({
 		this.ape.left(this.pipe.pubid);
 	},
 
-	addUser: function(pubid, user) {
-		if (!this.ape.users.has(user.pubid)) {
+	addUser: function(pubid, updatedUser) {
+		var user;
+		if (!this.ape.users.has(pubid)) {
+			user = updatedUser;
 			user.pipes = new $H;
-			this.ape.users.set(pubid, user);
+			this.ape.users.set(pubid, updatedUser);
 		} else {
 			user = this.ape.users.get(pubid);
 		}
 		user.pipes.set(this.pipe.pubid, this);
-		var u = {'pipes':user.pipes ,'casttype': user.casttype, 'pubid': user.pubid, 'properties': user.properties};
+		var u = {'pipes':user.pipes ,'casttype': user.casttype, 'pubid': user.pubid, 'properties': updatedUser.properties};
 		this.users.set(pubid, u);
 		this.fireGlobalEvent('userJoin', [u, this]);
 		return u;
