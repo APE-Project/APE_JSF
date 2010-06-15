@@ -354,6 +354,8 @@ APE.Core = new Class({
 	rawIdent: function(raw){
 		this.user = raw.data.user;
 		this.pubid = raw.data.user.pubid;
+		this.user.pipes = new $H;
+		this.users.set(this.pubid, this.user);
 	},
 
 	rawLogin: function(param){
