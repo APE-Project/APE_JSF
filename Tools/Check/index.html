@@ -175,6 +175,7 @@
 				this.addTest('Checking APE.Config.baseUrl', function() {
 						var oldAPE = $extend({}, APE);
 						var req = new Request({
+							'method': 'get',
 							'url': APE.Config.baseUrl + '/Source/Core/APE.js',
 							'onComplete': function(res) {
 								if (req.isSuccess()) {
