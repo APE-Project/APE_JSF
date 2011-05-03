@@ -1,489 +1,428 @@
 /*
 ---
+MooTools: the javascript framework
 
-script: Core.js
+web build:
+ - http://mootools.net/core/dce97d7a88c57a1b0474a9a90f0687e1
 
-description: The core of MooTools, contains all the base functions and the Native and Hash implementations. Required by all the other scripts.
+packager build:
+ - packager build Core/Core Core/Array Core/String Core/Number Core/Function Core/Object Core/Class Core/Class.Extras Core/JSON
+
+/*
+---
+
+name: Core
+
+description: The heart of MooTools.
 
 license: MIT-style license.
 
-copyright: Copyright (c) 2006-2008 [Valerio Proietti](http://mad4milk.net/).
+copyright: Copyright (c) 2006-2010 [Valerio Proietti](http://mad4milk.net/).
 
 authors: The MooTools production team (http://mootools.net/developers/)
 
 inspiration:
-- Class implementation inspired by [Base.js](http://dean.edwards.name/weblog/2006/03/base/) Copyright (c) 2006 Dean Edwards, [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
-- Some functionality inspired by [Prototype.js](http://prototypejs.org) Copyright (c) 2005-2007 Sam Stephenson, [MIT License](http://opensource.org/licenses/mit-license.php)
+  - Class implementation inspired by [Base.js](http://dean.edwards.name/weblog/2006/03/base/) Copyright (c) 2006 Dean Edwards, [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+  - Some functionality inspired by [Prototype.js](http://prototypejs.org) Copyright (c) 2005-2007 Sam Stephenson, [MIT License](http://opensource.org/licenses/mit-license.php)
 
-provides: [Mootools, Native, Hash.base, Array.each, $util]
+provides: [Core, MooTools, Type, typeOf, instanceOf, Native]
 
 ...
 */
 
-var MooTools = {
-	'version': '1.2.4',
-	'build': '0d9113241a90b9cd5643b926795852a2026710d4'
+(function(){
+
+this.MooTools = {
+	version: '1.3.2',
+	build: 'c9f1ff10e9e7facb65e9481049ed1b450959d587'
 };
 
-var Native = function(options){
-	options = options || {};
-	var name = options.name;
-	var legacy = options.legacy;
-	var protect = options.protect;
-	var methods = options.implement;
-	var generics = options.generics;
-	var initialize = options.initialize;
-	var afterImplement = options.afterImplement || function(){};
-	var object = initialize || legacy;
-	generics = generics !== false;
+// typeOf, instanceOf
 
-	object.constructor = Native;
-	object.$family = {name: 'native'};
-	if (legacy && initialize) object.prototype = legacy.prototype;
-	object.prototype.constructor = object;
+var typeOf = this.typeOf = function(item){
+	if (item == null) return 'null';
+	if (item.$family) return item.$family();
 
-	if (name){
-		var family = name.toLowerCase();
-		object.prototype.$family = {name: family};
-		Native.typize(object, family);
+	if (item.nodeName){
+		if (item.nodeType == 1) return 'element';
+		if (item.nodeType == 3) return (/\S/).test(item.nodeValue) ? 'textnode' : 'whitespace';
+	} else if (typeof item.length == 'number'){
+		if (item.callee) return 'arguments';
+		if ('item' in item) return 'collection';
 	}
 
-	var add = function(obj, name, method, force){
-		if (!protect || force || !obj.prototype[name]) obj.prototype[name] = method;
-		if (generics) Native.genericize(obj, name, protect);
-		afterImplement.call(obj, name, method);
-		return obj;
-	};
+	return typeof item;
+};
 
-	object.alias = function(a1, a2, a3){
-		if (typeof a1 == 'string'){
-			var pa1 = this.prototype[a1];
-			if ((a1 = pa1)) return add(this, a2, a1, a3);
+var instanceOf = this.instanceOf = function(item, object){
+	if (item == null) return false;
+	var constructor = item.$constructor || item.constructor;
+	while (constructor){
+		if (constructor === object) return true;
+		constructor = constructor.parent;
+	}
+	return item instanceof object;
+};
+
+// Function overloading
+
+var Function = this.Function;
+
+var enumerables = true;
+for (var i in {toString: 1}) enumerables = null;
+if (enumerables) enumerables = ['hasOwnProperty', 'valueOf', 'isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString', 'toString', 'constructor'];
+
+Function.prototype.overloadSetter = function(usePlural){
+	var self = this;
+	return function(a, b){
+		if (a == null) return this;
+		if (usePlural || typeof a != 'string'){
+			for (var k in a) self.call(this, k, a[k]);
+			if (enumerables) for (var i = enumerables.length; i--;){
+				k = enumerables[i];
+				if (a.hasOwnProperty(k)) self.call(this, k, a[k]);
+			}
+		} else {
+			self.call(this, a, b);
 		}
-		for (var a in a1) this.alias(a, a1[a], a2);
 		return this;
 	};
+};
 
-	object.implement = function(a1, a2, a3){
-		if (typeof a1 == 'string') return add(this, a1, a2, a3);
-		for (var p in a1) add(this, p, a1[p], a2);
-		return this;
+Function.prototype.overloadGetter = function(usePlural){
+	var self = this;
+	return function(a){
+		var args, result;
+		if (usePlural || typeof a != 'string') args = a;
+		else if (arguments.length > 1) args = arguments;
+		if (args){
+			result = {};
+			for (var i = 0; i < args.length; i++) result[args[i]] = self.call(this, args[i]);
+		} else {
+			result = self.call(this, a);
+		}
+		return result;
 	};
+};
 
-	if (methods) object.implement(methods);
+Function.prototype.extend = function(key, value){
+	this[key] = value;
+}.overloadSetter();
+
+Function.prototype.implement = function(key, value){
+	this.prototype[key] = value;
+}.overloadSetter();
+
+// From
+
+var slice = Array.prototype.slice;
+
+Function.from = function(item){
+	return (typeOf(item) == 'function') ? item : function(){
+		return item;
+	};
+};
+
+Array.from = function(item){
+	if (item == null) return [];
+	return (Type.isEnumerable(item) && typeof item != 'string') ? (typeOf(item) == 'array') ? item : slice.call(item) : [item];
+};
+
+Number.from = function(item){
+	var number = parseFloat(item);
+	return isFinite(number) ? number : null;
+};
+
+String.from = function(item){
+	return item + '';
+};
+
+// hide, protect
+
+Function.implement({
+
+	hide: function(){
+		this.$hidden = true;
+		return this;
+	},
+
+	protect: function(){
+		this.$protected = true;
+		return this;
+	}
+
+});
+
+// Type
+
+var Type = this.Type = function(name, object){
+	if (name){
+		var lower = name.toLowerCase();
+		var typeCheck = function(item){
+			return (typeOf(item) == lower);
+		};
+
+		Type['is' + name] = typeCheck;
+		if (object != null){
+			object.prototype.$family = (function(){
+				return lower;
+			}).hide();
+			
+		}
+	}
+
+	if (object == null) return null;
+
+	object.extend(this);
+	object.$constructor = Type;
+	object.prototype.$constructor = object;
 
 	return object;
 };
 
-Native.genericize = function(object, property, check){
-	if ((!check || !object[property]) && typeof object.prototype[property] == 'function') object[property] = function(){
-		var args = Array.prototype.slice.call(arguments);
-		return object.prototype[property].apply(args.shift(), args);
-	};
+var toString = Object.prototype.toString;
+
+Type.isEnumerable = function(item){
+	return (item != null && typeof item.length == 'number' && toString.call(item) != '[object Function]' );
 };
 
-Native.implement = function(objects, properties){
-	for (var i = 0, l = objects.length; i < l; i++) objects[i].implement(properties);
+var hooks = {};
+
+var hooksOf = function(object){
+	var type = typeOf(object.prototype);
+	return hooks[type] || (hooks[type] = []);
 };
 
-Native.typize = function(object, family){
-	if (!object.type) object.type = function(item){
-		return ($type(item) === family);
-	};
-};
+var implement = function(name, method){
+	if (method && method.$hidden) return;
 
-(function(){
-	var natives = {'Array': Array, 'Date': Date, 'Function': Function, 'Number': Number, 'RegExp': RegExp, 'String': String};
-	for (var n in natives) new Native({name: n, initialize: natives[n], protect: true});
+	var hooks = hooksOf(this);
 
-	var types = {'boolean': Boolean, 'native': Native, 'object': Object};
-	for (var t in types) Native.typize(types[t], t);
-
-	var generics = {
-		'Array': ["concat", "indexOf", "join", "lastIndexOf", "pop", "push", "reverse", "shift", "slice", "sort", "splice", "toString", "unshift", "valueOf"],
-		'String': ["charAt", "charCodeAt", "concat", "indexOf", "lastIndexOf", "match", "replace", "search", "slice", "split", "substr", "substring", "toLowerCase", "toUpperCase", "valueOf"]
-	};
-	for (var g in generics){
-		for (var i = generics[g].length; i--;) Native.genericize(natives[g], generics[g][i], true);
+	for (var i = 0; i < hooks.length; i++){
+		var hook = hooks[i];
+		if (typeOf(hook) == 'type') implement.call(hook, name, method);
+		else hook.call(this, name, method);
 	}
-})();
+	
+	var previous = this.prototype[name];
+	if (previous == null || !previous.$protected) this.prototype[name] = method;
 
-var Hash = new Native({
+	if (this[name] == null && typeOf(method) == 'function') extend.call(this, name, function(item){
+		return method.apply(item, slice.call(arguments, 1));
+	});
+};
 
-	name: 'Hash',
+var extend = function(name, method){
+	if (method && method.$hidden) return;
+	var previous = this[name];
+	if (previous == null || !previous.$protected) this[name] = method;
+};
 
-	initialize: function(object){
-		if ($type(object) == 'hash') object = $unlink(object.getClean());
-		for (var key in object) this[key] = object[key];
+Type.implement({
+
+	implement: implement.overloadSetter(),
+
+	extend: extend.overloadSetter(),
+
+	alias: function(name, existing){
+		implement.call(this, name, this.prototype[existing]);
+	}.overloadSetter(),
+
+	mirror: function(hook){
+		hooksOf(this).push(hook);
 		return this;
 	}
 
 });
 
-Hash.implement({
+new Type('Type', Type);
 
-	forEach: function(fn, bind){
-		for (var key in this){
-			if (this.hasOwnProperty(key)) fn.call(bind, this[key], key, this);
-		}
-	},
+// Default Types
 
-	getClean: function(){
-		var clean = {};
-		for (var key in this){
-			if (this.hasOwnProperty(key)) clean[key] = this[key];
-		}
-		return clean;
-	},
+var force = function(name, object, methods){
+	var isType = (object != Object),
+		prototype = object.prototype;
 
-	getLength: function(){
-		var length = 0;
-		for (var key in this){
-			if (this.hasOwnProperty(key)) length++;
+	if (isType) object = new Type(name, object);
+
+	for (var i = 0, l = methods.length; i < l; i++){
+		var key = methods[i],
+			generic = object[key],
+			proto = prototype[key];
+
+		if (generic) generic.protect();
+
+		if (isType && proto){
+			delete prototype[key];
+			prototype[key] = proto.protect();
 		}
-		return length;
 	}
 
+	if (isType) object.implement(prototype);
+
+	return force;
+};
+
+force('String', String, [
+	'charAt', 'charCodeAt', 'concat', 'indexOf', 'lastIndexOf', 'match', 'quote', 'replace', 'search',
+	'slice', 'split', 'substr', 'substring', 'toLowerCase', 'toUpperCase'
+])('Array', Array, [
+	'pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift', 'concat', 'join', 'slice',
+	'indexOf', 'lastIndexOf', 'filter', 'forEach', 'every', 'map', 'some', 'reduce', 'reduceRight'
+])('Number', Number, [
+	'toExponential', 'toFixed', 'toLocaleString', 'toPrecision'
+])('Function', Function, [
+	'apply', 'call', 'bind'
+])('RegExp', RegExp, [
+	'exec', 'test'
+])('Object', Object, [
+	'create', 'defineProperty', 'defineProperties', 'keys',
+	'getPrototypeOf', 'getOwnPropertyDescriptor', 'getOwnPropertyNames',
+	'preventExtensions', 'isExtensible', 'seal', 'isSealed', 'freeze', 'isFrozen'
+])('Date', Date, ['now']);
+
+Object.extend = extend.overloadSetter();
+
+Date.extend('now', function(){
+	return +(new Date);
 });
 
-Hash.alias('forEach', 'each');
+new Type('Boolean', Boolean);
+
+// fixes NaN returning as Number
+
+Number.prototype.$family = function(){
+	return isFinite(this) ? 'number' : 'null';
+}.hide();
+
+// Number.random
+
+Number.extend('random', function(min, max){
+	return Math.floor(Math.random() * (max - min + 1) + min);
+});
+
+// forEach, each
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+Object.extend('forEach', function(object, fn, bind){
+	for (var key in object){
+		if (hasOwnProperty.call(object, key)) fn.call(bind, object[key], key, object);
+	}
+});
+
+Object.each = Object.forEach;
 
 Array.implement({
 
 	forEach: function(fn, bind){
-		for (var i = 0, l = this.length; i < l; i++) fn.call(bind, this[i], i, this);
+		for (var i = 0, l = this.length; i < l; i++){
+			if (i in this) fn.call(bind, this[i], i, this);
+		}
+	},
+
+	each: function(fn, bind){
+		Array.forEach(this, fn, bind);
+		return this;
 	}
 
 });
 
-Array.alias('forEach', 'each');
+// Array & Object cloning, Object merging and appending
 
-function $A(iterable){
-	if (iterable.item){
-		var l = iterable.length, array = new Array(l);
-		while (l--) array[l] = iterable[l];
-		return array;
+var cloneOf = function(item){
+	switch (typeOf(item)){
+		case 'array': return item.clone();
+		case 'object': return Object.clone(item);
+		default: return item;
 	}
-	return Array.prototype.slice.call(iterable);
 };
 
-function $arguments(i){
-	return function(){
-		return arguments[i];
-	};
-};
+Array.implement('clone', function(){
+	var i = this.length, clone = new Array(i);
+	while (i--) clone[i] = cloneOf(this[i]);
+	return clone;
+});
 
-function $chk(obj){
-	return !!(obj || obj === 0);
-};
-
-function $clear(timer){
-	clearTimeout(timer);
-	clearInterval(timer);
-	return null;
-};
-
-function $defined(obj){
-	return (obj != undefined);
-};
-
-function $each(iterable, fn, bind){
-	var type = $type(iterable);
-	((type == 'arguments' || type == 'collection' || type == 'array') ? Array : Hash).each(iterable, fn, bind);
-};
-
-function $empty(){};
-
-function $extend(original, extended){
-	for (var key in (extended || {})) original[key] = extended[key];
-	return original;
-};
-
-function $H(object){
-	return new Hash(object);
-};
-
-function $lambda(value){
-	return ($type(value) == 'function') ? value : function(){
-		return value;
-	};
-};
-
-function $merge(){
-	var args = Array.slice(arguments);
-	args.unshift({});
-	return $mixin.apply(null, args);
-};
-
-function $mixin(mix){
-	for (var i = 1, l = arguments.length; i < l; i++){
-		var object = arguments[i];
-		if ($type(object) != 'object') continue;
-		for (var key in object){
-			var op = object[key], mp = mix[key];
-			mix[key] = (mp && $type(op) == 'object' && $type(mp) == 'object') ? $mixin(mp, op) : $unlink(op);
-		}
-	}
-	return mix;
-};
-
-function $pick(){
-	for (var i = 0, l = arguments.length; i < l; i++){
-		if (arguments[i] != undefined) return arguments[i];
-	}
-	return null;
-};
-
-function $random(min, max){
-	return Math.floor(Math.random() * (max - min + 1) + min);
-};
-
-function $splat(obj){
-	var type = $type(obj);
-	return (type) ? ((type != 'array' && type != 'arguments') ? [obj] : obj) : [];
-};
-
-var $time = Date.now || function(){
-	return +new Date;
-};
-
-function $try(){
-	for (var i = 0, l = arguments.length; i < l; i++){
-		try {
-			return arguments[i]();
-		} catch(e){}
-	}
-	return null;
-};
-
-function $type(obj){
-	if (obj == undefined) return false;
-	if (obj.$family) return (obj.$family.name == 'number' && !isFinite(obj)) ? false : obj.$family.name;
-	if (obj.nodeName){
-		switch (obj.nodeType){
-			case 1: return 'element';
-			case 3: return (/\S/).test(obj.nodeValue) ? 'textnode' : 'whitespace';
-		}
-	} else if (typeof obj.length == 'number'){
-		if (obj.callee) return 'arguments';
-		else if (obj.item) return 'collection';
-	}
-	return typeof obj;
-};
-
-function $unlink(object){
-	var unlinked;
-	switch ($type(object)){
+var mergeOne = function(source, key, current){
+	switch (typeOf(current)){
 		case 'object':
-			unlinked = {};
-			for (var p in object) unlinked[p] = $unlink(object[p]);
+			if (typeOf(source[key]) == 'object') Object.merge(source[key], current);
+			else source[key] = Object.clone(current);
 		break;
-		case 'hash':
-			unlinked = new Hash(object);
-		break;
-		case 'array':
-			unlinked = [];
-			for (var i = 0, l = object.length; i < l; i++) unlinked[i] = $unlink(object[i]);
-		break;
-		default: return object;
+		case 'array': source[key] = current.clone(); break;
+		default: source[key] = current;
 	}
-	return unlinked;
+	return source;
 };
 
+Object.extend({
 
-/*
----
-
-script: Browser.js
-
-description: The Browser Core. Contains Browser initialization, Window and Document, and the Browser Hash.
-
-license: MIT-style license.
-
-requires: 
-- /Native
-- /$util
-
-provides: [Browser, Window, Document, $exec]
-
-...
-*/
-
-var Browser = $merge({
-
-	Engine: {name: 'unknown', version: 0},
-
-	Platform: {name: (window.orientation != undefined) ? 'ipod' : (navigator.platform.match(/mac|win|linux/i) || ['other'])[0].toLowerCase()},
-
-	Features: {xpath: !!(document.evaluate), air: !!(window.runtime), query: !!(document.querySelector)},
-
-	Plugins: {},
-
-	Engines: {
-
-		presto: function(){
-			return (!window.opera) ? false : ((arguments.callee.caller) ? 960 : ((document.getElementsByClassName) ? 950 : 925));
-		},
-
-		trident: function(){
-			return (!window.ActiveXObject) ? false : ((window.XMLHttpRequest) ? ((document.querySelectorAll) ? 6 : 5) : 4);
-		},
-
-		webkit: function(){
-			return (navigator.taintEnabled) ? false : ((Browser.Features.xpath) ? ((Browser.Features.query) ? 525 : 420) : 419);
-		},
-
-		gecko: function(){
-			return (!document.getBoxObjectFor && window.mozInnerScreenX == null) ? false : ((document.getElementsByClassName) ? 19 : 18);
+	merge: function(source, k, v){
+		if (typeOf(k) == 'string') return mergeOne(source, k, v);
+		for (var i = 1, l = arguments.length; i < l; i++){
+			var object = arguments[i];
+			for (var key in object) mergeOne(source, key, object[key]);
 		}
+		return source;
+	},
 
-	}
+	clone: function(object){
+		var clone = {};
+		for (var key in object) clone[key] = cloneOf(object[key]);
+		return clone;
+	},
 
-}, Browser || {});
-
-Browser.Platform[Browser.Platform.name] = true;
-
-Browser.detect = function(){
-
-	for (var engine in this.Engines){
-		var version = this.Engines[engine]();
-		if (version){
-			this.Engine = {name: engine, version: version};
-			this.Engine[engine] = this.Engine[engine + version] = true;
-			break;
+	append: function(original){
+		for (var i = 1, l = arguments.length; i < l; i++){
+			var extended = arguments[i] || {};
+			for (var key in extended) original[key] = extended[key];
 		}
+		return original;
 	}
 
-	return {name: engine, version: version};
+});
 
-};
+// Object-less types
 
-Browser.detect();
+['Object', 'WhiteSpace', 'TextNode', 'Collection', 'Arguments'].each(function(name){
+	new Type(name);
+});
 
-Browser.Request = function(){
-	return $try(function(){
-		return new XMLHttpRequest();
-	}, function(){
-		return new ActiveXObject('MSXML2.XMLHTTP');
-	}, function(){
-		return new ActiveXObject('Microsoft.XMLHTTP');
-	});
-};
+// Unique ID
 
-Browser.Features.xhr = !!(Browser.Request());
+var UID = Date.now();
 
-Browser.Plugins.Flash = (function(){
-	var version = ($try(function(){
-		return navigator.plugins['Shockwave Flash'].description;
-	}, function(){
-		return new ActiveXObject('ShockwaveFlash.ShockwaveFlash').GetVariable('$version');
-	}) || '0 r0').match(/\d+/g);
-	return {version: parseInt(version[0] || 0 + '.' + version[1], 10) || 0, build: parseInt(version[2], 10) || 0};
+String.extend('uniqueID', function(){
+	return (UID++).toString(36);
+});
+
+
+
 })();
 
-function $exec(text){
-	if (!text) return text;
-	if (window.execScript){
-		window.execScript(text);
-	} else {
-		var script = document.createElement('script');
-		script.setAttribute('type', 'text/javascript');
-		script[(Browser.Engine.webkit && Browser.Engine.version < 420) ? 'innerText' : 'text'] = text;
-		document.head.appendChild(script);
-		document.head.removeChild(script);
-	}
-	return text;
-};
-
-Native.UID = 1;
-
-var $uid = (Browser.Engine.trident) ? function(item){
-	return (item.uid || (item.uid = [Native.UID++]))[0];
-} : function(item){
-	return item.uid || (item.uid = Native.UID++);
-};
-
-var Window = new Native({
-
-	name: 'Window',
-
-	legacy: (Browser.Engine.trident) ? null: window.Window,
-
-	initialize: function(win){
-		$uid(win);
-		if (!win.Element){
-			win.Element = $empty;
-			if (Browser.Engine.webkit) win.document.createElement("iframe"); //fixes safari 2
-			win.Element.prototype = (Browser.Engine.webkit) ? window["[[DOMElement.prototype]]"] : {};
-		}
-		win.document.window = win;
-		return $extend(win, Window.Prototype);
-	},
-
-	afterImplement: function(property, value){
-		window[property] = Window.Prototype[property] = value;
-	}
-
-});
-
-Window.Prototype = {$family: {name: 'window'}};
-
-new Window(window);
-
-var Document = new Native({
-
-	name: 'Document',
-
-	legacy: (Browser.Engine.trident) ? null: window.Document,
-
-	initialize: function(doc){
-		$uid(doc);
-		doc.head = doc.getElementsByTagName('head')[0];
-		doc.html = doc.getElementsByTagName('html')[0];
-		if (Browser.Engine.trident && Browser.Engine.version <= 4) $try(function(){
-			doc.execCommand("BackgroundImageCache", false, true);
-		});
-		if (Browser.Engine.trident) doc.window.attachEvent('onunload', function(){
-			doc.window.detachEvent('onunload', arguments.callee);
-			doc.head = doc.html = doc.window = null;
-		});
-		return $extend(doc, Document.Prototype);
-	},
-
-	afterImplement: function(property, value){
-		document[property] = Document.Prototype[property] = value;
-	}
-
-});
-
-Document.Prototype = {$family: {name: 'document'}};
-
-new Document(document);
-
 
 /*
 ---
 
-script: Array.js
+name: Array
 
 description: Contains Array Prototypes like each, contains, and erase.
 
 license: MIT-style license.
 
-requires:
-- /$util
-- /Array.each
+requires: Type
 
-provides: [Array]
+provides: Array
 
 ...
 */
 
 Array.implement({
 
+	/*<!ES5>*/
 	every: function(fn, bind){
 		for (var i = 0, l = this.length; i < l; i++){
-			if (!fn.call(bind, this[i], i, this)) return false;
+			if ((i in this) && !fn.call(bind, this[i], i, this)) return false;
 		}
 		return true;
 	},
@@ -491,13 +430,9 @@ Array.implement({
 	filter: function(fn, bind){
 		var results = [];
 		for (var i = 0, l = this.length; i < l; i++){
-			if (fn.call(bind, this[i], i, this)) results.push(this[i]);
+			if ((i in this) && fn.call(bind, this[i], i, this)) results.push(this[i]);
 		}
 		return results;
-	},
-
-	clean: function(){
-		return this.filter($defined);
 	},
 
 	indexOf: function(item, from){
@@ -510,15 +445,31 @@ Array.implement({
 
 	map: function(fn, bind){
 		var results = [];
-		for (var i = 0, l = this.length; i < l; i++) results[i] = fn.call(bind, this[i], i, this);
+		for (var i = 0, l = this.length; i < l; i++){
+			if (i in this) results[i] = fn.call(bind, this[i], i, this);
+		}
 		return results;
 	},
 
 	some: function(fn, bind){
 		for (var i = 0, l = this.length; i < l; i++){
-			if (fn.call(bind, this[i], i, this)) return true;
+			if ((i in this) && fn.call(bind, this[i], i, this)) return true;
 		}
 		return false;
+	},
+	/*</!ES5>*/
+
+	clean: function(){
+		return this.filter(function(item){
+			return item != null;
+		});
+	},
+
+	invoke: function(methodName){
+		var args = Array.slice(arguments, 1);
+		return this.map(function(item){
+			return item[methodName].apply(item, args);
+		});
 	},
 
 	associate: function(keys){
@@ -545,17 +496,17 @@ Array.implement({
 		return this.indexOf(item, from) != -1;
 	},
 
-	extend: function(array){
-		for (var i = 0, j = array.length; i < j; i++) this.push(array[i]);
+	append: function(array){
+		this.push.apply(this, array);
 		return this;
 	},
-	
+
 	getLast: function(){
 		return (this.length) ? this[this.length - 1] : null;
 	},
 
 	getRandom: function(){
-		return (this.length) ? this[$random(0, this.length - 1)] : null;
+		return (this.length) ? this[Number.random(0, this.length - 1)] : null;
 	},
 
 	include: function(item){
@@ -569,7 +520,7 @@ Array.implement({
 	},
 
 	erase: function(item){
-		for (var i = this.length; i--; i){
+		for (var i = this.length; i--;){
 			if (this[i] === item) this.splice(i, 1);
 		}
 		return this;
@@ -583,11 +534,18 @@ Array.implement({
 	flatten: function(){
 		var array = [];
 		for (var i = 0, l = this.length; i < l; i++){
-			var type = $type(this[i]);
-			if (!type) continue;
-			array = array.concat((type == 'array' || type == 'collection' || type == 'arguments') ? Array.flatten(this[i]) : this[i]);
+			var type = typeOf(this[i]);
+			if (type == 'null') continue;
+			array = array.concat((type == 'array' || type == 'collection' || type == 'arguments' || instanceOf(this[i], Array)) ? Array.flatten(this[i]) : this[i]);
 		}
 		return array;
+	},
+
+	pick: function(){
+		for (var i = 0, l = this.length; i < l; i++){
+			if (this[i] != null) return this[i];
+		}
+		return null;
 	},
 
 	hexToRgb: function(array){
@@ -613,148 +571,20 @@ Array.implement({
 });
 
 
-/*
----
-
-script: Function.js
-
-description: Contains Function Prototypes like create, bind, pass, and delay.
-
-license: MIT-style license.
-
-requires:
-- /Native
-- /$util
-
-provides: [Function]
-
-...
-*/
-
-Function.implement({
-
-	extend: function(properties){
-		for (var property in properties) this[property] = properties[property];
-		return this;
-	},
-
-	create: function(options){
-		var self = this;
-		options = options || {};
-		return function(event){
-			var args = options.arguments;
-			args = (args != undefined) ? $splat(args) : Array.slice(arguments, (options.event) ? 1 : 0);
-			if (options.event) args = [event || window.event].extend(args);
-			var returns = function(){
-				return self.apply(options.bind || null, args);
-			};
-			if (options.delay) return setTimeout(returns, options.delay);
-			if (options.periodical) return setInterval(returns, options.periodical);
-			if (options.attempt) return $try(returns);
-			return returns();
-		};
-	},
-
-	run: function(args, bind){
-		return this.apply(bind, $splat(args));
-	},
-
-	pass: function(args, bind){
-		return this.create({bind: bind, arguments: args});
-	},
-
-	bind: function(bind, args){
-		return this.create({bind: bind, arguments: args});
-	},
-
-	bindWithEvent: function(bind, args){
-		return this.create({bind: bind, arguments: args, event: true});
-	},
-
-	attempt: function(args, bind){
-		return this.create({bind: bind, arguments: args, attempt: true})();
-	},
-
-	delay: function(delay, bind, args){
-		return this.create({bind: bind, arguments: args, delay: delay})();
-	},
-
-	periodical: function(periodical, bind, args){
-		return this.create({bind: bind, arguments: args, periodical: periodical})();
-	}
-
-});
 
 
 /*
 ---
 
-script: Number.js
-
-description: Contains Number Prototypes like limit, round, times, and ceil.
-
-license: MIT-style license.
-
-requires:
-- /Native
-- /$util
-
-provides: [Number]
-
-...
-*/
-
-Number.implement({
-
-	limit: function(min, max){
-		return Math.min(max, Math.max(min, this));
-	},
-
-	round: function(precision){
-		precision = Math.pow(10, precision || 0);
-		return Math.round(this * precision) / precision;
-	},
-
-	times: function(fn, bind){
-		for (var i = 0; i < this; i++) fn.call(bind, i, this);
-	},
-
-	toFloat: function(){
-		return parseFloat(this);
-	},
-
-	toInt: function(base){
-		return parseInt(this, base || 10);
-	}
-
-});
-
-Number.alias('times', 'each');
-
-(function(math){
-	var methods = {};
-	math.each(function(name){
-		if (!Number[name]) methods[name] = function(){
-			return Math[name].apply(null, [this].concat($A(arguments)));
-		};
-	});
-	Number.implement(methods);
-})(['abs', 'acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'exp', 'floor', 'log', 'max', 'min', 'pow', 'sin', 'sqrt', 'tan']);
-
-
-/*
----
-
-script: String.js
+name: String
 
 description: Contains String Prototypes like camelCase, capitalize, test, and toInt.
 
 license: MIT-style license.
 
-requires:
-- /Native
+requires: Type
 
-provides: [String]
+provides: String
 
 ...
 */
@@ -762,7 +592,7 @@ provides: [String]
 String.implement({
 
 	test: function(regex, params){
-		return ((typeof regex == 'string') ? new RegExp(regex, params) : regex).test(this);
+		return ((typeOf(regex) == 'regexp') ? regex : new RegExp('' + regex, params)).test(this);
 	},
 
 	contains: function(string, separator){
@@ -817,21 +647,10 @@ String.implement({
 		return (rgb) ? rgb.rgbToHex(array) : null;
 	},
 
-	stripScripts: function(option){
-		var scripts = '';
-		var text = this.replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, function(){
-			scripts += arguments[1] + '\n';
-			return '';
-		});
-		if (option === true) $exec(scripts);
-		else if ($type(option) == 'function') option(scripts, text);
-		return text;
-	},
-
 	substitute: function(object, regexp){
 		return this.replace(regexp || (/\\?\{([^{}]+)\}/g), function(match, name){
 			if (match.charAt(0) == '\\') return match.slice(1);
-			return (object[name] != undefined) ? object[name] : '';
+			return (object[name] != null) ? object[name] : '';
 		});
 	}
 
@@ -841,138 +660,241 @@ String.implement({
 /*
 ---
 
-script: Hash.js
+name: Number
 
-description: Contains Hash Prototypes. Provides a means for overcoming the JavaScript practical impossibility of extending native Objects.
+description: Contains Number Prototypes like limit, round, times, and ceil.
 
 license: MIT-style license.
 
-requires:
-- /Hash.base
+requires: Type
 
-provides: [Hash]
+provides: Number
 
 ...
 */
 
-Hash.implement({
+Number.implement({
 
-	has: Object.prototype.hasOwnProperty,
+	limit: function(min, max){
+		return Math.min(max, Math.max(min, this));
+	},
 
-	keyOf: function(value){
-		for (var key in this){
-			if (this.hasOwnProperty(key) && this[key] === value) return key;
+	round: function(precision){
+		precision = Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0);
+		return Math.round(this * precision) / precision;
+	},
+
+	times: function(fn, bind){
+		for (var i = 0; i < this; i++) fn.call(bind, i, this);
+	},
+
+	toFloat: function(){
+		return parseFloat(this);
+	},
+
+	toInt: function(base){
+		return parseInt(this, base || 10);
+	}
+
+});
+
+Number.alias('each', 'times');
+
+(function(math){
+	var methods = {};
+	math.each(function(name){
+		if (!Number[name]) methods[name] = function(){
+			return Math[name].apply(null, [this].concat(Array.from(arguments)));
+		};
+	});
+	Number.implement(methods);
+})(['abs', 'acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'exp', 'floor', 'log', 'max', 'min', 'pow', 'sin', 'sqrt', 'tan']);
+
+
+/*
+---
+
+name: Function
+
+description: Contains Function Prototypes like create, bind, pass, and delay.
+
+license: MIT-style license.
+
+requires: Type
+
+provides: Function
+
+...
+*/
+
+Function.extend({
+
+	attempt: function(){
+		for (var i = 0, l = arguments.length; i < l; i++){
+			try {
+				return arguments[i]();
+			} catch (e){}
 		}
+		return null;
+	}
+
+});
+
+Function.implement({
+
+	attempt: function(args, bind){
+		try {
+			return this.apply(bind, Array.from(args));
+		} catch (e){}
+		
 		return null;
 	},
 
-	hasValue: function(value){
-		return (Hash.keyOf(this, value) !== null);
+	/*<!ES5>*/
+	bind: function(bind){
+		var self = this,
+			args = (arguments.length > 1) ? Array.slice(arguments, 1) : null;
+		
+		return function(){
+			if (!args && !arguments.length) return self.call(bind);
+			if (args && arguments.length) return self.apply(bind, args.concat(Array.from(arguments)));
+			return self.apply(bind, args || arguments);
+		};
+	},
+	/*</!ES5>*/
+
+	pass: function(args, bind){
+		var self = this;
+		if (args != null) args = Array.from(args);
+		return function(){
+			return self.apply(bind, args || arguments);
+		};
 	},
 
-	extend: function(properties){
-		Hash.each(properties || {}, function(value, key){
-			Hash.set(this, key, value);
-		}, this);
-		return this;
+	delay: function(delay, bind, args){
+		return setTimeout(this.pass((args == null ? [] : args), bind), delay);
 	},
 
-	combine: function(properties){
-		Hash.each(properties || {}, function(value, key){
-			Hash.include(this, key, value);
-		}, this);
-		return this;
-	},
+	periodical: function(periodical, bind, args){
+		return setInterval(this.pass((args == null ? [] : args), bind), periodical);
+	}
 
-	erase: function(key){
-		if (this.hasOwnProperty(key)) delete this[key];
-		return this;
-	},
+});
 
-	get: function(key){
-		return (this.hasOwnProperty(key)) ? this[key] : null;
-	},
 
-	set: function(key, value){
-		if (!this[key] || this.hasOwnProperty(key)) this[key] = value;
-		return this;
-	},
 
-	empty: function(){
-		Hash.each(this, function(value, key){
-			delete this[key];
-		}, this);
-		return this;
-	},
 
-	include: function(key, value){
-		if (this[key] == undefined) this[key] = value;
-		return this;
-	},
+/*
+---
 
-	map: function(fn, bind){
-		var results = new Hash;
-		Hash.each(this, function(value, key){
-			results.set(key, fn.call(bind, value, key, this));
-		}, this);
+name: Object
+
+description: Object generic methods
+
+license: MIT-style license.
+
+requires: Type
+
+provides: [Object, Hash]
+
+...
+*/
+
+(function(){
+
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+
+Object.extend({
+
+	subset: function(object, keys){
+		var results = {};
+		for (var i = 0, l = keys.length; i < l; i++){
+			var k = keys[i];
+			if (k in object) results[k] = object[k];
+		}
 		return results;
 	},
 
-	filter: function(fn, bind){
-		var results = new Hash;
-		Hash.each(this, function(value, key){
-			if (fn.call(bind, value, key, this)) results.set(key, value);
-		}, this);
+	map: function(object, fn, bind){
+		var results = {};
+		for (var key in object){
+			if (hasOwnProperty.call(object, key)) results[key] = fn.call(bind, object[key], key, object);
+		}
 		return results;
 	},
 
-	every: function(fn, bind){
-		for (var key in this){
-			if (this.hasOwnProperty(key) && !fn.call(bind, this[key], key)) return false;
+	filter: function(object, fn, bind){
+		var results = {};
+		for (var key in object){
+			var value = object[key];
+			if (hasOwnProperty.call(object, key) && fn.call(bind, value, key, object)) results[key] = value;
+		}
+		return results;
+	},
+
+	every: function(object, fn, bind){
+		for (var key in object){
+			if (hasOwnProperty.call(object, key) && !fn.call(bind, object[key], key)) return false;
 		}
 		return true;
 	},
 
-	some: function(fn, bind){
-		for (var key in this){
-			if (this.hasOwnProperty(key) && fn.call(bind, this[key], key)) return true;
+	some: function(object, fn, bind){
+		for (var key in object){
+			if (hasOwnProperty.call(object, key) && fn.call(bind, object[key], key)) return true;
 		}
 		return false;
 	},
 
-	getKeys: function(){
+	keys: function(object){
 		var keys = [];
-		Hash.each(this, function(value, key){
-			keys.push(key);
-		});
+		for (var key in object){
+			if (hasOwnProperty.call(object, key)) keys.push(key);
+		}
 		return keys;
 	},
 
-	getValues: function(){
+	values: function(object){
 		var values = [];
-		Hash.each(this, function(value){
-			values.push(value);
-		});
+		for (var key in object){
+			if (hasOwnProperty.call(object, key)) values.push(object[key]);
+		}
 		return values;
 	},
 
-	toQueryString: function(base){
+	getLength: function(object){
+		return Object.keys(object).length;
+	},
+
+	keyOf: function(object, value){
+		for (var key in object){
+			if (hasOwnProperty.call(object, key) && object[key] === value) return key;
+		}
+		return null;
+	},
+
+	contains: function(object, value){
+		return Object.keyOf(object, value) != null;
+	},
+
+	toQueryString: function(object, base){
 		var queryString = [];
-		Hash.each(this, function(value, key){
+
+		Object.each(object, function(value, key){
 			if (base) key = base + '[' + key + ']';
 			var result;
-			switch ($type(value)){
-				case 'object': result = Hash.toQueryString(value, key); break;
+			switch (typeOf(value)){
+				case 'object': result = Object.toQueryString(value, key); break;
 				case 'array':
 					var qs = {};
 					value.each(function(val, i){
 						qs[i] = val;
 					});
-					result = Hash.toQueryString(qs, key);
+					result = Object.toQueryString(qs, key);
 				break;
 				default: result = key + '=' + encodeURIComponent(value);
 			}
-			if (value != undefined) queryString.push(result);
+			if (value != null) queryString.push(result);
 		});
 
 		return queryString.join('&');
@@ -980,331 +902,152 @@ Hash.implement({
 
 });
 
-Hash.alias({keyOf: 'indexOf', hasValue: 'contains'});
+})();
+
+
 
 
 /*
 ---
 
-script: Event.js
-
-description: Contains the Event Class, to make the event object cross-browser.
-
-license: MIT-style license.
-
-requires:
-- /Window
-- /Document
-- /Hash
-- /Array
-- /Function
-- /String
-
-provides: [Event]
-
-...
-*/
-
-var Event = new Native({
-
-	name: 'Event',
-
-	initialize: function(event, win){
-		win = win || window;
-		var doc = win.document;
-		event = event || win.event;
-		if (event.$extended) return event;
-		this.$extended = true;
-		var type = event.type;
-		var target = event.target || event.srcElement;
-		while (target && target.nodeType == 3) target = target.parentNode;
-
-		if (type.test(/key/)){
-			var code = event.which || event.keyCode;
-			var key = Event.Keys.keyOf(code);
-			if (type == 'keydown'){
-				var fKey = code - 111;
-				if (fKey > 0 && fKey < 13) key = 'f' + fKey;
-			}
-			key = key || String.fromCharCode(code).toLowerCase();
-		} else if (type.match(/(click|mouse|menu)/i)){
-			doc = (!doc.compatMode || doc.compatMode == 'CSS1Compat') ? doc.html : doc.body;
-			var page = {
-				x: event.pageX || event.clientX + doc.scrollLeft,
-				y: event.pageY || event.clientY + doc.scrollTop
-			};
-			var client = {
-				x: (event.pageX) ? event.pageX - win.pageXOffset : event.clientX,
-				y: (event.pageY) ? event.pageY - win.pageYOffset : event.clientY
-			};
-			if (type.match(/DOMMouseScroll|mousewheel/)){
-				var wheel = (event.wheelDelta) ? event.wheelDelta / 120 : -(event.detail || 0) / 3;
-			}
-			var rightClick = (event.which == 3) || (event.button == 2);
-			var related = null;
-			if (type.match(/over|out/)){
-				switch (type){
-					case 'mouseover': related = event.relatedTarget || event.fromElement; break;
-					case 'mouseout': related = event.relatedTarget || event.toElement;
-				}
-				if (!(function(){
-					while (related && related.nodeType == 3) related = related.parentNode;
-					return true;
-				}).create({attempt: Browser.Engine.gecko})()) related = false;
-			}
-		}
-
-		return $extend(this, {
-			event: event,
-			type: type,
-
-			page: page,
-			client: client,
-			rightClick: rightClick,
-
-			wheel: wheel,
-
-			relatedTarget: related,
-			target: target,
-
-			code: code,
-			key: key,
-
-			shift: event.shiftKey,
-			control: event.ctrlKey,
-			alt: event.altKey,
-			meta: event.metaKey
-		});
-	}
-
-});
-
-Event.Keys = new Hash({
-	'enter': 13,
-	'up': 38,
-	'down': 40,
-	'left': 37,
-	'right': 39,
-	'esc': 27,
-	'space': 32,
-	'backspace': 8,
-	'tab': 9,
-	'delete': 46
-});
-
-Event.implement({
-
-	stop: function(){
-		return this.stopPropagation().preventDefault();
-	},
-
-	stopPropagation: function(){
-		if (this.event.stopPropagation) this.event.stopPropagation();
-		else this.event.cancelBubble = true;
-		return this;
-	},
-
-	preventDefault: function(){
-		if (this.event.preventDefault) this.event.preventDefault();
-		else this.event.returnValue = false;
-		return this;
-	}
-
-});
-
-
-/*
----
-
-script: Class.js
+name: Class
 
 description: Contains the Class Function for easily creating, extending, and implementing reusable Classes.
 
 license: MIT-style license.
 
-requires:
-- /$util
-- /Native
-- /Array
-- /String
-- /Function
-- /Number
-- /Hash
+requires: [Array, String, Function, Number]
 
-provides: [Class]
+provides: Class
 
 ...
 */
 
-function Class(params){
-	
-	if (params instanceof Function) params = {initialize: params};
-	
+(function(){
+
+var Class = this.Class = new Type('Class', function(params){
+	if (instanceOf(params, Function)) params = {initialize: params};
+
 	var newClass = function(){
-		Object.reset(this);
-		if (newClass._prototyping) return this;
-		this._current = $empty;
+		reset(this);
+		if (newClass.$prototyping) return this;
+		this.$caller = null;
 		var value = (this.initialize) ? this.initialize.apply(this, arguments) : this;
-		delete this._current; delete this.caller;
+		this.$caller = this.caller = null;
 		return value;
-	}.extend(this);
-	
-	newClass.implement(params);
-	
-	newClass.constructor = Class;
-	newClass.prototype.constructor = newClass;
+	}.extend(this).implement(params);
+
+	newClass.$constructor = Class;
+	newClass.prototype.$constructor = newClass;
+	newClass.prototype.parent = parent;
 
 	return newClass;
+});
 
+var parent = function(){
+	if (!this.$caller) throw new Error('The method "parent" cannot be called.');
+	var name = this.$caller.$name,
+		parent = this.$caller.$owner.parent,
+		previous = (parent) ? parent.prototype[name] : null;
+	if (!previous) throw new Error('The method "' + name + '" has no parent.');
+	return previous.apply(this, arguments);
 };
 
-Function.prototype.protect = function(){
-	this._protected = true;
+var reset = function(object){
+	for (var key in object){
+		var value = object[key];
+		switch (typeOf(value)){
+			case 'object':
+				var F = function(){};
+				F.prototype = value;
+				object[key] = reset(new F);
+			break;
+			case 'array': object[key] = value.clone(); break;
+		}
+	}
+	return object;
+};
+
+var wrap = function(self, key, method){
+	if (method.$origin) method = method.$origin;
+	var wrapper = function(){
+		if (method.$protected && this.$caller == null) throw new Error('The method "' + key + '" cannot be called.');
+		var caller = this.caller, current = this.$caller;
+		this.caller = current; this.$caller = wrapper;
+		var result = method.apply(this, arguments);
+		this.$caller = current; this.caller = caller;
+		return result;
+	}.extend({$owner: self, $origin: method, $name: key});
+	return wrapper;
+};
+
+var implement = function(key, value, retain){
+	if (Class.Mutators.hasOwnProperty(key)){
+		value = Class.Mutators[key].call(this, value);
+		if (value == null) return this;
+	}
+
+	if (typeOf(value) == 'function'){
+		if (value.$hidden) return this;
+		this.prototype[key] = (retain) ? value : wrap(this, key, value);
+	} else {
+		Object.merge(this.prototype, key, value);
+	}
+
 	return this;
 };
 
-Object.reset = function(object, key){
-		
-	if (key == null){
-		for (var p in object) Object.reset(object, p);
-		return object;
-	}
-	
-	delete object[key];
-	
-	switch ($type(object[key])){
-		case 'object':
-			var F = function(){};
-			F.prototype = object[key];
-			var i = new F;
-			object[key] = Object.reset(i);
-		break;
-		case 'array': object[key] = $unlink(object[key]); break;
-	}
-	
-	return object;
-	
+var getInstance = function(klass){
+	klass.$prototyping = true;
+	var proto = new klass;
+	delete klass.$prototyping;
+	return proto;
 };
 
-new Native({name: 'Class', initialize: Class}).extend({
-
-	instantiate: function(F){
-		F._prototyping = true;
-		var proto = new F;
-		delete F._prototyping;
-		return proto;
-	},
-	
-	wrap: function(self, key, method){
-		if (method._origin) method = method._origin;
-		
-		return function(){
-			if (method._protected && this._current == null) throw new Error('The method "' + key + '" cannot be called.');
-			var caller = this.caller, current = this._current;
-			this.caller = current; this._current = arguments.callee;
-			var result = method.apply(this, arguments);
-			this._current = current; this.caller = caller;
-			return result;
-		}.extend({_owner: self, _origin: method, _name: key});
-
-	}
-	
-});
-
-Class.implement({
-	
-	implement: function(key, value){
-		
-		if ($type(key) == 'object'){
-			for (var p in key) this.implement(p, key[p]);
-			return this;
-		}
-		
-		var mutator = Class.Mutators[key];
-		
-		if (mutator){
-			value = mutator.call(this, value);
-			if (value == null) return this;
-		}
-		
-		var proto = this.prototype;
-
-		switch ($type(value)){
-			
-			case 'function':
-				if (value._hidden) return this;
-				proto[key] = Class.wrap(this, key, value);
-			break;
-			
-			case 'object':
-				var previous = proto[key];
-				if ($type(previous) == 'object') $mixin(previous, value);
-				else proto[key] = $unlink(value);
-			break;
-			
-			case 'array':
-				proto[key] = $unlink(value);
-			break;
-			
-			default: proto[key] = value;
-
-		}
-		
-		return this;
-
-	}
-	
-});
+Class.implement('implement', implement.overloadSetter());
 
 Class.Mutators = {
-	
+
 	Extends: function(parent){
-
 		this.parent = parent;
-		this.prototype = Class.instantiate(parent);
-
-		this.implement('parent', function(){
-			var name = this.caller._name, previous = this.caller._owner.parent.prototype[name];
-			if (!previous) throw new Error('The method "' + name + '" has no parent.');
-			return previous.apply(this, arguments);
-		}.protect());
-
+		this.prototype = getInstance(parent);
 	},
 
 	Implements: function(items){
-		$splat(items).each(function(item){
-			if (item instanceof Function) item = Class.instantiate(item);
-			this.implement(item);
+		Array.from(items).each(function(item){
+			var instance = new item;
+			for (var key in instance) implement.call(this, key, instance[key], true);
 		}, this);
-
 	}
-	
 };
+
+})();
 
 
 /*
 ---
 
-script: Class.Extras.js
+name: Class.Extras
 
 description: Contains Utility Classes that can be implemented into your own Classes to ease the execution of many common tasks.
 
 license: MIT-style license.
 
-requires:
-- /Class
+requires: Class
 
-provides: [Chain, Events, Options]
+provides: [Class.Extras, Chain, Events, Options]
 
 ...
 */
 
-var Chain = new Class({
+(function(){
+
+this.Chain = new Class({
 
 	$chain: [],
 
 	chain: function(){
-		this.$chain.extend(Array.flatten(arguments));
+		this.$chain.append(Array.flatten(arguments));
 		return this;
 	},
 
@@ -1319,17 +1062,23 @@ var Chain = new Class({
 
 });
 
-var Events = new Class({
+var removeOn = function(string){
+	return string.replace(/^on([A-Z])/, function(full, first){
+		return first.toLowerCase();
+	});
+};
+
+this.Events = new Class({
 
 	$events: {},
 
 	addEvent: function(type, fn, internal){
-		type = Events.removeOn(type);
-		if (fn != $empty){
-			this.$events[type] = this.$events[type] || [];
-			this.$events[type].include(fn);
-			if (internal) fn.internal = true;
-		}
+		type = removeOn(type);
+
+		
+
+		this.$events[type] = (this.$events[type] || []).include(fn);
+		if (internal) fn.internal = true;
 		return this;
 	},
 
@@ -1339,342 +1088,135 @@ var Events = new Class({
 	},
 
 	fireEvent: function(type, args, delay){
-		type = Events.removeOn(type);
-		if (!this.$events || !this.$events[type]) return this;
-		this.$events[type].each(function(fn){
-			fn.create({'bind': this, 'delay': delay, 'arguments': args})();
+		type = removeOn(type);
+		var events = this.$events[type];
+		if (!events) return this;
+		args = Array.from(args);
+		events.each(function(fn){
+			if (delay) fn.delay(delay, this, args);
+			else fn.apply(this, args);
 		}, this);
 		return this;
 	},
-
+	
 	removeEvent: function(type, fn){
-		type = Events.removeOn(type);
-		if (!this.$events[type]) return this;
-		if (!fn.internal) this.$events[type].erase(fn);
+		type = removeOn(type);
+		var events = this.$events[type];
+		if (events && !fn.internal){
+			var index =  events.indexOf(fn);
+			if (index != -1) delete events[index];
+		}
 		return this;
 	},
 
 	removeEvents: function(events){
 		var type;
-		if ($type(events) == 'object'){
+		if (typeOf(events) == 'object'){
 			for (type in events) this.removeEvent(type, events[type]);
 			return this;
 		}
-		if (events) events = Events.removeOn(events);
+		if (events) events = removeOn(events);
 		for (type in this.$events){
 			if (events && events != type) continue;
 			var fns = this.$events[type];
-			for (var i = fns.length; i--; i) this.removeEvent(type, fns[i]);
+			for (var i = fns.length; i--;) if (i in fns){
+				this.removeEvent(type, fns[i]);
+			}
 		}
 		return this;
 	}
 
 });
 
-Events.removeOn = function(string){
-	return string.replace(/^on([A-Z])/, function(full, first){
-		return first.toLowerCase();
-	});
-};
-
-var Options = new Class({
+this.Options = new Class({
 
 	setOptions: function(){
-		this.options = $merge.run([this.options].extend(arguments));
-		if (!this.addEvent) return this;
-		for (var option in this.options){
-			if ($type(this.options[option]) != 'function' || !(/^on[A-Z]/).test(option)) continue;
-			this.addEvent(option, this.options[option]);
-			delete this.options[option];
+		var options = this.options = Object.merge.apply(null, [{}, this.options].append(arguments));
+		if (this.addEvent) for (var option in options){
+			if (typeOf(options[option]) != 'function' || !(/^on[A-Z]/).test(option)) continue;
+			this.addEvent(option, options[option]);
+			delete options[option];
 		}
 		return this;
 	}
 
 });
 
+})();
 
 
 /*
 ---
 
-script: Cookie.js
+name: JSON
 
-description: Class for creating, reading, and deleting browser Cookies.
+description: JSON encoder and decoder.
 
 license: MIT-style license.
 
-credits:
-- Based on the functions by Peter-Paul Koch (http://quirksmode.org).
+See Also: <http://www.json.org/>
 
-requires:
-- /Options
+requires: [Array, String, Number, Function]
 
-provides: [Cookie]
+provides: JSON
 
 ...
 */
 
-var Cookie = new Class({
-
-	Implements: Options,
-
-	options: {
-		path: false,
-		domain: false,
-		duration: false,
-		secure: false,
-		document: document
-	},
-
-	initialize: function(key, options){
-		this.key = key;
-		this.setOptions(options);
-	},
-
-	write: function(value){
-		value = encodeURIComponent(value);
-		if (this.options.domain) value += '; domain=' + this.options.domain;
-		if (this.options.path) value += '; path=' + this.options.path;
-		if (this.options.duration){
-			var date = new Date();
-			date.setTime(date.getTime() + this.options.duration * 24 * 60 * 60 * 1000);
-			value += '; expires=' + date.toGMTString();
-		}
-		if (this.options.secure) value += '; secure';
-		this.options.document.cookie = this.key + '=' + value;
-		return this;
-	},
-
-	read: function(){
-		var value = this.options.document.cookie.match('(?:^|;)\\s*' + this.key.escapeRegExp() + '=([^;]*)');
-		return (value) ? decodeURIComponent(value[1]) : null;
-	},
-
-	dispose: function(){
-		new Cookie(this.key, $merge(this.options, {duration: -1})).write('');
-		return this;
-	}
-
-});
-
-Cookie.write = function(key, value, options){
-	return new Cookie(key, options).write(value);
-};
-
-Cookie.read = function(key){
-	return new Cookie(key).read();
-};
-
-Cookie.dispose = function(key, options){
-	return new Cookie(key, options).dispose();
-};
+if (typeof JSON == 'undefined') this.JSON = {};
 
 
-/*
----
-
-script: Request.js
-
-description: Powerful all purpose Request Class. Uses XMLHTTPRequest.
-
-license: MIT-style license.
-
-requires:
-- /Element
-- /Chain
-- /Events
-- /Options
-- /Browser
-
-provides: [Request]
-
-...
-*/
-
-var Request = new Class({
-
-	Implements: [Chain, Events, Options],
-
-	options: {/*
-		onRequest: $empty,
-		onComplete: $empty,
-		onCancel: $empty,
-		onSuccess: $empty,
-		onFailure: $empty,
-		onException: $empty,*/
-		url: '',
-		data: '',
-		headers: {
-			'X-Requested-With': 'XMLHttpRequest',
-			'Accept': 'text/javascript, text/html, application/xml, text/xml, */*'
-		},
-		async: true,
-		format: false,
-		method: 'post',
-		link: 'ignore',
-		isSuccess: null,
-		emulation: true,
-		urlEncoded: true,
-		encoding: 'utf-8',
-		evalScripts: false,
-		evalResponse: false,
-		noCache: false
-	},
-
-	initialize: function(options){
-		this.xhr = new Browser.Request();
-		this.setOptions(options);
-		this.options.isSuccess = this.options.isSuccess || this.isSuccess;
-		this.headers = new Hash(this.options.headers);
-	},
-
-	onStateChange: function(){
-		if (this.xhr.readyState != 4 || !this.running) return;
-		this.running = false;
-		this.status = 0;
-		$try(function(){
-			this.status = this.xhr.status;
-		}.bind(this));
-		this.xhr.onreadystatechange = $empty;
-		if (this.options.isSuccess.call(this, this.status)){
-			this.response = {text: this.xhr.responseText, xml: this.xhr.responseXML};
-			this.success(this.response.text, this.response.xml);
-		} else {
-			this.response = {text: null, xml: null};
-			this.failure();
-		}
-	},
-
-	isSuccess: function(){
-		return ((this.status >= 200) && (this.status < 300));
-	},
-
-	processScripts: function(text){
-		if (this.options.evalResponse || (/(ecma|java)script/).test(this.getHeader('Content-type'))) return $exec(text);
-		return text.stripScripts(this.options.evalScripts);
-	},
-
-	success: function(text, xml){
-		this.onSuccess(this.processScripts(text), xml);
-	},
-
-	onSuccess: function(){
-		this.fireEvent('complete', arguments).fireEvent('success', arguments).callChain();
-	},
-
-	failure: function(){
-		this.onFailure();
-	},
-
-	onFailure: function(){
-		this.fireEvent('complete').fireEvent('failure', this.xhr);
-	},
-
-	setHeader: function(name, value){
-		this.headers.set(name, value);
-		return this;
-	},
-
-	getHeader: function(name){
-		return $try(function(){
-			return this.xhr.getResponseHeader(name);
-		}.bind(this));
-	},
-
-	check: function(){
-		if (!this.running) return true;
-		switch (this.options.link){
-			case 'cancel': this.cancel(); return true;
-			case 'chain': this.chain(this.caller.bind(this, arguments)); return false;
-		}
-		return false;
-	},
-
-	send: function(options){
-		if (!this.check(options)) return this;
-		this.running = true;
-
-		var type = $type(options);
-		if (type == 'string' || type == 'element') options = {data: options};
-
-		var old = this.options;
-		options = $extend({data: old.data, url: old.url, method: old.method}, options);
-		var data = options.data, url = String(options.url), method = options.method.toLowerCase();
-
-		switch ($type(data)){
-			case 'element': data = document.id(data).toQueryString(); break;
-			case 'object': case 'hash': data = Hash.toQueryString(data);
-		}
-
-		if (this.options.format){
-			var format = 'format=' + this.options.format;
-			data = (data) ? format + '&' + data : format;
-		}
-
-		if (this.options.emulation && !['get', 'post'].contains(method)){
-			var _method = '_method=' + method;
-			data = (data) ? _method + '&' + data : _method;
-			method = 'post';
-		}
-
-		if (this.options.urlEncoded && method == 'post'){
-			var encoding = (this.options.encoding) ? '; charset=' + this.options.encoding : '';
-			this.headers.set('Content-type', 'application/x-www-form-urlencoded' + encoding);
-		}
-
-		if (this.options.noCache){
-			var noCache = 'noCache=' + new Date().getTime();
-			data = (data) ? noCache + '&' + data : noCache;
-		}
-
-		var trimPosition = url.lastIndexOf('/');
-		if (trimPosition > -1 && (trimPosition = url.indexOf('#')) > -1) url = url.substr(0, trimPosition);
-
-		if (data && method == 'get'){
-			url = url + (url.contains('?') ? '&' : '?') + data;
-			data = null;
-		}
-
-		this.xhr.open(method.toUpperCase(), url, this.options.async);
-
-		this.xhr.onreadystatechange = this.onStateChange.bind(this);
-
-		this.headers.each(function(value, key){
-			try {
-				this.xhr.setRequestHeader(key, value);
-			} catch (e){
-				this.fireEvent('exception', [key, value]);
-			}
-		}, this);
-
-		this.fireEvent('request');
-		this.xhr.send(data);
-		if (!this.options.async) this.onStateChange();
-		return this;
-	},
-
-	cancel: function(){
-		if (!this.running) return this;
-		this.running = false;
-		this.xhr.abort();
-		this.xhr.onreadystatechange = $empty;
-		this.xhr = new Browser.Request();
-		this.fireEvent('cancel');
-		return this;
-	}
-
-});
 
 (function(){
 
-var methods = {};
-['get', 'post', 'put', 'delete', 'GET', 'POST', 'PUT', 'DELETE'].each(function(method){
-	methods[method] = function(){
-		var params = Array.link(arguments, {url: String.type, data: $defined});
-		return this.send($extend(params, {method: method}));
-	};
-});
+var special = {'\b': '\\b', '\t': '\\t', '\n': '\\n', '\f': '\\f', '\r': '\\r', '"' : '\\"', '\\': '\\\\'};
 
-Request.implement(methods);
+var escape = function(chr){
+	return special[chr] || '\\u' + ('0000' + chr.charCodeAt(0).toString(16)).slice(-4);
+};
+
+JSON.validate = function(string){
+	string = string.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').
+					replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+					replace(/(?:^|:|,)(?:\s*\[)+/g, '');
+
+	return (/^[\],:{}\s]*$/).test(string);
+};
+
+JSON.encode = JSON.stringify ? function(obj){
+	return JSON.stringify(obj);
+} : function(obj){
+	if (obj && obj.toJSON) obj = obj.toJSON();
+
+	switch (typeOf(obj)){
+		case 'string':
+			return '"' + obj.replace(/[\x00-\x1f\\"]/g, escape) + '"';
+		case 'array':
+			return '[' + obj.map(JSON.encode).clean() + ']';
+		case 'object': case 'hash':
+			var string = [];
+			Object.each(obj, function(value, key){
+				var json = JSON.encode(value);
+				if (json) string.push(JSON.encode(key) + ':' + json);
+			});
+			return '{' + string + '}';
+		case 'number': case 'boolean': return '' + obj;
+		case 'null': return 'null';
+	}
+
+	return null;
+};
+
+JSON.decode = function(string, secure){
+	if (!string || typeOf(string) != 'string') return null;
+
+	if (secure || JSON.secure){
+		if (JSON.parse) return JSON.parse(string);
+		if (!JSON.validate(string)) throw new Error('JSON could not decode the input; security is enabled and the value is not secure.');
+	}
+
+	return eval('(' + string + ')');
+};
 
 })();
+
