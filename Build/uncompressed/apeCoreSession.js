@@ -1,7 +1,7 @@
 /*
 ---
 
-script: Core.js
+name: Core
 
 description: The core of MooTools, contains all the base functions and the Native and Hash implementations. Required by all the other scripts.
 
@@ -12,17 +12,17 @@ copyright: Copyright (c) 2006-2008 [Valerio Proietti](http://mad4milk.net/).
 authors: The MooTools production team (http://mootools.net/developers/)
 
 inspiration:
-- Class implementation inspired by [Base.js](http://dean.edwards.name/weblog/2006/03/base/) Copyright (c) 2006 Dean Edwards, [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
-- Some functionality inspired by [Prototype.js](http://prototypejs.org) Copyright (c) 2005-2007 Sam Stephenson, [MIT License](http://opensource.org/licenses/mit-license.php)
+  - Class implementation inspired by [Base.js](http://dean.edwards.name/weblog/2006/03/base/) Copyright (c) 2006 Dean Edwards, [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+  - Some functionality inspired by [Prototype.js](http://prototypejs.org) Copyright (c) 2005-2007 Sam Stephenson, [MIT License](http://opensource.org/licenses/mit-license.php)
 
-provides: [Mootools, Native, Hash.base, Array.each, $util]
+provides: [MooTools, Native, Hash.base, Array.each, $util]
 
 ...
 */
 
 var MooTools = {
-	'version': '1.2.4',
-	'build': '0d9113241a90b9cd5643b926795852a2026710d4'
+	'version': '1.2.5',
+	'build': '008d8f0f2fcc2044e54fdd3635341aaab274e757'
 };
 
 var Native = function(options){
@@ -294,15 +294,13 @@ function $unlink(object){
 /*
 ---
 
-script: Browser.js
+name: Browser
 
 description: The Browser Core. Contains Browser initialization, Window and Document, and the Browser Hash.
 
 license: MIT-style license.
 
-requires: 
-- /Native
-- /$util
+requires: [Native, $util]
 
 provides: [Browser, Window, Document, $exec]
 
@@ -464,17 +462,15 @@ new Document(document);
 /*
 ---
 
-script: Array.js
+name: Array
 
 description: Contains Array Prototypes like each, contains, and erase.
 
 license: MIT-style license.
 
-requires:
-- /$util
-- /Array.each
+requires: [$util, Array.each]
 
-provides: [Array]
+provides: Array
 
 ...
 */
@@ -616,20 +612,22 @@ Array.implement({
 /*
 ---
 
-script: Function.js
+name: Function
 
 description: Contains Function Prototypes like create, bind, pass, and delay.
 
 license: MIT-style license.
 
-requires:
-- /Native
-- /$util
+requires: [Native, $util]
 
-provides: [Function]
+provides: Function
 
 ...
 */
+
+try {
+	delete Function.prototype.bind;
+} catch(e){}
 
 Function.implement({
 
@@ -689,17 +687,15 @@ Function.implement({
 /*
 ---
 
-script: Number.js
+name: Number
 
 description: Contains Number Prototypes like limit, round, times, and ceil.
 
 license: MIT-style license.
 
-requires:
-- /Native
-- /$util
+requires: [Native, $util]
 
-provides: [Number]
+provides: Number
 
 ...
 */
@@ -745,16 +741,15 @@ Number.alias('times', 'each');
 /*
 ---
 
-script: String.js
+name: String
 
 description: Contains String Prototypes like camelCase, capitalize, test, and toInt.
 
 license: MIT-style license.
 
-requires:
-- /Native
+requires: Native
 
-provides: [String]
+provides: String
 
 ...
 */
@@ -841,16 +836,15 @@ String.implement({
 /*
 ---
 
-script: Hash.js
+name: Hash
 
 description: Contains Hash Prototypes. Provides a means for overcoming the JavaScript practical impossibility of extending native Objects.
 
 license: MIT-style license.
 
-requires:
-- /Hash.base
+requires: Hash.base
 
-provides: [Hash]
+provides: Hash
 
 ...
 */
@@ -986,21 +980,15 @@ Hash.alias({keyOf: 'indexOf', hasValue: 'contains'});
 /*
 ---
 
-script: Event.js
+name: Event
 
 description: Contains the Event Class, to make the event object cross-browser.
 
 license: MIT-style license.
 
-requires:
-- /Window
-- /Document
-- /Hash
-- /Array
-- /Function
-- /String
+requires: [Window, Document, Hash, Array, Function, String]
 
-provides: [Event]
+provides: Event
 
 ...
 */
@@ -1116,22 +1104,15 @@ Event.implement({
 /*
 ---
 
-script: Class.js
+name: Class
 
 description: Contains the Class Function for easily creating, extending, and implementing reusable Classes.
 
 license: MIT-style license.
 
-requires:
-- /$util
-- /Native
-- /Array
-- /String
-- /Function
-- /Number
-- /Hash
+requires: [$util, Native, Array, String, Function, Number, Hash]
 
-provides: [Class]
+provides: Class
 
 ...
 */
@@ -1285,16 +1266,15 @@ Class.Mutators = {
 /*
 ---
 
-script: Class.Extras.js
+name: Class.Extras
 
 description: Contains Utility Classes that can be implemented into your own Classes to ease the execution of many common tasks.
 
 license: MIT-style license.
 
-requires:
-- /Class
+requires: Class
 
-provides: [Chain, Events, Options]
+provides: [Chain, Events, Options, Class.Extras]
 
 ...
 */
@@ -1397,19 +1377,17 @@ var Options = new Class({
 /*
 ---
 
-script: Cookie.js
+name: Cookie
 
 description: Class for creating, reading, and deleting browser Cookies.
 
 license: MIT-style license.
 
-credits:
-- Based on the functions by Peter-Paul Koch (http://quirksmode.org).
+credits: Based on the functions by Peter-Paul Koch (http://quirksmode.org).
 
-requires:
-- /Options
+requires: Options
 
-provides: [Cookie]
+provides: Cookie
 
 ...
 */
@@ -1473,20 +1451,15 @@ Cookie.dispose = function(key, options){
 /*
 ---
 
-script: Request.js
+name: Request
 
 description: Powerful all purpose Request Class. Uses XMLHTTPRequest.
 
 license: MIT-style license.
 
-requires:
-- /Element
-- /Chain
-- /Events
-- /Options
-- /Browser
+requires: [Element, Chain, Events, Options, Browser]
 
-provides: [Request]
+provides: Request
 
 ...
 */
