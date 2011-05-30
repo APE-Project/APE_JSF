@@ -2852,7 +2852,14 @@ APE.Transport.WebSocket = new Class({
 	},
 
 	initWs: function() {
-		this.ws = new WebSocket( (this.ape.options.secure ? 'wss' : 'ws') + '://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport +'/');
+		var uri = (this.ape.options.secure ? 'wss' : 'ws') + '://' + this.ape.options.frequency + '.' + this.ape.options.server + '/' + this.ape.options.transport +'/';
+
+		if (window.MozWebSocket) {
+			this.ws = new WebSocket(uri);
+		} else {
+			this.ws = new MozWebSocket(uri);
+		}
+
 		this.connRunning = true;
 		this.ws.onmessage = this.readWs.bind(this);
 		this.ws.onopen = this.openWs.bind(this);
