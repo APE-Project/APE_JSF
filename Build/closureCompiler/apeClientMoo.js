@@ -11,6 +11,10 @@ d+="</head><body></body></html>";b.write(d);b.close()}else{c.set("src",(a.secure
 APE.Config.baseUrl = 'http://local.ape-project.org/APE_JSF'; //APE JSF 
 APE.Config.domain = 'ape-project.org'; 
 APE.Config.server = 'ape.local.ape-project.org:6969'; //APE server URL
+APE.Config.baseUrl = 'http://ape.home.efyx.io/APE_JSF'; //APE JSF 
+APE.Config.domain = 'efyx.io'; 
+APE.Config.server = 'ape.home.efyx.io:6969'; //APE server URL
+APE.Config.transport = 6;
 
 (function(){
 	for (var i = 0; i < arguments.length; i++)
