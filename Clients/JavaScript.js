@@ -65,6 +65,7 @@ APE.Client.prototype.load = function(config){
 
 	config = config || {};
 
+        config.identifier = config.identifier || APE.Config.identifier;
 	config.transport = config.transport || APE.Config.transport || 0;
 	config.frequency = config.frequency || 0;
 	config.domain = config.domain || APE.Config.domain || document.domain;
