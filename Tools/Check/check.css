@@ -1,0 +1,85 @@
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,button{margin:0;padding:0;border:0;outline:0;font-weight:normal;font-style:inherit;font-size:100%;font-family:inherit;vertical-align:baseline;}:focus{outline:0;}body{line-height:1;color:black;background:white;}ol,ul{list-style:none;}table{border-collapse:separate;border-spacing:0;}caption,th,td{text-align:left;font-weight:normal;}blockquote:before,blockquote:after,q:before,q:after{content:"";}blockquote,q{quotes:"""";}.clear{clear:both;}.fl{float:left;}.fr{float:right;}
+
+body {
+	background : #FFF;
+	font-family : "Trebuchet MS", Trebuchet, "Lucida Grande", "Helvetica", Arial, serif;
+	font-size : 12px;
+	color : #0c0c0c;
+	border-top:3px solid #4E7F8D;
+}
+
+a {
+	color : #4E7F8D;
+	text-decoration : none;
+	font-weight : bold;
+}
+
+a:hover {
+	text-decoration : underline;
+}
+
+h1 {
+	font-size : 20px;
+	border-bottom:1px solid #CECECE;
+	border-top:2px solid #FFFFFF;
+	font-weight:bold;
+	text-align:center;
+	background:#E5EEF5;
+	line-height:30px;
+	color:#3789B3;
+}
+
+h2 {
+	font-size : 15px;
+	font-weight:bold;
+	margin:15px 0px 10px 0px;
+}
+
+#content {
+	width:90%;
+	margin:25px auto;
+}
+
+input {
+	background : #6BB000;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	text-align : center;
+	width : 200px;
+	height : 30px;
+	line-height : 15px;
+	font-size : 16px;
+	color : #FFF;
+	text-shadow : 0 1px 1px #2B4200;
+	cursor : pointer;
+	border : none;
+}
+
+#log {
+	border : 1px solid #CECECE;
+	background : #FFF;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	padding : 10px;
+	overflow:scroll;
+}
+
+.sucess {
+	background-image:url(accept.png)!important;
+}
+
+.error{
+	background-image:url(cross.png)!important;
+}
+
+.output {
+	background:url(application.png) no-repeat left 5px;
+	padding-left:25px;
+	line-height:20px;
+}
+
+.runningTest {
+	background:url(hourglass.png) no-repeat left 50%;
+	text-indent:25px;
+	line-height:20px;
+}

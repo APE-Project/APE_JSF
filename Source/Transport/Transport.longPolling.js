@@ -1,13 +1,10 @@
 Request = new Class({
-
 	Extends: Request,
-
 	send: function(options) {
 		//mootools set onreadystatechange after xhr.open, in webkit, this cause readyState 1 to be never fired
 		if (Browser.Engine.webkit) this.xhr.onreadystatechange = this.onStateChange.bind(this);
 		return this.parent(options);
 	},
-
 	onStateChange: function() {
 		if (this.xhr.readyState == 1) this.dataSent = true;
 		this.parent();
@@ -15,12 +12,10 @@ Request = new Class({
 });
 
 APE.Transport.longPolling = new Class({
-
-	initialize: function(ape) { 
+	initialize: function(ape) {
 		this.ape = ape;
 		this.requestFailObserver = [];
 	},
-
 	send: function(queryString, options) {
 		var request = new Request({
 			url: this.ape.serverUri,
@@ -31,18 +26,13 @@ APE.Transport.longPolling = new Class({
 			}.bind(this)
 		}).send(queryString);
 		request.id = $time();
-
 		this.request = request;
-
 		this.requestFailObserver.push(this.ape.requestFail.delay(this.ape.options.pollTime + 10000, this.ape, [-1, request]));
-
 		return request;
 	},
-
 	running: function() {
 		return this.request ? this.request.running : false;
 	},
-
 	cancel: function() {
 		if (this.request) this.request.cancel();
 		$clear(this.requestFailObserver.shift());

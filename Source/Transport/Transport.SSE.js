@@ -1,7 +1,6 @@
 /* Notice : This class in only intended to be use as an implemented class */
 APE.Request.SSE = new Class({
-	SSESupport: ((typeof window.addEventStream) == 'function'), 
-
+	SSESupport: ((typeof window.addEventStream) == 'function'),
 	initSSE: function(queryString, options, readCallback) {
 		var tmp = document.createElement('div');
 		document.body.appendChild(tmp);

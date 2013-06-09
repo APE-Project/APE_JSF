@@ -1,8 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en">
-<head>	
-	<link rel="stylesheet" type="text/css" href="../debugger/debugger.css" media="screen" title="Normal" />
-	<link rel="stylesheet" type="text/css" href="demo.css" media="screen" title="Normal" />
+<head>
+	<link rel="stylesheet" type="text/css" href="./demo.css" media="screen" title="Normal" />
 	<script type="text/javaScript" src="../../Clients/mootools-core.js"></script>
 	<script type="text/javaScript" src="../../Clients/MooTools.js"></script>
 	<script type="text/javaScript" src="../config.js"></script>
@@ -12,24 +11,21 @@
 		<div id="ape_master_container"></div>
 		<script type="text/javaScript">
 			//Create random string used as user nickname
-			function rand_chars(){
-				 var keylist="abcdefghijklmnopqrstuvwxyz"
-				 var temp=''
-				 var plength=5;
-				 for (i=0;i<plength;i++){
-					 temp+=keylist.charAt(Math.floor(Math.random()*keylist.length))
+			function rand_chars(plength) {
+				var keylist = "abcdefghijklmnopqrstuvwxyz";
+				var temp = '';
+				for (i = 0; i < plength; i++) {
+					temp += keylist.charAt(Math.floor(Math.random() * keylist.length));
 				}
 				return temp;
 			}
-
 			var client = new APE.Move({
 				'container':$('ape_master_container'),
 			});
-
 			client.load({
-				'identifier':'movedemo',
-				'channel':'move',
-				'connectOptions': {'name': rand_chars()}
+				'identifier': 'movedemo',
+				'channel': 'move',
+				'connectOptions': {'name': rand_chars(5)}
 			});
 		</script>
 	</body>
