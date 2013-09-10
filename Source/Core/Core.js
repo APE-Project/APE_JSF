@@ -39,6 +39,7 @@
  *           -^-\  \       |        )
  *                `\_______/^\______/
  */
+
 /**
  * Core object, can be extended with sessions
  * <p>To connect such an instance to a APE server user the start() method.</p>
@@ -636,14 +637,14 @@ APE.Core = new Class({
 		this.cancelRequest();
 	}
 });
-/*
+/**
  * Ape variable
  *
  * @name Ape
  *
  */
 var Ape;
-/*
+/**
  * Ape initialiser
  *
  * @name APE.init

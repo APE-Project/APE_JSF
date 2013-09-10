@@ -1,4 +1,3 @@
-
 /**
 * Request object
 *
@@ -6,7 +5,6 @@
 * @public
 * @class
 */
-
 APE.Request = new Class({
 	initialize: function(ape) {
 		this.ape = ape;

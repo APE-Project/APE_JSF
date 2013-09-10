@@ -9,7 +9,7 @@
 
 APE.Events = new Class({
 	Extends: Events,
-	/*
+	/**
 	* Add a handler for RAW's
 	*
 	* @param {string} rawName name of the raw
@@ -20,7 +20,7 @@ APE.Events = new Class({
 	onRaw: function(type, fn, internal) {
 		return this.addEvent('raw_' + type.toLowerCase(), fn, internal);
 	},
-	/*
+	/**
 	* Add a handler for CMD's
 	*
 	* @param {string} cmdName name of the cmd
@@ -31,7 +31,7 @@ APE.Events = new Class({
 	onCmd: function(type, fn, internal) {
 		return this.addEvent('cmd_' + type.toLowerCase(), fn, internal);
 	},
-	/*
+	/**
 	* Add a handler for Errors
 	*
 	* @param {string} errorCode Errorcode nr of the error
@@ -42,7 +42,7 @@ APE.Events = new Class({
 	onError: function(type, fn, internal) {
 		return this.addEvent('error_' + type, fn, internal);
 	},
-	/*
+	/**
 	* Remove an event
 	*
 	* @param {string} eventname to be removed
@@ -243,6 +243,7 @@ APE.Events = new Class({
 * @see APE.left
 * @see APE.PipeDelete
 */
+
 /**
 * Events sent when client apeDisconnect.
 * <p>This events is sent when the client is apeDisconnect from the server in the case of connection timeout or request fail</p>
@@ -258,6 +259,7 @@ APE.Events = new Class({
 * @see APE.apeReconnect
 * @see APE.ready
 */
+
 /**
 * Event sent when a pipe is deleted
 *
@@ -285,6 +287,7 @@ APE.Events = new Class({
 * @see APE.left
 * @see APE.multiPipeDelete
 */
+
 /**
 * Event sent when the client is connected to the APE server.
 * <p>This event is sent when the client is connected to the APE server, just after the login (start(); method);</p>
@@ -300,6 +303,7 @@ APE.Events = new Class({
 * @see APE.apeReconnect
 * @see APE.ready
 */
+
 /**
  * Events sent when the session is cleared.
  * <p>This events is sent when the clearSession(); method is called.</p>
@@ -309,6 +313,7 @@ APE.Events = new Class({
  * @public
  * @requires Source/Core/Session.js
  */
+
 /**
 * Event sent when the session restore begin.
 * <p>This event sent when the session restore has finished.</p>
@@ -319,6 +324,7 @@ APE.Events = new Class({
 * @public
 * @requires Source/Core/Session.js
 */
+
 /**
 * Event sent when the session restore begin.
 * <p>This event sent when the session restore begin.</p>
@@ -417,6 +423,7 @@ APE.Events = new Class({
 * @see APE.onRaw
 * @see APE.Pipe.onRaw
 */
+
 /**
 * Event sent when the client received data from the proxy.
 * <p>This is a global event.</p>
@@ -439,6 +446,7 @@ APE.Events = new Class({
 * @name APE.proxyClose
 * @event
 */
+
 /**
 * Intercept an server raw (RAW).
 * <p>Execute a function when a raw is received and pass to the function the data received from the server.</p>
@@ -513,6 +521,7 @@ APE.Events = new Class({
 * @see APE.Pipe.onRaw
 * @see APE.onError
 */
+
 /**
 * Intercept an error event.
 *
@@ -533,6 +542,7 @@ APE.Events = new Class({
 * 	alert('Bad sessid');
 * });
 */
+
 /**
 * Load the APE client.
 *

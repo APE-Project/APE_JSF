@@ -51,6 +51,7 @@ APE.Pipe = new Class({
 	 * @see APE.fireEvent
 	 * @see APE.Pipe.fireEvent
 	 */
+
 	/**
 	 * Fire a event manually on a pipe.
 	 * <p>Executes all events of the specified type present on in only this pipe.</p>

@@ -7,7 +7,7 @@
  * @see APE.PipeMulti
  * @see APE.PipeProxy
  * @fires APE.uniPipeCreate
-*/
+ */
 APE.PipeSingle = new Class({
 	Extends: APE.Pipe,
 	initialize: function(core, options) {

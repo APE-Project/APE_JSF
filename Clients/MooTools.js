@@ -9,7 +9,7 @@
  * @author John Chavarria (psi)
  */
 
-/*
+/**
  * @name APE
  * @namespace
  * @public

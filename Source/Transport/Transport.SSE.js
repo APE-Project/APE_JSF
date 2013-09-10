@@ -12,7 +12,6 @@
  * @borrows APE.Request.SSE.prototype
  * @private
  */
-
 APE.Request.SSE = new Class({
 	/* Notice : This class in only intended to be use as an implemented class */
 	SSESupport: ((typeof window.addEventStream) == 'function'),
