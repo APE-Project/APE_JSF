@@ -1,3 +1,10 @@
+/**
+ * Core object with sessions.
+ *
+ * @private
+ * @class
+ * @augments APE.Core
+ */
 APE.Core = new Class({
 	Extends: APE.Core,
 	initialize: function(options) {
@@ -17,6 +24,10 @@ APE.Core = new Class({
 		});
 		this.setSession({'uniPipe': JSON.stringify(uniPipe)});
 	},
+	/**
+	 * @private
+	 * @fires APE.restoreEnd
+	 */
 	restoreUniPipe: function(resp) {
 		var pipes = JSON.parse(decodeURIComponent(resp.data.sessions.uniPipe));
 		if (pipes) {
@@ -32,6 +43,11 @@ APE.Core = new Class({
 		this.createCookie();//Create cookie if needed
 		this.saveCookie();//Save cookie
 	},
+	/**
+	* @private
+	* @fires APE.init
+	* @fires APE.ready
+	*/
 	restoreCallback: function(resp) {
 		if (resp.raw != 'ERR' && this.status == 0) {
 			this.fireEvent('init');
@@ -41,6 +57,10 @@ APE.Core = new Class({
 			this.stopPoller();
 		}
 	},
+	/**
+	* @private
+	* @fires APE.restoreStart
+	*/
 	connect: function(args, options) {
 		var cookie = this.initCookie();
 		if (!cookie) {//No cookie defined start a new connection
@@ -56,10 +76,11 @@ APE.Core = new Class({
 			this.getSession('uniPipe', this.restoreUniPipe.bind(this), options);
 		}
 	},
-	/***
-	 * Read the cookie APE_Cookie and try to find the application identifier
-	 * @param	String	identifier, can be used to force the identifier to find ortherwhise identifier defined in the options will be used
-	 * @return 	Boolean	false if application identifier isn't found or an object with the instance and the cookie
+	/**
+	 * Read the cookie APE_Cookie and try to find the application identifier.
+	 *
+	 * @param	{string}	identifier, can be used to force the identifier to find ortherwhise identifier defined in the options will be used
+	 * @return 	{boolean}	false if application identifier isn't found or an object with the instance and the cookie
 	 */
 	getInstance: function(identifier) {
 		var	tmp = Cookie.read('APE_Cookie', {'domain': document.domain});
@@ -86,10 +107,11 @@ APE.Core = new Class({
 			}
 		}
 	},
-	/***
-	 * Initialize cookie and some application variable is instance is found
-	 * set this.cookie variable
-	 * @return 	boolean	true if instance is found, else false
+	/**
+	 * Initialize cookie and some application variable is instance is found.
+	 *
+	 * <p>set this.cookie variable.</p>
+	 * @return 	{boolean}	true if instance is found, else false
 	 */
 	initCookie: function() {
 		var tmp = this.getInstance();
@@ -109,9 +131,10 @@ APE.Core = new Class({
 			return false;
 		}
 	},
-	/***
-	 * Create a cookie instance (add to the instance array of the cookie the current application)
-	 * @param	object	APE_Cookie
+	/**
+	 * Create a cookie instance (add to the instance array of the cookie the current application).
+	 *
+	 * @param	{object}	APE_Cookie
 	 */
 	createInstance: function(cookie) {
 		cookie.instance.push({
@@ -120,7 +143,7 @@ APE.Core = new Class({
 			sessid: this.getSessid()
 		});
 	},
-	/***
+	/**
 	 * Create ape cookie if needed (but do not write it)
 	 */
 	createCookie: function() {
@@ -147,3 +170,50 @@ APE.Core = new Class({
 		Cookie.dispose('APE_Cookie', {domain: this.options.domain});
 	}
 });
+/**
+ * Cookie object
+ * <p>This is provided via mootools-core or by the JavaScript client
+ *
+ * @name Cookie
+ * @namespace
+ *
+ */
+
+/**
+ * Write a variable to the cookies.
+ *
+ * @name Cookie.write
+ * @function
+ * @public
+ *
+ * @param {string} name Cookie key
+ * @param {string} value The value to store
+ *
+ * @example
+ * ///client var is a reference to APE.Client instance
+ * client.addEvent('start', function() {
+ * 	this.core.start({'name': Cookie.write('FOO', 'BAR')});
+ * };
+ *
+ * @see Cookie.read
+ */
+
+
+/**
+ * Read a variable from a the cookies.
+ *
+ * @name Cookie.read
+ * @function
+ * @public
+ *
+ * @param {string} name Cookie key
+ * @returns {string} The decoded cookie value or null
+ *
+ * @example
+ * ///client var is a reference to APE.Client instance
+ * client.addEvent('start', function() {
+ * 		this.core.start({'name': Cookie.read('FOO')});
+ * };
+ *
+ * @see Cookie.write
+ */

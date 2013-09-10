@@ -1,3 +1,12 @@
+
+/**
+* Request object
+*
+* @name APE.Request
+* @public
+* @class
+*/
+
 APE.Request = new Class({
 	initialize: function(ape) {
 		this.ape = ape;
@@ -14,6 +23,42 @@ APE.Request = new Class({
 			this.requestObserver.periodical(10, this);
 		}
 	},
+	/**
+	* Send a command to the APE server
+	*
+	* @name APE.Request.send
+	* @function
+	* @public
+	*
+	* @param {Array|string} cmd If the argument is a string, it should be a CMD (e.g. 'CONNECT'). If the argument is an array: the array should contain objects with cmd, params and sessid)
+	* @param {object} [params] The parameters that must be send with the command
+	* @param {object} [options] Object with request options
+	* @param {boolean} [options.sessid=true] Add the sessid property to the request
+	* @returns {object} The request object or undefined in Opera browser
+	*
+	* @example
+	* ///ape var is a reference to APE instance
+	* //Send a connect command to server
+	* ape.request.send('JOIN', {"channels":"testChannel"});
+	* //Note : you can join a channel with the method join
+	* ape.join('testChannel');
+	* //Note : testCommand is not a real APE command, it's just used here as an example
+	* ape.request.send('testCommand', {"param1":"value","param2":"value"});
+	* @example
+	* //ape var is a reference to APE instance
+	* //This example sends a "JOIN" command,
+	* // and "anotherCommand" with 2 arguments without adding sessid
+	* ape.request.send(
+	* 	[
+	* 		{	"cmd":"JOIN", 				"params": { "channels": "test1"}},
+	* 		{	"cmd": "anotherCommand",	"params": { "param1": "value", "param2": "value" }, "sessid": false}
+	* 	]
+	* );
+	*
+	* @see APE.Pipe.send
+	* @see APE.Request.stack.send
+	* @see APE.Request.cycledStack.send
+	*/
 	send: function(cmd, params, options, noWatch) {
 		if (this.ape.requestDisabled) return;
 		//Opera dirty fix
@@ -32,6 +77,11 @@ APE.Request = new Class({
 		this.ape.pollerObserver = this.ape.poller.delay(this.ape.options.pollTime, this.ape);
 		return ret;
 	},
+	/**
+	* @private
+	* @fires APE.cmd_
+	* @fires APE.onCmd
+	*/
 	parseCmd: function(cmd, params, options) {
 		var queryString = '';
 		var a = [];
@@ -92,10 +142,9 @@ APE.Request = new Class({
 				} else return value;
 			});
 	},
-	/****
+	/**
 	 * This method is only used by opera.
-	 * Opera have a bug, when request are sent trought user action (ex : a click), opera throw a security violation when trying to make a XHR.
-	 * The only way is to set a class var and watch when this var change
+	 * <p>Opera has a bug, when request are sent through user action (ex : a click), opera throw a security violation when trying to make a XHR. The only way is to set a class var and watch when this var change</p>
 	 */
 	requestObserver: function() {
 		if (this.requestVar.updated) {

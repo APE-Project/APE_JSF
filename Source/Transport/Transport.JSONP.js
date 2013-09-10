@@ -1,3 +1,11 @@
+/**
+ * SSE Transport object
+ *
+ * @name APE.Transport.JSONP
+ * @augments APE.Transport.SSE.prototype
+ * @class
+ * @private
+ */
 APE.Transport.JSONP = new Class({
 	Implements: APE.Transport.SSE,
 	initialize: function(ape) {
@@ -73,5 +81,12 @@ APE.Transport.JSONP = new Class({
 		//}
 	}
 });
-
+/**
+ * Check if the browser supports JSONP
+ *
+ * @name APE.Transport.JSONP.browserSupport
+ * @returns {boolean}
+ * @function
+ * @private
+ */
 APE.Transport.JSONP.browserSupport = function() { return true };

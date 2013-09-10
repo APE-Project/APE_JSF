@@ -1,3 +1,10 @@
+/**
+ * WebSocket Transport object
+ *
+ * @name APE.Transport.WebSocket
+ * @class
+ * @private
+ */
 APE.Transport.WebSocket = new Class({
 	stack: [],
 	connRunning: false,
@@ -46,6 +53,14 @@ APE.Transport.WebSocket = new Class({
 	}
 });
 
+/**
+ * Check if the browser supports WebSocket
+ *
+ * @name APE.Transport.WebSocket.browserSupport
+ * @returns {boolean}
+ * @function
+ * @private
+ */
 APE.Transport.WebSocket.browserSupport = function() {
 	if ('WebSocket' in window || 'MozWebSocket' in window) return true;
 	else return 1;//No websocket support switch to XHRStreaming

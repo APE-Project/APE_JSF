@@ -17,7 +17,7 @@
 
 */
 
-/***							    ________________________________________________________
+/**							    ________________________________________________________
  *                 __------__      /										   	  		    \
  *               /~          ~\   | APE, the Ajax Push Engine made with heart (and MooTools) |
  *              |    //^\\//^\|   |    http://www.weelya.net - http://www.ape-project.org    |
@@ -39,6 +39,38 @@
  *           -^-\  \       |        )
  *                `\_______/^\______/
  */
+/**
+ * Core object, can be extended with sessions
+ * <p>To connect such an instance to a APE server user the start() method.</p>
+ *
+ * @name APE.Core
+ * @public
+ * @class
+ * @constructor
+ *
+ * @param {object} options Options
+ * @param {string} options.server APE server URL (default: '')
+ * @param {integer} options.pollTime Max time for a request (default: 25000)
+ * @param {string} options.identifier Identifier is used by cookie to differentiate ape instance (default: 'ape')
+ * @param {integer} options.transport: Transport [0: long polling, 1 : XHRStreaming, 2: JSONP, 3 SSE / JSONP, 4 : SSE / XHR 6: websocket] (default: 0)
+ * @param {integer} options.frequency Frequency identifier (default: 0)
+ * @param {integer} options.cycledStackTime Time before send request of cycledStack (default: 350)
+ * @param {boolean} options.secure Use https instead of http (default:false)
+ *
+ * @property {object} user User object
+ *
+ * @see APE.start
+ * @see APE.ready
+ * @see APE.load
+ */
+
+/**
+* APE.Transport namespace
+*
+* @name APE.Transport
+* @namespace
+* @augments-APE.Events
+*/
 APE.Core = new Class({
 	Implements: [APE.Events, Options],
 	$originalEvents: {},
@@ -46,7 +78,7 @@ APE.Core = new Class({
 		server: '', // APE server URL
 		pollTime: 25000, // Max time for a request
 		identifier: 'ape', // Identifier is used by cookie to differentiate ape instance
-		transport: 0, // Transport 0: long polling, 1 : XHRStreaming, 2: JSONP, 3 SSE / JSONP, 4 : SSE / XHR
+		transport: 0, // Transport 0: long polling, 1 : XHRStreaming, 2: JSONP, 3 SSE / JSONP, 4 : SSE / XHR 6: websocket
 		frequency: 0, // Frequency identifier
 		cycledStackTime: 350, //Time before send request of cycledStack
 		secure: false
@@ -88,7 +120,7 @@ APE.Core = new Class({
 			if (support === true) {
 				this.options.transport = transport;
 				this.transport = new transports[transport](this);
-			} else transport = support;//Browser do not support transport, next loop will test with fallback transport returned by browserSupport();
+			} else transport = support;//Browser does not support transport, next loop will test with fallback transport returned by browserSupport();
 		}
 	},
 	poller: function() {
@@ -112,8 +144,10 @@ APE.Core = new Class({
 	cancelRequest: function() {
 		this.transport.cancel();
 	},
-	/***
-	 * Function called when a request fail or timeout
+	/**
+	 * Function called when a request fail or timeout.
+	 *
+	 * @fires APE.apeDisconnect
 	 */
 	requestFail: function(failStatus, request) {
 		var reSendData = false;
@@ -134,8 +168,10 @@ APE.Core = new Class({
 			this.check.delay(delay, this);
 		//}
 	},
-	/***
-	 * Parse received data from Server
+	/**
+	 * Parse received data from Server.
+	 *
+	 * @fires  APE.apeReconnect
 	 */
 	parseResponse: function(raws, callback) {
 		if (raws) {
@@ -173,8 +209,12 @@ APE.Core = new Class({
 		} else if (!this.transport.running()) check = true; //No request running, request didn't respond correct JSON, something went wrong
 		if (check) this.check();
 	},
-	/***
-	 * Fire raw event. If received raw is on a non-existing pipe, create new pipe
+	/**
+	 * Fire raw event.
+	 * <p>If received raw is on a non-existing pipe, create new pipe.</p>
+	 *
+	 * @fires APE.onRaw
+	 * @fires APE.raw_
 	 */
 	callRaw: function(raw) {
 		var args;
@@ -202,6 +242,18 @@ APE.Core = new Class({
 		}
 		this.fireEvent('raw_' + raw.raw.toLowerCase(), args);
 	},
+	/**
+	* Create a new pipe, or find an existing one by its pubid.
+	* <p>If options is a pipe with a existing pubid, that pipe will be returned, else a new one will be created for the desired type.</p>
+	*
+	* @name APE.Core.newPipe
+	* @function
+	* @public
+	*
+	* @param {string} type Can be 'uni', 'multi', 'proxy'
+	* @param {object} [options] Option with a pipe.pubid property
+	* @returns {APE.PipeSingle|APE.PipeMulti|APE.PipeProxy}
+	*/
 	newPipe: function(type, options) {
 		if (options && options.pipe.pubid) {
 			var pipe = this.pipes.get(options.pipe.pubid);
@@ -215,12 +267,54 @@ APE.Core = new Class({
 		if (!opt.request) return this.request.send.bind(this.request);
 		else return this.request[opt.request].add.bind(this.request[opt.request]);
 	},
-	/***
+	/**
 	 * Add a pipe to the core pipes hash
 	 */
 	addPipe: function(pubid, pipe) {
 		return this.pipes.set(pubid, pipe);
 	},
+	/**
+	* Get a pipe object
+	*
+	* @name APE.getPipe
+	* @function
+	* @public
+	*
+	* @param {string} pubid The pubid of the pipe
+	* @returns {object} A. pipe object or null
+	*
+	* @example
+	* //ape var is a reference to APE instance
+	* //Get a pipe
+	* var myPipe = ape.getPipe('a852c20b3e5c9889c16fe4ac88abe98f');
+	* //Send a message on the pipe
+	* myPipe.send('Hello world');
+	* @example
+	* //ape var is a reference to APE instance
+	* //getPipe on Multi Pipe
+	* //ape var is a reference to APE instance
+	* ape.join('testChannel');
+	* //This sample is just here to show you how to intercept pipe pubid in pipeCreate event
+	* ape.addEvent('multiPipeCreate', function(type, pipe, options) {
+	* 	//Get the pipe object
+	* 	var myPubid = ape.getPipe(pipe.getPubid());
+	* 	//Send a message on the pipe
+	* 	 myPipe.send('Hello world');
+	* });
+	* @example
+	* //ape var is a reference to APE instance
+	* //ape var is a reference to APE instance
+	* ape.join('testChannel');
+	* ape.addEvent('userJoin', function(user, pipe) {
+	* 	//For performance purpose, user are not pipe in APE JSF. If you want to have a pipe from an user, use getPipe.
+	* 	//Transform all user into a pipe object
+	* 	var pipe = ape.getPipe(user.pubid);
+	* 	//Send 'Hello world' to the user
+	* 	pipe.send('Hello world');
+	* });
+	*
+	* @see APE.Pipe
+	*/
 	getPipe: function(pubid) {
 		var pipe = this.pipes.get(pubid);
 		if (!pipe) {
@@ -229,8 +323,33 @@ APE.Core = new Class({
 		}
 		return pipe;
 	},
-	/***
-	 * Remove a pipe from the pipe hash and fire event 'pipeDelete'
+	/**
+	 * Delete a pipe from the Core.
+	 * <p>Effectively this removes a pipe from the pipe hash and fire event 'pipeDelete'.</p>
+	 * <p>Use this function when you no longer need to use a pipe to free the memory.</p>
+	 * <p>You should only use this function to delete Uni Pipe (user pipe). The deleting of Multi Pipe (channel pipe) are automatically handled by the Core when you left a Multi Pipe.</p>
+	 *
+	 * @name APE.Core.delPipe
+	 * @function
+	 * @public
+	 *
+	 * param {string} pubid The pubid of the pipe.*
+	 * returns {APE.Pipe} The deleted pipe
+	 *
+	 * @examples
+	 * //ape var is a reference to APE instance
+	 * //Join testChannel
+	 * ape.join('testChannel');
+	 * ape.addEvent('userJoin', function(user, pipe) {
+	 * 	//Get the pipe from user
+	 * 	var userPipe = ape.getUserPipe(user);
+	 * 	//Send a message to the user
+	 * 	userPipe.send('Hello world');
+	 * 	//Delete the pipe as we no longer need it
+	 * 	ape.delPipe(userPipe.getPubid());
+	 * });
+	 *
+	 * @fires APE.PipeDelete
 	 */
 	delPipe: function(pubid) {
 		var pipe = this.pipes.get(pubid);
@@ -238,30 +357,134 @@ APE.Core = new Class({
 		this.fireEvent(pipe.type + 'PipeDelete', [pipe]);
 		return pipe;
 	},
+	/**
+	* Send a CHECK cmd to the server.
+	* <p>Note: this is automatically done and can be configured by the pollTime option parameter.
+	*
+	* @name APE.check
+	* @function
+	* @public
+	*
+	* @example
+	* var ape = new APE.Core({
+	* 'pollTime': 35000, //if you set pollTime to 35sec you need to set it on the server side to 55sec
+	* 'identifier': 'myApplicationIdentifier',
+	* });
+	* ape.start();
+	* // obsessive check
+	* setInterval(function(){
+	* 	ape.check();
+	* }, 1000);
+	*
+	* @see APE
+	*/
 	check: function() {
 		this.request.send('CHECK');
 	},
+	/**
+	* Initiate a connection to a APE server.
+	* <p>If there is an instance of APE present (created via APE.Core()), it can be connected to the server with the start method. The prefered way is to make the connection with APE.load() method.</p>
+	*
+	* @name APE.start
+	* @function
+	* @public
+	*
+	* @param {object} args Connection arguments
+	* @param {object} options Connection options (e.g.  'channel')
+	* @returns {void}
+	*
+	* @example
+	* //ape var is a reference to APE instance
+	*  ape.start(); //Send CONNECT command to APE.
+	* @example
+	* //ape var is a reference to APE instance
+	* //If you use APE with libape-chat you need to send your nickname in the CONNECT request
+	* ape.start('myNickname'); //Send CONNECT command with a nickname to APE and tries to join the optional channel
+	*
+	* @see APE.load
+	* @see APE.restoreStart
+	* @see APE.restoreEnd
+	* @see APE.apeDisconnect
+	* @see APE.apeReconnect
+	* @see APE.ready
+	*/
 	start: function(args, options) {
 		this.connect(args, options);
 	},
 	connect: function(args, options) {
 		if (!options) options = {};
 		options.sessid = false;
-
 		this.request.stack.add('CONNECT', args, options);
 		if (this.options.channel) {
 			this.request.stack.add('JOIN', {'channels': this.options.channel}, options);
 		}
 		if (!$defined(options.sendStack) && options.sendStack !== false) this.request.stack.send();
 	},
+	/**
+	* Join one or many channels.
+	*
+	* @name APE.join
+	* @function
+	* @public
+	*
+	* @param {string|Array} channel The channel(s) to join
+	* @returns {void}
+	*
+	* @example
+	* //ape var is a reference to APE instance
+	* ape.join('testchannel'); //Join channel "testchannel"
+	* //ape var is a reference to APE instance
+	* ape.join(['channel1', 'channel2']); //Join channels "channel1" and "channel2"
+	*
+	* @see APE.left
+	*/
 	join: function(channel, options) {
 		options = options || {};
 		options.channels = channel;
 		this.request.send('JOIN', options);
 	},
+	/**
+	* Leave (unsubscribe) a channel and fire the pipeDelete
+	*
+	* @name APE.left
+	* @function
+	* @public
+	*
+	* @param {string} pubid The pubid of the channel
+	* @returns {void}
+	*
+	* @example
+	* //ape var is a reference to APE instance
+	* //Join testchannel
+	* ape.join('testchannel');
+	* //Intercept pipeCreate event (this event is fired when you join a channel)
+	* ape.addEvent('multiPipeCreate', function(pipe, options) {
+	* if (pipe.properties.name=='teschannel') {
+	* 	//If pipe is testchannel, left it :p
+	* 	ape.left(pipe.getPubid());
+	* 	}
+	* });
+	*
+	* @see APE.join
+	*/
 	left: function(pubid) {
 		this.request.send('LEFT', {'channel': this.pipes.get(pubid).name});
 	},
+	/**
+	* Exit APE
+	* <p>Sends a QUIT CMD and clears the sessions</p>
+	*
+	* @name APE.quit
+	* @function
+	* @public
+	*
+	* @returns {void}
+	* @example
+	* //ape var is a reference to APE instance
+	* ape.quit();
+	*
+	* @see APE.clearSession
+	*/
 	quit: function() {
 		this.request.send('QUIT');
 		this.clearSession();
@@ -272,10 +495,67 @@ APE.Core = new Class({
 	getSessid: function() {
 		return this.sessid;
 	},
+	/**
+	* Save a sesion variable on the APE server.
+	* <p>Adds a key-value pair to the session on the APE server or replaces a previous value associated with the specified key.</p>
+	*
+	* @name APE.setSession
+	* @function
+	* @public
+	*
+	* @param {string} key The key
+	* @param {string} value The value that will be associated with that key
+	* @returns {void}
+	*
+	* @example
+	* //ape var is a reference to APE instance
+	* ape.setSession({'myKey1':'myValue','myKey2':'myValue2'});
+	* ape.getSession('myKey', function() {
+	* 	console.log(resp.datas.sessions.myKey1);
+	* });
+	* @example
+	* //ape var is a reference to APE instance
+	* ape.setSession({'myKey':'["A Json array", "Value 2"]'});
+	* ape.getSession('myKey', function(response) {
+	* //decode the received data, and use eval to dedode the data
+	* console.log(eval(decodeURIComponent(response.datas.sessions.myKey)));
+	* });
+	*
+	* @see APE.getSession
+	* @see APE.clearSession
+	*/
 	setSession: function(obj, option) {
 		if (this.restoring) return;
 		this.request.send('SESSION', {'action': 'set', 'values': obj}, option);
 	},
+	/**
+	* Retrieves a value from the session on the APE server.
+	*
+	* @name APE.getSession
+	* @function
+	* @public
+	*
+	* @param {string|Array} key The key(s) to retrieve
+	* @param {function} fn Callback function to execute when the sessions is received. One arguments is passed to the callback function with the response of the server.
+	* @returns {void}
+	*
+	* @example
+	* //ape var is a reference to APE instance
+	* 	ape.setSession({'myKey1':'myValue','myKey2':'myValue2'});
+	* 	ape.getSession('myKey', function(resp) {
+	* 		console.log(resp.datas.sessions.myKey);
+	* });
+	* @example
+	* //ape var is a reference to APE instance
+	* ape.setSession({'myKey':'["A Json array", "Value 2"]'});
+	* ape.getSession('myKey', function(resp) {
+	* 	//decode the received data, and use eval to dedode the data
+	* 	console.log(eval(decodeURIComponent(resp.datas.sessions.myKey)));
+	* });
+	*
+	* @see APE.setSession
+	* @see APE.clearSession
+	*/
 	getSession: function(key, callback, option) {
 		if (!option) option = {};
 		var requestOption = {};
@@ -299,6 +579,10 @@ APE.Core = new Class({
 		this.user.pipes = new $H;
 		this.users.set(this.pubid, this.user);
 	},
+	/**
+	* @fires APE.ready
+	* @fires APE.init
+	*/
 	rawLogin: function(param) {
 		this.sessid = param.data.sessid;
 		this.status = 1;
@@ -306,14 +590,38 @@ APE.Core = new Class({
 		this.fireEvent('ready');
 		this.fireEvent('init');
 	},
+	/**
+	* @fires APE.error_
+	*/
 	rawErr: function(err) {
 		this.fireEvent('error_' + err.data.code, err);
 	},
+	/**
+	*
+	* @see APE.quit
+	*/
 	rawQuit: function() {
 		this.stopRequest();
 	},
-	/***
-	 * Clear the sessions, clean timer, remove cookies, remove events
+	/**
+	* Clear the sessions, clean timer, remove cookies, remove events, stop all running requests, reset sissd and pubid
+	*
+	* @name APE.clearSession
+	* @function
+	* @public
+	*
+	* @example
+	* //ape var is a reference to APE instance
+	* //Error 004 is fired when you sent a bad sessid (this can happen if the client experience some connection issue longer than 45sec)
+	* ape.onError('004', function() {
+	* 	ape.clearSession();
+	* 	ape.initialize(ape.options); //Reinitialize APE class
+	* });
+	*
+	* @see APE.quit
+	* @see APE.getSession
+	* @see APE.setSession
+	* @fires APE.clearSession
 	 */
 	clearSession: function() {
 		//Clear all APE var
@@ -328,9 +636,28 @@ APE.Core = new Class({
 		this.cancelRequest();
 	}
 });
-
+/*
+ * Ape variable
+ *
+ * @name Ape
+ *
+ */
 var Ape;
-
+/*
+ * Ape initialiser
+ *
+ * @name APE.init
+ * @function
+ * @public
+ *
+ * @param {object} config Configuration object
+ *
+ * @see APE.Core
+ * @see APE.Client
+ * @see APE.load
+ * @see APE.start
+ *
+ */
 APE.init = function(config) {
 	//Delay of 1ms allow browser to do not show a loading message
 	(function() {

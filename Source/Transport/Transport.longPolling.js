@@ -1,3 +1,11 @@
+/**
+* Enhanced Request object
+* Extends the mootools Request class
+*
+* @name Request
+* @ignore
+* @class
+*/
 Request = new Class({
 	Extends: Request,
 	send: function(options) {
@@ -11,6 +19,13 @@ Request = new Class({
 	}
 });
 
+/**
+ * Longpolling Transport object
+ *
+ * @name APE.Transport.LongPolling
+ * @class
+ * @private
+ */
 APE.Transport.longPolling = new Class({
 	initialize: function(ape) {
 		this.ape = ape;
@@ -38,5 +53,12 @@ APE.Transport.longPolling = new Class({
 		$clear(this.requestFailObserver.shift());
 	}
 });
-
+/**
+ * Check if the browser supports longpolling
+ *
+ * @name APE.Transport.LongPolling.browserSupport
+ * @returns {boolean}
+ * @function
+ * @private
+ */
 APE.Transport.longPolling.browserSupport = function() { return Browser.Features.xhr ? true : 2; };

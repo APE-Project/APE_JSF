@@ -1,3 +1,19 @@
+/**
+* Request.XHRStreaming object
+* Extends the mootools Request class
+*
+* @name Request.XHRStreaming
+* @private
+* @class
+*/
+
+/**
+ * Progress on a XHRStreaming request
+ *
+ * @name APE.progress
+ * @event
+ * public
+ */
 Request.XHRStreaming = new Class({
 	Extends: Request,
 	lastTextLength: 0,
@@ -12,6 +28,12 @@ Request.XHRStreaming = new Class({
 		else if (this.xhr.readyState == 3) this.progress(this.xhr.responseText, this.xhr.responseXML);
 		this.parent();
 	},
+	/**
+	*
+	* @private
+	* @fires APE.progress
+	* @param {unknown} arguments
+	*/
 	onProgress: function() {
 		this.fireEvent('progress', arguments);
 	},
@@ -23,6 +45,15 @@ Request.XHRStreaming = new Class({
 		this.onProgress(this.processScripts(text), xml);
 	}
 });
+
+/**
+ * XHRStreaming Transport object
+ *
+ * @name APE.Transport.XHRStreaming
+ * @augments APE.Request.SSE
+ * @class
+ * @private
+ */
 APE.Transport.XHRStreaming = new Class({
 	maxRequestSize: 100000,
 	Implements: APE.Request.SSE,
@@ -139,12 +170,18 @@ APE.Transport.XHRStreaming = new Class({
 	},
 	cancel: function() {
 		if (this.request) this.request.cancel();
-
 		$clear(this.streamInfo.timeoutObserver);
 		$clear(this.requestFailObserver.shift());
 	}
 });
-
+/**
+ * Check if the browser supports XHRStreaming
+ *
+ * @name APE.Transport.XHRStreaming.browserSupport
+ * @returns {boolean}
+ * @function
+ * @private
+ */
 APE.Transport.XHRStreaming.browserSupport = function() {
 	if (Browser.Features.xhr && (Browser.Engine.webkit || Browser.Engine.gecko)) {
 		return true;

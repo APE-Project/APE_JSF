@@ -1,21 +1,50 @@
 String.implement({
+	/**
+	* Add slashes to a string
+	* @name String.addSlashes
+	* @function
+	* @public
+	* @requires Mootools.String
+	*/
 	addSlashes: function() {
 		return this.replace(/("|'|\\|\0)/g, '\\$1');
 	},
+	/**
+	* Remove slashes from a string
+	* @name String.stripSlashes
+	* @function
+	* @public
+	* @requires Mootools.String
+	*/
 	stripSlashes: function() {
 		return this.replace(/\\("|'|\\|\0)/g, '$1');
 	}
 });
-
+/**
+ * Base 64 encode / Base 64 decode
+ *
+ *
+ * @name B64
+ * @namespace
+ * @author Taken from orbited project - http://www.orbited.org
+ */
 var B64 = new Hash({
 	$p: '=',
 	$tab: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
-	/***
-	 * Base 64 encode / Base 64 decode
-	 * Taken from orbited project - http://www.orbited.org
+	/**
+	* Encode a string as a base64-encoded string
+	*
+	* @name B64.encode
+	* @function
+	* @public
+	* @static
+	*
+	* @param {string} string string to encode
+	* @returns {string} Encoded string
+	*
+	* @see B64.decode
 	 */
 	encode: function(ba) {
-		//  Encode a string as a base64-encoded string
 		var s = [], l = ba.length;
 		var rm = l % 3;
 		var x = l - rm;
@@ -46,6 +75,19 @@ var B64 = new Hash({
 		}
 		return s.join(''); // string
 	},
+	/**
+	* Decode a string to a base64-encoded string
+	*
+	* @name B64.decode
+	* @function
+	* @public
+	* @static
+	*
+	* @param {string} string string to decode
+	* @returns {string} decoded string
+	*
+	* @see B64.encode
+	*/
 	decode: function(str) {
 		var s = str.split(''), out = [];
 		var l = s.length;
@@ -61,7 +103,7 @@ var B64 = new Hash({
 			out.push(String.fromCharCode(t & 0xff));
 		}
 		// strip off trailing padding
-		while (tl--) { out.pop(); }
+		while (tl--) {out.pop(); }
 		return out.join(''); //  string
 	}
 });
@@ -238,7 +280,7 @@ try {
 	//Avoid showing error if window.parent.setInterval() is not working (ie : permission denied)
 	window.parent.setInterval();
 	//Override setInterval to be done outside the frame (there is some issue inside the frame with FF3 and WebKit)
-	if (!Browser.Engine.trident && !Browser.Engine.presto && !(Browser.Engine.gecko && Browser.Engine.version <= 18)) {
+	if (!Browser.Engine.trident && ! Browser.Engine.presto && ! (Browser.Engine.gecko && Browser.Engine.version <= 18)) {
 		setInterval = function(fn, time) {
 			return window.parent.setInterval(fn, time);
 		};

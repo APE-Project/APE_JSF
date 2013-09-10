@@ -90,7 +90,7 @@ APE.Client.prototype.load = function(config) {
 	} else {
 		cookie = '{"frequency":0}';
 	}
-	var reg = new RegExp('"frequency":([ 0-9]+)' , 'g')
+	var reg = new RegExp('"frequency":([ 0-9]+)', 'g');
 	cookie = cookie.replace(reg, '"frequency":' + config.frequency);
 	this.cookie.write('APE_Cookie', cookie);
 	var iframe = document.createElement('iframe');
