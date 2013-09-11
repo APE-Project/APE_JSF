@@ -9,11 +9,6 @@
  * @author John Chavarria (psi)
  */
 
-/**
- * @name APE
- * @namespace
- * @public
- */
 var APE = {
 	Config: {
 		identifier: 'ape',
