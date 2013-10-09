@@ -1,7 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en">
     <head>  
-        <script type="text/javaScript" src="../../Clients/mootools-core.js"></script>
+    	<title>APE Check Tool</title>
+        <script type="text/javaScript" src="mootools-core.js"></script>
 		<style type="text/css">
 			html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,button{margin:0;padding:0;border:0;outline:0;font-weight:normal;font-style:inherit;font-size:100%;font-family:inherit;vertical-align:baseline;}:focus{outline:0;}body{line-height:1;color:black;background:white;}ol,ul{list-style:none;}table{border-collapse:separate;border-spacing:0;}caption,th,td{text-align:left;font-weight:normal;}blockquote:before,blockquote:after,q:before,q:after{content:"";}blockquote,q{quotes:"""";}.clear{clear:both;}.fl{float:left;}.fr{float:right;}
 			body {
@@ -119,21 +120,21 @@
 					this.fireEvent('testComplete', {'sucess': true});
 				}.bind(this));
 
-				this.addTest('Loading Client', function() {
+				this.addTest('Loading Client "apeClient.min.js"', function() {
 						var req = new Request({
-							'url': '../../Clients/MooTools.js',
+							'url': '../../js/apeClient.min.js',
 							'method': 'get',
 							'evalResponse': true,
 							'onComplete': function(resp) {
 								if (window.APE) this.fireEvent('testComplete', {'sucess': true});
-								else this.fireEvent('testComplete', {'error': "Can't load client, check the file " + window.location.href.replace('/Tools/Check/', '') + "/Clients/MooTools.js is available"});
+								else this.fireEvent('testComplete', {'error': "Can't load client, check the file " + window.location.href.replace('/Tools/Check/', '') + "/js/apeClient.min.js is available"});
 							}.bind(this)
 						}).send();
 				}.bind(this));
 
-				this.addTest('Loading config', function() {
+				this.addTest('Loading config "apeConfig.js"', function() {
 					var req = new Request({
-						'url': '../../Demos/config.js',
+						'url': '../../js/apeConfig.js',
 						'method': 'get',
 						'evalResponse': true,
 						'onComplete': function() {
@@ -146,14 +147,14 @@
 								}
 								this.fireEvent('testComplete', {'sucess': 'Config values are : <pre>' + confVal + '</pre>'});
 							}
-							else this.fireEvent('testComplete', {'error': "Can't load client, check the file " + window.location.href.replace('/Tools/Check/','') + "/Clients/MooTools.js is readable"});
+							else this.fireEvent('testComplete', {'error': "Can't load client, check the file " + window.location.href.replace('/Tools/Check/','') + "/js/apeConfig.js is readable"});
 							
 						}.bind(this)
 					}).send();
 				}.bind(this));
 
 				this.addTest('Setting document.domain', function() {
-						if (APE.Config.domain == 'yourdomain.com') {
+						if (APE.Config.domain == 'ape-project.org') {
 							this.fireEvent('testComplete', {'error': "APE.Config.domain has the default value. Please first edit Demos/config.js with the correct values. APE.Config.domain might be " + window.location.hostname + ""});
 						} else {
 							var error = false;
@@ -174,17 +175,20 @@
 
 				this.addTest('Checking APE.Config.baseUrl', function() {
 						var oldAPE = $extend({}, APE);
-						var req = new Request({
+						//We load this as JSON, otherwhise the code is executed and mess the rest of the tool.
+						var req = new Request.JSON({ 
 							'method': 'get',
-							'url': APE.Config.baseUrl + '/Source/Core/APE.js',
+							'url': APE.Config.baseUrl + '/src/Core/Sources/Core/APE.js',
 							'onComplete': function(res) {
 								if (req.isSuccess()) {
 								
 									var version = APE.version;
 									APE = oldAPE;
-									this.fireEvent('testComplete', {'sucess': "APE JSF Version " + version + ""}); 
+									this.fireEvent('testComplete', {'sucess': true});
+									//Since it's JSON, we can't access the version number :(
+									//this.fireEvent('testComplete', {'sucess': "APE JSF Version " + version + ""});  
 								} else {
-									this.fireEvent('testComplete', {'error': "Your variable APE.Config.baseUrl is wrong in Demos/config.js. Please change it to point to APE JSF directory on your webserver"});
+									this.fireEvent('testComplete', {'error': "Your variable APE.Config.baseUrl is wrong in " + window.location.href.replace('/Tools/Check/','') + "/js/apeConfig.js. Please change it to point to APE JSF directory on your webserver"});
 								}
 							}.bind(this)
 						}).send();

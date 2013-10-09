@@ -3,16 +3,16 @@
 <head>	
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<link rel="stylesheet" type="text/css" href="demo.css" media="screen" title="Normal" />
-	<script type="text/javaScript" src="../../Clients/mootools-core.js"></script>
-	<script type="text/javaScript" src="../../Clients/MooTools.js"></script>
-	<script type="text/javaScript" src="../config.js"></script>
+	<script type="text/javaScript" src="mootools-core.js"></script>
+	<script type="text/javaScript" src="../../js/apeClient.min.js"></script>
+	<script type="text/javaScript" src="../../js/apeConfig.js"></script>
 	<script type="text/javaScript" src="demo.js"></script>
 </head>
 <body>
 	<div id="ape_master_container"></div>
 	<script type="text/javaScript">
 		// Add Session.js to APE JSF to handle multitab and page refresh
-		APE.Config.scripts.push(APE.Config.baseUrl+'/Source/Core/Session.js');
+		APE.Config.scripts.push(APE.Config.baseUrl + '/apeCoreSession.min.js');
 
 		// Initialize APE_Client
 		var chat = new APE.Chat({'container':$('ape_master_container')});

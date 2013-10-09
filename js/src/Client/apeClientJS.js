@@ -164,4 +164,3 @@ if (Function.prototype.create == null) {
 			};
 	}
 }
-
