@@ -8,20 +8,20 @@ $messages = array(
 	'<span style="color: #080">Hey, how are you doing?</span>',
 );
 
-$cmd = array(array( 
-  'cmd' => 'inlinepush', 
-  'params' =>  array( 
-	  'password'  => $APEPassword, 
-	  'raw'       => 'postmsg', 
-	  'channel'   => 'testchannel', 
-	  'data'      => array( //Note: data can't be a string 
-	      'message' => $messages[array_rand($messages)] 
-	  ) 
-   ) 
-)); 
+$cmd = array(array(
+	'cmd' => 'inlinepush',
+	'params' =>	array(
+		'password'	=> $APEPassword,
+		'raw'		 => 'postmsg',
+		'channel'	=> 'testchannel',
+		'data'		=> array( //Note: data can't be a string
+				'message' => $messages[array_rand($messages)]
+		)
+	)
+));
 
 var_dump($APEserver.rawurlencode(json_encode($cmd)));
-$data = file_get_contents($APEserver.rawurlencode(json_encode($cmd))); 
+$data = file_get_contents($APEserver.rawurlencode(json_encode($cmd)));
 $data = json_decode($data);
 
 if ($data[0]->data->value == 'ok') {

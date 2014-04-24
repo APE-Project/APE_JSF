@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en">
-<head>	
+<head>
 	<link rel="stylesheet" href="chat.css" />
 	<script type="text/javaScript" src="../../Clients/JavaScript.js"></script>
 	<script type="text/javaScript" src="./jquery.js"></script>
@@ -10,21 +10,17 @@
 </head>
 <body>
 	<script type="text/javaScript">
-		function rand_chars(){
-			 var keylist="abcdefghijklmnopqrstuvwxyz"
-			 var temp=''
-			 var plength=5;
-			 for (i=0;i<plength;i++){
-				 temp+=keylist.charAt(Math.floor(Math.random()*keylist.length))
+		function rand_chars(plength) {
+			var keylist = "abcdefghijklmnopqrstuvwxyz";
+			var temp = '';
+			for (i = 0; i < plength; i++) {
+				temp += keylist.charAt(Math.floor(Math.random() * keylist.length));
 			}
 			return temp;
 		}
-
-		var TCPSocket; 
-
+		var TCPSocket;
 		var client = new APE.Client();
-
-		client.addEvent('load', function(){ 
+		client.addEvent('load', function(){
 			//Define TCPSocket var to be compliant with TCPSocket
 			TCPSocket = this.core.TCPSocket;
 			ENTER_KEY = 13
@@ -32,17 +28,16 @@
 			$('#nickname').keypress( function(e) {
 				var key = e.charCode || e.keyCode || 0
 				if (key == ENTER_KEY) {
-					/* 
+					/*
 					 * Note : Here we connect to ape and send a username because our ape server use modchat
-					 * But if your server don't use mod chat just remove rand_chars() :)
+					 * But if your server don't use mod chat just remove rand_chars(5) :)
 					 */
-					client.core.start({'name': rand_chars()});
+					client.core.start({'name': rand_chars(5)});
 					client.addEvent('init',function(){ //Only connect when client is connected to APE
 						connect();
 					});
 				};
 			});
-
 			$('#chatbox_input').keypress(function(e) {
 				var key = e.charCode || e.keyCode || 0;
 				if (key == ENTER_KEY) {
@@ -51,25 +46,21 @@
 				};
 			});
 		});
-
-
-		client.load({'identifier':'chatdemo'});
+		client.load({'identifier': 'chatdemo'});
 	</script>
 	<div class="chatbox">
-	<div id="signin_popup">
-	<h2>Sign in to the #ape-project chat room.</h2>
-	<label for="nickname">Nickname:</label>
-	<input type="text" id="nickname" maxlength="16" value="" />
-	</div>
-	<div id="absorb_clicks" onclick=""></div>
-	<div class="left_column">
-
-	<div class="chathistory" id="chathistory">
-	</div>
-	<textarea name="message" class="chatbox_input" id="chatbox_input" rows="2" cols="50"></textarea>
-	</div>
-	<div class="user_list" id="user_list">
-	</div>
+		<div id="signin_popup">
+			<h2>Sign in to the #ape-project chat room.</h2>
+			<label for="nickname">Nickname:</label>
+			<input type="text" id="nickname" maxlength="16" value="" />
+		</div>
+		<div id="absorb_clicks" onclick=""></div>
+			<div class="left_column">
+				<div class="chathistory" id="chathistory"></div>
+				<textarea name="message" class="chatbox_input" id="chatbox_input" rows="2" cols="50"></textarea>
+			</div>
+			<div class="user_list" id="user_list">
+		</div>
 	</div>
 	<br/>
 	<br/>

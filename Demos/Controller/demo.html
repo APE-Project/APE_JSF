@@ -2,43 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" dir="ltr" lang="en">
 <head>
 	<title>APE Controller Test</title>
-	<style type="text/css">
-		body {
-			margin: 10px;
-			padding: 0;
-			
-			font-family: Tahoma;
-			font-size: 12px;
-		}
-		
-		div#apeControllerDemo {
-			margin: 10px 0;
-			padding: 10px;
-			
-			border: 1px solid #e2e2e2;
-			background: #f2f2f2;
-		}
-		
-		div#apeControllerDemo div.message {
-			padding: 5px 0;
-			border-bottom: 1px solid #bbb;
-		}
-		
-		div#apeControllerDemo div.message:last-child {
-			border-bottom: 0;
-		}
-	</style>
-	
+	<link rel="stylesheet" type="text/css" href="./demo.css" media="screen" title="Normal" />
 	<script type="text/javaScript" src="../../Clients/mootools-core.js"></script>
 	<script type="text/javaScript" src="../../Clients/MooTools.js"></script>
 	<script type="text/javaScript" src="../config.js"></script>
 	<script type="text/javaScript" src="demo.js"></script>
+	<style type="text/css"></style>
 	<script type="text/javaScript">
 		window.addEvent('domready', function(){
 			var client = new APE.Controller({
 				container: $('apeControllerDemo')
 			});
-
 			client.load({
 				identifier: 'action',
 				channel: 'testchannel'
@@ -47,15 +21,14 @@
 	</script>
 </head>
 <body>
-<div>
-		In order to try this demo, you need: 
+	<div>
+		In order to try this demo, you need:
 		<ul>
 			<li>Inlinepush have to be loaded on the APE server</li>
 			<li>Set your APE server address in the controller/test.php</li>
 		</ul>
 		Load this page and go to <a href="./test.php" target="_blank">test.php</a> and you will see a message appear in the element down below:
-		
 		<div id="apeControllerDemo"></div>
-</div>
+	</div>
 </body>
 </html>
